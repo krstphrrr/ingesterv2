@@ -7,8 +7,7 @@ from geoalchemy2 import Geometry, WKTElement, WKBElement
 from sqlalchemy import *
 from shapely.geometry import Point
 import re
-headerpath = r"C:\Users\kbonefont\Desktop\data\1_header.csv"
-geospepath = r"C:\Users\kbonefont\Desktop\data\geoSpecies_2.csv"
+
 
 class header:
     engine = None
@@ -61,19 +60,12 @@ class header:
 
 
 
-
-
-header = pd.read_csv(headerpath)
-
-
 i = ingesterv2()
 
 no = ['groups', 'ng_user', 'pages', 'PrimaryKey', 'user_group_link', 'users']
 for item in i.tablenames:
     if item not in no:
         i.drop_fk(item)
-
-
 
 
 gdf.to_sql('dataHeader', engine, index=False, dtype=header_types)
