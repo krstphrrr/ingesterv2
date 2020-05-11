@@ -23,7 +23,7 @@ for item in i.tablenames:
 i = ingesterv2()
 i.tablenames
 
-i.reestablish_fk
+i.reestablish_fk('geoSpecies')
 class ingesterv2:
     # connection properties
     con = None
@@ -104,6 +104,7 @@ class ingesterv2:
         key_str = "{}_PrimaryKey_fkey".format(str(table))
 
         try:
+
             self.cur.execute(
             sql.SQL("""ALTER TABLE gisdb.public.{0}
                    ADD CONSTRAINT {1}
@@ -116,6 +117,8 @@ class ingesterv2:
             self.con.commit()
         except Exception as e:
             print(e)
+            self.con = db.str
+            self.cur = self.con.cursor()
 
 
 

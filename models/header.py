@@ -54,5 +54,17 @@ class header:
         self.geo_dataframe.drop('geometry', axis=1, inplace=True)
 
     def send_to_pg(self):
+        con = db.str
+        cur = con.cursor()
 
         self.geo_dataframe.to_sql('dataHeader', self.engine, index=False, dtype=self.header_types)
+        try:
+            self.cur.execute("""
+            ALTER TABLE gisdb.public."dataHeader"
+            ADD PRIMARY KEY ("PrimaryKey");
+            """)
+            con.commit()
+        except Exception as e:
+            print(e)
+            con = db.str
+            cur = con.cursor()
