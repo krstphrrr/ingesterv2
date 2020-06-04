@@ -44,7 +44,7 @@ class datagap:
         "State" : TEXT(),
         "PlotKey" : TEXT()
         }
-    datalpi_dtypes = {
+    pandas_dtypes = {
         "LineKey" : "object",
         "RecKey" : "object",
         "DateModified" : "datetime64[ns]",
@@ -137,7 +137,7 @@ class datagap:
         """ fieldtype check """
         for i in self.checked_df.columns:
             if self.checked_df[i].dtype!=self.datalpi_dtypes[i]:
-                self.checked_df[i] = self.typecast(df=self.checked_df,field=i,fieldtype=self.datalpi_dtypes[i])
+                self.checked_df[i] = self.typecast(df=self.checked_df,field=i,fieldtype=self.pandas_dtypes[i])
 
     def send_to_pg(self):
 

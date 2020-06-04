@@ -37,7 +37,7 @@ class datalpi:
         "SAGEBRUSH_SPP": TEXT(),
         "PLOTKEY":VARCHAR(100)
         }
-    datalpi_dtypes = {
+    pandas_dtypes = {
         "LineKey" : "object",
         "RecKey" : "object",
         "DateModified" : "datetime64[ns]",
@@ -118,7 +118,7 @@ class datalpi:
         """ fieldtype check """
         for i in self.checked_df.columns:
             if self.checked_df[i].dtype!=self.datalpi_dtypes[i]:
-                self.checked_df[i] = self.typecast(df=self.checked_df,field=i,fieldtype=self.datalpi_dtypes[i])
+                self.checked_df[i] = self.typecast(df=self.checked_df,field=i,fieldtype=self.pandas_dtypes[i])
 
     def typecast(self,df,field,fieldtype):
         data = df

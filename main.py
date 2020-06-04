@@ -151,52 +151,6 @@ class ingesterv2:
                 cursor.close()
 
 
-def createtable():
-    command = """ CREATE TABLE gisdb.public."dataLPI"
-    (
-    "LineKey" VARCHAR(100),
-    "RecKey" VARCHAR(100),
-    "DateModified" DATE ,
-    "FormType" TEXT ,
-    "FormDate" DATE ,
-    "Observer" TEXT ,
-    "Recorder" TEXT ,
-    "DataEntry" TEXT ,
-    "DataErrorChecking" TEXT ,
-    "Direction" VARCHAR(50),
-    "Measure" NUMERIC ,
-    "LineLengthAmount" NUMERIC ,
-    "SpacingIntervalAmount" NUMERIC ,
-    "SpacingType" TEXT ,
-    "HeightOption" TEXT ,
-    "HeightUOM" TEXT ,
-    "ShowCheckbox" NUMERIC ,
-    "CheckboxLabel" TEXT ,
-    "PrimaryKey" VARCHAR(100),
-    "DBKey" TEXT ,
-    "PointLoc" NUMERIC ,
-    "PointNbr" NUMERIC ,
-    "ShrubShape" TEXT ,
-    "layer" TEXT ,
-    "code" TEXT ,
-    "chckbox" INTEGER ,
-    "source" TEXT ,
-    "STATE" VARCHAR(50),
-    "SAGEBRUSH_SPP" TEXT ,
-    "PLOTKEY" VARCHAR(100)
-    )
-    """
-
-    con = db.str
-    cur = con.cursor()
-    try:
-        cur.execute(command)
-        con.commit()
-        # cur.execute("selec")
-    except Exception as e:
-        con = db.str
-        cur = con.cursor()
-        print(e)
 
 
 
