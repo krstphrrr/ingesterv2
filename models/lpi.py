@@ -5,7 +5,7 @@ class datalpi:
     engine = None
     initial_dataframe = None
     checked_df = None
-    datalpi_types = {
+    sqlalchemy_types = {
         "LineKey" : VARCHAR(100),
         "RecKey" : VARCHAR(100),
         "DateModified" : DATE(),
@@ -38,37 +38,71 @@ class datalpi:
         "PLOTKEY":VARCHAR(100)
         }
     datalpi_dtypes = {
-            "LineKey" : "object",
-            "RecKey" : "object",
-            "DateModified" : "datetime64[ns]",
-            "FormType" : "object",
-            "FormDate" : "object",
-            "Observer" : "object",
-            "Recorder" : "object",
-            "DataEntry" : "object",
-            "DataErrorChecking" : "object",
-            "Direction" : "object",
-            "Measure" : "float64",
-            "LineLengthAmount" : "float64",
-            "SpacingIntervalAmount" : "float64",
-            "SpacingType" : "object",
-            "HeightOption" : "object",
-            "HeightUOM" : "object",
-            "ShowCheckbox" : "float64",
-            "CheckboxLabel" : "object",
-            "PrimaryKey" : "object",
-            "DBKey" : "object",
-            "PointLoc" : "float64",
-            "PointNbr" : "float64",
-            "ShrubShape" : "object",
-            "layer" : "object",
-            "code" : "object",
-            "chckbox" : "Int64",
-            "source" : "object",
-            "STATE" : "object",
-            "SAGEBRUSH_SPP": "object",
-            "PLOTKEY":"object"
-            }
+        "LineKey" : "object",
+        "RecKey" : "object",
+        "DateModified" : "datetime64[ns]",
+        "FormType" : "object",
+        "FormDate" : "object",
+        "Observer" : "object",
+        "Recorder" : "object",
+        "DataEntry" : "object",
+        "DataErrorChecking" : "object",
+        "Direction" : "object",
+        "Measure" : "float64",
+        "LineLengthAmount" : "float64",
+        "SpacingIntervalAmount" : "float64",
+        "SpacingType" : "object",
+        "HeightOption" : "object",
+        "HeightUOM" : "object",
+        "ShowCheckbox" : "float64",
+        "CheckboxLabel" : "object",
+        "PrimaryKey" : "object",
+        "DBKey" : "object",
+        "PointLoc" : "float64",
+        "PointNbr" : "float64",
+        "ShrubShape" : "object",
+        "layer" : "object",
+        "code" : "object",
+        "chckbox" : "Int64",
+        "source" : "object",
+        "STATE" : "object",
+        "SAGEBRUSH_SPP": "object",
+        "PLOTKEY":"object"
+        }
+    psycopg2_command = """ CREATE TABLE gisdb.public."dataLPI"
+        (
+        "LineKey" VARCHAR(100),
+        "RecKey" VARCHAR(100),
+        "DateModified" DATE ,
+        "FormType" TEXT ,
+        "FormDate" DATE ,
+        "Observer" TEXT ,
+        "Recorder" TEXT ,
+        "DataEntry" TEXT ,
+        "DataErrorChecking" TEXT ,
+        "Direction" VARCHAR(50),
+        "Measure" NUMERIC ,
+        "LineLengthAmount" NUMERIC ,
+        "SpacingIntervalAmount" NUMERIC ,
+        "SpacingType" TEXT ,
+        "HeightOption" TEXT ,
+        "HeightUOM" TEXT ,
+        "ShowCheckbox" NUMERIC ,
+        "CheckboxLabel" TEXT ,
+        "PrimaryKey" VARCHAR(100),
+        "DBKey" TEXT ,
+        "PointLoc" NUMERIC ,
+        "PointNbr" NUMERIC ,
+        "ShrubShape" TEXT ,
+        "layer" TEXT ,
+        "code" TEXT ,
+        "chckbox" INTEGER ,
+        "source" TEXT ,
+        "STATE" VARCHAR(50),
+        "SAGEBRUSH_SPP" TEXT ,
+        "PLOTKEY" VARCHAR(100)
+        )
+        """
 
     def __init__(self,path):
 
@@ -96,3 +130,15 @@ class datalpi:
     def send_to_pg(self):
 
         self.initial_dataframe.to_sql('dataLPI', self.engine, index=False, dtype=self.datalpi_types)
+
+    def create_empty_table(self):
+        con = db.str
+        cur = con.cursor()
+        try:
+            cur.execute(self.psycopg2_command)
+            con.commit()
+            # cur.execute("selec")
+        except Exception as e:
+            con = db.str
+            cur = con.cursor()
+            print(e)

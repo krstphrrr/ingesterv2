@@ -24,21 +24,9 @@ for item in i.tablenames:
 
 lpipath = r"C:\Users\kbonefont\Desktop\data\lpi_tall.csv"
 lpi = datalpi(lpipath)
-lpi.checked_df['chckbox'].unique()
-lpi.initial_dataframe.loc["PrimaryKey"]
-lpi.initial_dataframe
-for i in lpi.initial_dataframe.columns:
-    print(i, lpi.initial_dataframe[i].dtype)
-import numpy as np
-lpi.initial_dataframe['chckbox'].apply(lambda x: pd.NA if pd.isnull(x)==True else x).astype("Int64")
-np.nan==lpi.initial_dataframe['chckbox'][12509196]
-pd.NA
-lpi.initial_dataframe["chckbox"].astype("int64")
-lpi.send_to_pg()
-i = ingesterv2()
-i.tablenames
-lpi.initial_dataframe["PrimaryKey"][0]
-i.drop_table('dataLPI')
+
+
+
 class ingesterv2:
     # connection properties
     con = None
@@ -134,105 +122,81 @@ class ingesterv2:
             self.con = db.str
             self.cur = self.con.cursor()
 
+    def main_ingest(self,
+                    df: pd.DataFrame,
+                    table:str,
+                    connection: psycopg2.extensions.connection,
+                    chunk_size:int = 10000): #default should change with million+
+                cursor = connection.cursor()
+                df = df.copy()
+
+                escaped = {'\\': '\\\\', '\n': r'\n', '\r': r'\r', '\t': r'\t',}
+                for col in df.columns:
+                    if df.dtypes[col] == 'object':
+                        for v, e in escaped.items():
+
+                            df[col] = df[col].apply(lambda x: x.replace(v, e) if isinstance(x,str) else x)
+                try:
+                    for i in tqdm(range(0, df.shape[0], chunk_size)):
+                        f = StringIO()
+                        chunk = df.iloc[i:(i + chunk_size)]
+
+                        chunk.to_csv(f, index=False, header=False, sep='\t', na_rep='\\N', quoting=None)
+                        f.seek(0)
+                        cursor.copy_from(f, table, columns=[f'"{i}"' for i in df.columns])
+                        connection.commit()
+                except psycopg2.Error as e:
+                    print(e)
+                    connection.rollback()
+                cursor.close()
 
 
-df = pd.DataFrame({'float': [1.0],
-                   'int': [1],
-                   'datetime': [pd.Timestamp('20180310')],
-                   'string': ['foo']})
+def createtable():
+    command = """ CREATE TABLE gisdb.public."dataLPI"
+    (
+    "LineKey" VARCHAR(100),
+    "RecKey" VARCHAR(100),
+    "DateModified" DATE ,
+    "FormType" TEXT ,
+    "FormDate" DATE ,
+    "Observer" TEXT ,
+    "Recorder" TEXT ,
+    "DataEntry" TEXT ,
+    "DataErrorChecking" TEXT ,
+    "Direction" VARCHAR(50),
+    "Measure" NUMERIC ,
+    "LineLengthAmount" NUMERIC ,
+    "SpacingIntervalAmount" NUMERIC ,
+    "SpacingType" TEXT ,
+    "HeightOption" TEXT ,
+    "HeightUOM" TEXT ,
+    "ShowCheckbox" NUMERIC ,
+    "CheckboxLabel" TEXT ,
+    "PrimaryKey" VARCHAR(100),
+    "DBKey" TEXT ,
+    "PointLoc" NUMERIC ,
+    "PointNbr" NUMERIC ,
+    "ShrubShape" TEXT ,
+    "layer" TEXT ,
+    "code" TEXT ,
+    "chckbox" INTEGER ,
+    "source" TEXT ,
+    "STATE" VARCHAR(50),
+    "SAGEBRUSH_SPP" TEXT ,
+    "PLOTKEY" VARCHAR(100)
+    )
+    """
 
-df.datetime.dtype!=='datetime64[ns]'
-test.DateModified.astype('datetime64[ns]')
-test = lpi.initial_dataframe[:5].copy(deep=True)
-for i in test.columns:
-    if test[i].dtype!=datalpi_dtypes[i]:
-        test[i] = typecast(test,i,datalpi_dtypes[i])
-test["PointNbr"].unique()
-[i for i in test.columns]
-lpi.initial_dataframe["PointLoc"].unique()
-lpi.initial_dataframe["chckbox"].unique()
-lpi.initial_dataframe.iloc[:30,:]
-datalpi_dtypes = {
-        "LineKey" : "object",
-        "RecKey" : "object",
-        "DateModified" : "datetime64[ns]",
-        "FormType" : "object",
-        "FormDate" : "object",
-        "Observer" : "object",
-        "Recorder" : "object",
-        "DataEntry" : "object",
-        "DataErrorChecking" : "object",
-        "Direction" : "object",
-        "Measure" : "float64",
-        "LineLengthAmount" : "float64",
-        "SpacingIntervalAmount" : "float64",
-        "SpacingType" : "object",
-        "HeightOption" : "object",
-        "HeightUOM" : "object",
-        "ShowCheckbox" : "float64",
-        "CheckboxLabel" : "object",
-        "PrimaryKey" : "object",
-        "DBKey" : "object",
-        "PointLoc" : "float64",
-        "PointNbr" : "float64",
-        "ShrubShape" : "object",
-        "layer" : "object",
-        "code" : "object",
-        "chckbox" : "int64",
-        "source" : "object",
-        "STATE" : "object",
-        "SAGEBRUSH_SPP": "object",
-        "PLOTKEY":"object"
-        }
-def typecast(df,field,fieldtype):
-    data = df
-    castfield = data[field].astype(fieldtype)
-    return castfield
-typecast(test, 'chckbox', datalpi_dtypes['chckbox'])
-test.iloc[:,:15]
-test.iloc[:,15:]
-def copy_from(df: pd.DataFrame,
-              table: str,
-              connection: psycopg2.extensions.connection,
-              chunk_size: int = 10000):
-    cursor = connection.cursor()
-    df = df.copy()
-
-    # escaped = {'\\': '\\\\', '\n': r'\n', '\r': r'\r', '\t': r'\t',}
-    # for col in df.columns:
-    #     if df.dtypes[col] == 'object':
-    #
-    #         for v, e in escaped.items():
-    #             df[col] = df[col].str.replace(v, e)
+    con = db.str
+    cur = con.cursor()
     try:
-        for i in tqdm(range(0, df.shape[0], chunk_size)):
-            f = StringIO()
-            chunk = df.iloc[i:(i + chunk_size)]
-
-            chunk.to_csv(f, index=False, header=False, sep='\t', na_rep='default', quoting=None)
-            f.seek(0)
-            cursor.copy_from(f, table, columns=[f'"{i}"' for i in df.columns])
-            connection.commit()
-    except psycopg2.Error as e:
+        cur.execute(command)
+        con.commit()
+        # cur.execute("selec")
+    except Exception as e:
+        con = db.str
+        cur = con.cursor()
         print(e)
-        connection.rollback()
-    cursor.close()
-escaped = {'\\': '\\\\', '\n': r'\n', '\r': r'\r', '\t': r'\t',}
-testdf = lpi.checked_df.copy()
-for col in testdf.columns:
-    if testdf.dtypes[col] == 'object':
-        for v, e in escaped.items():
-            testdf[col] = testdf["LineKey"].str.replace(v, e)
-lpi.checked_df.iloc[3134:3137,:].to_csv(StringIO(), index=False, header=False, sep='\t', na_rep='\\N', quoting=None)
-[lpi.checked_df.iloc[3136:3137,i] for i in range(0,len(lpi.checked_df.columns))]
-lpi.checked_df.iloc[0,2]
-copy_from(lpi.checked_df, 'gisdb.public."dataLPI"', db.str, 10000)
-db.str
-
-
-
-
-
 
 
 
