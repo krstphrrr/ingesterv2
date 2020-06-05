@@ -1,29 +1,12 @@
-import os, os.path, pandas as pd
-from pandas import read_sql_query
-from psycopg2 import connect, sql
-import psycopg2
-from utils.tools import db, config, geoconfig
-import geopandas as gpd
-from geoalchemy2 import Geometry, WKTElement, WKBElement
-from sqlalchemy import *
-from shapely.geometry import Point
-import re
-from io import StringIO
 
-import psycopg2
-from tqdm import tqdm
+from projects.tall_tables.talltables_handler import field_parse
+from projects.tall_tables.models.gap import datagap
 
-# from models.header import header
-# from models.geospecies import geoSpecies
-from models.lpi import datalpi
+path = r"C:\Users\kbonefont\Desktop\data\gap_tall.csv"
 
-no = ['groups', 'ng_user', 'pages', 'PrimaryKey', 'user_group_link', 'users']
-for item in i.tablenames:
-    if item not in no:
-        i.drop_fk(item)
-
-lpipath = r"C:\Users\kbonefont\Desktop\data\lpi_tall.csv"
-lpi = datalpi(lpipath)
+gap = datagap(path,"dataGap")
+gap.checked()
+gap.checked_df
 
 
 
