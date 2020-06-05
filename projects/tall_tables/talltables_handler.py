@@ -83,15 +83,6 @@ def protocol_typecast( protocol_choice : str, type : str):
         else:
             print('type not yet implemented')
 
-
-    # else:
-    #     custom = {
-    #         'sqlalchemy' : f'{customtype.upper()}({customsize})'
-    #     }
-    #     if 'sqlalchemy' in protocol_choice:
-    #         return custom['sqlalchemy']
-
-
 def field_parse(prot:str, dictionary:{}):
     """ takes a dictionary with rudimentary field definitions and fieldtype
     protocol, and returns a dictionary with protocol-parsed fields
@@ -125,8 +116,6 @@ def field_parse(prot:str, dictionary:{}):
         return return_d
 
 
-# quiero que me devuelva un diccionario que es.
-# lo lea, lo parsee a traves de iters , me devuelva el adecuado
 def sql_command(typedict, name):
     inner_list = [f"\"{k}\" {v}" for k,v in typedict.items()]
     part_1 = f""" CREATE TABLE gisdb.public.\"{name}\" ("""
@@ -141,42 +130,3 @@ def sql_command(typedict, name):
     finally:
         part_1+=");"
         return part_1
-typedict = {
-    "LineKey" : "v_100",
-    "RecKey" : "v_100",
-    "DateModified" : "date",
-    "FormType" : "text",
-    "FormDate" : "date",
-    "Observer" : "text",
-    "Recorder" : "text",
-    "DataEntry" : "text",
-    "DataErrorChecking" : "text",
-    "Direction" : "float",
-    "Measure" : "float",
-    "LineLengthAmount" : "float",
-    "GapMin" : "float",
-    "GapData" : "float",
-    "PerennialsCanopy" : "float",
-    "AnnualGrassesCanopy" : "float",
-    "AnnualForbsCanopy" : "float",
-    "OtherCanopy" : "float",
-    "Notes" : "text",
-    "NoCanopyGaps" : "float",
-    "NoBasalGaps" : "float",
-    "DateLoadedInDb" : "date",
-    "PerennialsBasal" : "float",
-    "AnnualGrassesBasal" : "float",
-    "AnnualForbsBasal" : "float",
-    "OtherBasal" : "float",
-    "PrimaryKey" : "v_100",
-    "DBKey" : "text",
-    "SeqNo" : "text",
-    "RecType" : "text",
-    "GapStart" : "float",
-    "GapEnd" : "float",
-    "Gap" : "float",
-    "source" : "text",
-    "State" : "text",
-    "PlotKey" : "text"
-}
-field_parse('sqlalchemy', typedict)

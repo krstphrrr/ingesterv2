@@ -1,135 +1,86 @@
+# modular = 1
 import os, os.path, pandas as pd
 from sqlalchemy import *
+from utils.tools import db
+from projects.tall_tables.talltables_handler import field_parse, sql_command
 
 class datalpi:
     engine = None
     initial_dataframe = None
     checked_df = None
-    sqlalchemy_types = {
-        "LineKey" : VARCHAR(100),
-        "RecKey" : VARCHAR(100),
-        "DateModified" : DATE(),
-        "FormType" : TEXT(),
-        "FormDate" : DATE(),
-        "Observer" : TEXT(),
-        "Recorder" : TEXT(),
-        "DataEntry" : TEXT(),
-        "DataErrorChecking" : TEXT(),
-        "Direction" : VARCHAR(50),
-        "Measure" : NUMERIC(),
-        "LineLengthAmount" : NUMERIC(),
-        "SpacingIntervalAmount" : NUMERIC(),
-        "SpacingType" : TEXT(),
-        "HeightOption" : TEXT(),
-        "HeightUOM" : TEXT(),
-        "ShowCheckbox" : NUMERIC(),
-        "CheckboxLabel" : TEXT(),
-        "PrimaryKey" : VARCHAR(100),
-        "DBKey" : TEXT(),
-        "PointLoc" : NUMERIC(),
-        "PointNbr" : NUMERIC(),
-        "ShrubShape" : TEXT(),
-        "layer" : TEXT(),
-        "code" : TEXT(),
-        "chckbox" : INTEGER(),
-        "source" : TEXT(),
-        "STATE" : VARCHAR(50),
-        "SAGEBRUSH_SPP": TEXT(),
-        "PLOTKEY":VARCHAR(100)
+    typedict = {
+        "LineKey" : "v_100",
+        "RecKey" : "v_100",
+        "DateModified" : "date",
+        "FormType" : "text",
+        "FormDate" : "date",
+        "Observer" : "text",
+        "Recorder" : "text",
+        "DataEntry" : "text",
+        "DataErrorChecking" : "text",
+        "Direction" : "v_50",
+        "Measure" : "float",
+        "LineLengthAmount" : "float",
+        "SpacingIntervalAmount" : "float",
+        "SpacingType" : "text",
+        "HeightOption" : "text",
+        "HeightUOM" : "text",
+        "ShowCheckbox" : "float",
+        "CheckboxLabel" : "text",
+        "PrimaryKey" : "v_100",
+        "DBKey" : "text",
+        "PointLoc" : "float",
+        "PointNbr" : "float",
+        "ShrubShape" : "text",
+        "layer" : "text",
+        "code" : "text",
+        "chckbox" : "int",
+        "source" : "text",
+        "STATE" : "v_50",
+        "SAGEBRUSH_SPP": "text",
+        "PLOTKEY":"v_100"
         }
-    pandas_dtypes = {
-        "LineKey" : "object",
-        "RecKey" : "object",
-        "DateModified" : "datetime64[ns]",
-        "FormType" : "object",
-        "FormDate" : "object",
-        "Observer" : "object",
-        "Recorder" : "object",
-        "DataEntry" : "object",
-        "DataErrorChecking" : "object",
-        "Direction" : "object",
-        "Measure" : "float64",
-        "LineLengthAmount" : "float64",
-        "SpacingIntervalAmount" : "float64",
-        "SpacingType" : "object",
-        "HeightOption" : "object",
-        "HeightUOM" : "object",
-        "ShowCheckbox" : "float64",
-        "CheckboxLabel" : "object",
-        "PrimaryKey" : "object",
-        "DBKey" : "object",
-        "PointLoc" : "float64",
-        "PointNbr" : "float64",
-        "ShrubShape" : "object",
-        "layer" : "object",
-        "code" : "object",
-        "chckbox" : "Int64",
-        "source" : "object",
-        "STATE" : "object",
-        "SAGEBRUSH_SPP": "object",
-        "PLOTKEY":"object"
-        }
-    psycopg2_command = """ CREATE TABLE gisdb.public."dataLPI"
-        (
-        "LineKey" VARCHAR(100),
-        "RecKey" VARCHAR(100),
-        "DateModified" DATE ,
-        "FormType" TEXT ,
-        "FormDate" DATE ,
-        "Observer" TEXT ,
-        "Recorder" TEXT ,
-        "DataEntry" TEXT ,
-        "DataErrorChecking" TEXT ,
-        "Direction" VARCHAR(50),
-        "Measure" NUMERIC ,
-        "LineLengthAmount" NUMERIC ,
-        "SpacingIntervalAmount" NUMERIC ,
-        "SpacingType" TEXT ,
-        "HeightOption" TEXT ,
-        "HeightUOM" TEXT ,
-        "ShowCheckbox" NUMERIC ,
-        "CheckboxLabel" TEXT ,
-        "PrimaryKey" VARCHAR(100),
-        "DBKey" TEXT ,
-        "PointLoc" NUMERIC ,
-        "PointNbr" NUMERIC ,
-        "ShrubShape" TEXT ,
-        "layer" TEXT ,
-        "code" TEXT ,
-        "chckbox" INTEGER ,
-        "source" TEXT ,
-        "STATE" VARCHAR(50),
-        "SAGEBRUSH_SPP" TEXT ,
-        "PLOTKEY" VARCHAR(100)
-        )
-        """
+    sqlalchemy_types = None
+    pandas_dtypes = None
+    psycopg2_types = None
+    psycopg2_command = None
 
     def __init__(self,path):
 
         """ clearing attributes & setting engine """
         self.engine = create_engine(os.environ.get('DBSTR'))
         self.initial_dataframe = None
-        # self.gap_dataframe = None
+        self.sqlalchemy_types = None
+        self.pandas_dtypes = None
+        self.psycopg2_types = None
+        self.psycopg2_command = None
+        self.checked_df =None
 
         """ prepping a geodf from path """
         self.initial_dataframe = pd.read_csv(path, low_memory=False)
         self.checked_df = self.initial_dataframe.copy()
 
+        """ creating type dictionaries """
+        self.sqlalchemy_types = field_parse('sqlalchemy', self.typedict)
+        self.pandas_dtypes = field_parse('pandas', self.typedict)
+        self.psycopg2_types = field_parse('pg', self.typedict)
+        self.psycopg2_command = sql_command(self.psycopg2_types,name)
+
+
+    def checked(self):
         """ fieldtype check """
         for i in self.checked_df.columns:
-            if self.checked_df[i].dtype!=self.datalpi_dtypes[i]:
+            if self.checked_df[i].dtype!=self.pandas_dtypes[i]:
                 self.checked_df[i] = self.typecast(df=self.checked_df,field=i,fieldtype=self.pandas_dtypes[i])
 
     def typecast(self,df,field,fieldtype):
         data = df
         castfield = data[field].astype(fieldtype)
-        # if 'chckbox' in field:
-        #     data[field] = data[field].apply()
         return castfield
 
     def send_to_pg(self):
 
-        self.initial_dataframe.to_sql('dataLPI', self.engine, index=False, dtype=self.datalpi_types)
+        self.initial_dataframe.to_sql('dataLPI', self.engine, index=False, dtype=self.sqlalchemy_types)
 
     def create_empty_table(self):
         con = db.str

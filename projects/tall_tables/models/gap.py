@@ -1,3 +1,4 @@
+# modular = 1
 import os, os.path, pandas as pd
 from sqlalchemy import *
 from utils.tools import db
@@ -72,8 +73,9 @@ class datagap:
         self.psycopg2_types = field_parse('pg', self.typedict)
         self.psycopg2_command = sql_command(self.psycopg2_types,name)
 
-        """ fieldtype check """
+
     def checked(self):
+        """ fieldtype check """
         for i in self.checked_df.columns:
             if self.checked_df[i].dtype!=self.pandas_dtypes[i]:
                 self.checked_df[i] = self.typecast(df=self.checked_df,field=i,fieldtype=self.pandas_dtypes[i])
