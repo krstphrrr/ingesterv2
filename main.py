@@ -1,144 +1,100 @@
+from projects.tall_tables.talltables_handler import model_handler, field_parse, ingesterv2
+from projects.tall_tables.models.gap import dataGap
 
-from projects.tall_tables.talltables_handler import field_parse
-from projects.tall_tables.models.gap import datagap
+# path = r"C:\Users\kbonefont\Desktop\data\gap_tall.csv"
 
-path = r"C:\Users\kbonefont\Desktop\data\gap_tall.csv"
+"""
+**once projecttype is tall!:
 
-gap = datagap(path,"dataGap")
-gap.checked()
-gap.checked_df
+1. instantiate model_handler with path, dictionary, tablename
+inst = model_handler(path,dataGap,"dataGap")
+
+2. create an df with its field checked (overriding pandas/csv's default parsing)
+inst.checked()
+inst.checked_df.shape
+
+3. instantiate ingesterv2: tools for table drop, foreign key set/drop
+i = ingesterv2()
+i.drop_fk('dataGap')
+i.drop_table('dataGap')
+
+4. create empty table
+inst.create_empty_table()
+
+5. ingest
+i.main_ingest(inst.checked_df,"dataGap",db.str,100000)
+"""
+
+def main():
+    proj = None
+    pth = None
+    fld = None
+    tbl = None
+    while proj is None and pth is None and fld is None and tbl is None:
+        proj = input('please input project(tall, nri, met, or dima): ')
+        print('project set.')
+        pth = input('please input path: ')
+        print('path set.')
+        fld = input('please input dictionary with fields: ')
+        if 'dataGap' in fld:
+            fld = dataGap
+        print('field dictionary set.')
+        tbl = input('please input table name: ')
+        print('table name set.')
+    else:
+        a = request_handler(proj,pth,fld,tbl)
+        print('ok')
 
 
 
-class ingesterv2:
-    # connection properties
-    con = None
-    cur = None
-    # data pull on init
-    tablenames = []
-    __seen = set()
 
 
-    def __init__(self):
-        """ clearing old instances """
-        self.con = None
-        self.cur = None
-        self.tablenames = []
-        self.__seen = set()
+class request_handler:
+    tablename = None
+    fields = None
+    path = None
 
-        """ init connection objects """
-        self.con = db.str
-        self.cur = self.con.cursor()
-        """ populate properties """
-        self.pull_tablenames()
+    modelhandler = None
+    ingester = None
 
-    def pull_tablenames(self):
-        if self.con is not None:
+    projectswitch = None
 
-            try:
-                self.cur.execute("""
-                SELECT table_name
-                FROM information_schema.tables
-                WHERE table_schema = 'public'
-                ORDER BY table_name;""")
-                query_results = self.cur.fetchall()
+    __projects = {
+        'a':'tall',
+        'b':'nri',
+        'c':'met',
+        'd':'dima'
+        }
 
-                for table in query_results:
-                    if table not in self.__seen:
-                        self.__seen.add(re.search(r"\(\'(.*?)\'\,\)",
-                        str(table)).group(1))
-                        self.tablenames.append(re.search(r"\(\'(.*?)\'\,\)",
-                        str(table)).group(1))
-            except Exception as e:
-                print(e)
-                self.con = db.str
-                self.cursor = self.con.cursor
+    def __init__(self, projecttype:str, path:str, dictionary:{}, tablename:str):
+        [self.clear(a) for a in dir(self) if not a.startswith('__') and not callable(getattr(self,a))]
+        self.path = path
+        self.fields = dictionary
+        self.tablename = tablename
+        self.projectswitch = self.__projects[projecttype]
+
+
+    def clear(self,var):
+        var = None
+        return var
+
+    def set_model(self):
+        if self.projectswitch=='tall':
+            self.modelhandler = model_handler(self.path, self.fields, self.tablename)
         else:
-            print("connection object not initialized")
-    def drop_fk(self, table):
+            print('handling not implemented')
 
-        key_str = "{}_PrimaryKey_fkey".format(str(table))
-        print('try: dropping keys...')
-        try:
-            # print(table)
-            self.cur.execute(
-            sql.SQL("""ALTER TABLE gisdb.public.{0}
-                   DROP CONSTRAINT IF EXISTS {1}""").format(
-                   sql.Identifier(table),
-                   sql.Identifier(key_str))
-            )
-            self.con.commit()
-        except Exception as e:
-            print(e)
-            self.con = db.str
-            self.cur = self.con.cursor()
-        print(f"Foreign keys on {table} dropped")
-    def drop_table(self, table):
-        try:
-            self.cur.execute(
-            sql.SQL("DROP TABLE IF EXISTS gisdb.public.{};").format(
-            sql.Identifier(table))
-            )
-            self.con.commit()
-            print(table +' dropped')
-        except Exception as e:
-            print(e)
-            self.con = db.str
-            self.cur = self.con.cursor()
-    def reestablish_fk(self,table):
-        key_str = "{}_PrimaryKey_fkey".format(str(table))
-
-        try:
-
-            self.cur.execute(
-            sql.SQL("""ALTER TABLE gisdb.public.{0}
-                   ADD CONSTRAINT {1}
-                   FOREIGN KEY ("PrimaryKey")
-                   REFERENCES "dataHeader"("PrimaryKey");
-                   """).format(
-                   sql.Identifier(table),
-                   sql.Identifier(key_str))
-            )
-            self.con.commit()
-        except Exception as e:
-            print(e)
-            self.con = db.str
-            self.cur = self.con.cursor()
-
-    def main_ingest(self,
-                    df: pd.DataFrame,
-                    table:str,
-                    connection: psycopg2.extensions.connection,
-                    chunk_size:int = 10000): #default should change with million+
-                cursor = connection.cursor()
-                df = df.copy()
-
-                escaped = {'\\': '\\\\', '\n': r'\n', '\r': r'\r', '\t': r'\t',}
-                for col in df.columns:
-                    if df.dtypes[col] == 'object':
-                        for v, e in escaped.items():
-
-                            df[col] = df[col].apply(lambda x: x.replace(v, e) if isinstance(x,str) else x)
-                try:
-                    for i in tqdm(range(0, df.shape[0], chunk_size)):
-                        f = StringIO()
-                        chunk = df.iloc[i:(i + chunk_size)]
-
-                        chunk.to_csv(f, index=False, header=False, sep='\t', na_rep='\\N', quoting=None)
-                        f.seek(0)
-                        cursor.copy_from(f, table, columns=[f'"{i}"' for i in df.columns])
-                        connection.commit()
-                except psycopg2.Error as e:
-                    print(e)
-                    connection.rollback()
-                cursor.close()
+    def set_ingest(self):
+        if self.projectswitch=='tall':
+            self.ingester = ingesterv2()
+        else:
+            print('handling not implemented')
 
 
 
 
-
-
-
+if __name__=="__main__":
+    main()
 
 
 
