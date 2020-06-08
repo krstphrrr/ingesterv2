@@ -81,6 +81,7 @@ class request_handler:
     def set_model(self):
         if self.projectswitch=='tall':
             self.modelhandler = model_handler(self.path, self.fields, self.tablename)
+        # elif self.projectswitch=='nri':
         else:
             print('handling not implemented')
 
