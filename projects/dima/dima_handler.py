@@ -145,18 +145,7 @@ def plantden_pk(dimapath):
 
     return plot_pk
 tst = bsne_pk(dimapath)
-tst.Notes
-for i in tst.columns:
-    if 'Notes' in i:
-        print(i)
- tst.Notes_x.equals(tst.Notes_y)
-tst.columns.difference()
-tst
-modcheck=0
-finish = False
-type(tst.Notes_x)
-def test(column:pd.Series)
-len([i for i in tst.columns if 'Notes' in i])
+
 def fix_fields(df : pd.DataFrame, keyword: str):
     df = df.copy()
     done=False
@@ -198,52 +187,6 @@ def fix_fields(df : pd.DataFrame, keyword: str):
             # modcheck+=1
 notes = fix_fields(tst, "Notes")
 
-notes.DateModified_x
-notes.DateModified_y
-modified = fix_fields(notes,"DateModified")
-modified
-est = fix_fields(modified,"DateEstablished")
-est.columns
-len(tst.Notes_x)
-len(tst.Notes_x==None)
-len([i for i in tst.Notes_x if i==None])
-len([i for i in tst.Notes_y if i==None])
-notes.Notes
-while finish!=True:
-    """ this while loop fixes column names that duplicate when dataframes merge """
-    if ('DateEstablished_x' in tst.columns) or ('DateEstablished_y' in tst.columns) and modcheck==0:
-        if tst.DateEstablished_x.equals(tst.DateEstablished_y):
-            # if both fields are the same, drop one keep the other
-            tst.drop(['DateEstablished_y'], axis=1, inplace=True)
-            tst.rename(columns={"DateEstablished_x":"DateEstablished"}, inplace=True)
-            modcheck+=1
-
-    else:
-        pass
-        modcheck+=1
-
-    if ('Notes_x' in tst.columns) or ('Notes_y' in tst.columns) and modcheck==1:
-        if tst.Notes_x.equals(tst.Notes_y):
-            # if the two notes are the same, keep one of them.
-            tst.drop(['Notes_y'], axis=1, inplace=True)
-            tst.rename(columns={"Notes_x":"Notes"}, inplace=True)
-            modcheck+=1
-        elif (tst.Notes_x.equals(tst.Notes_y)==False) and all(tst.Notes_x.unique()==None):
-            # if the two notes are different AND the x is none, keep the y
-            tst.drop(['Notes_x'], axis=1, inplace=True)
-            tst.rename(columns={"Notes_y":"Notes"}, inplace=True)
-            modcheck+=1
-        elif (tst.Notes_x.equals(tst.Notes_y)==False) and all(tst.Notes_y.unique()==None):
-            # if the two notes are different AND the y is none, keep the x
-            tst.drop(['Notes_y'], axis=1, inplace=True)
-            tst.rename(columns={"Notes_x":"Notes"}, inplace=True)
-            modcheck+=1
-    else:
-        pass
-        modcheck+=1
-    if 'DateModified_x' in tst.columns and modcheck==2:
-        finish=True
-        print('ok')
 
 
 def bsne_pk(dimapath):
@@ -257,6 +200,9 @@ def bsne_pk(dimapath):
         # df = arc.AddJoin(stack, ddt, "StackID", "StackID")
         df = pd.merge(stack,ddt, how="inner", on="StackID")
         df2 = arc.CalculateField(df,"PrimaryKey","PlotKey","collectDate")
+        df2tmp = fix_fields(df2,"Notes")
+        df2tmp2 = fix_fields(df2tmp,"DateModified")
+        df2tmp3 = fix_fields(df2tmp2,"DateEstablished")
         return df2
     else:
 
@@ -264,35 +210,13 @@ def bsne_pk(dimapath):
         stack = arcno.MakeTableView("tblBSNE_Stack", dimapath)
         boxcol = arcno.MakeTableView('tblBSNE_BoxCollection', dimapath)
         # differences 1
-        cols_dif1 = box.columns.difference(stack.columns)
+
         dfx = pd.merge(stack, box[cols_dif1], left_index=True, right_index=True, how="outer")
         df = pd.merge(box,stack, how="inner", on="StackID")
         df2 = pd.merge(df,boxcol, how="inner", on="BoxID")
-        df2 = arc.CalculateField(df2,"PrimaryKey","PlotKey","collectDate")
+        # fix
+        df2tmp = fix_fields(df2,"Notes")
+        df2tmp2 = fix_fields(df2tmp,"DateModified")
+        df2tmp3 = fix_fields(df2tmp2,"DateEstablished")
+        df2 = arc.CalculateField(df2tmp3,"PrimaryKey","PlotKey","collectDate")
         return df2
-
-
-
-
-
-        return df2
-
-
-for i in cols_dif1:
-    if i not in stack.columns:
-        print(i)
-finish=False
-count=0
-while finish!=True:
-    if count==0:
-        print('a')
-        count+=1
-    if count==1:
-        print('b')
-        count+=1
-    if count==2:
-        print('c')
-        count+=1
-        finish=True
-else:
-    print('acabe')
