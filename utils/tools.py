@@ -41,7 +41,7 @@ def config(filename='utils/database.ini', section='postgresql'):
 
     return db
 
-def geoconfig(filename='utils/database.ini', section='geo'):
+def dimaconfig(filename='utils/database.ini', section='dima'):
     """
     Same as config but reads another section.
     """
@@ -60,12 +60,18 @@ def geoconfig(filename='utils/database.ini', section='geo'):
 
 
 class db:
-    params = config()
-    # str = connect(**params)
-    str_1 = SimpleConnectionPool(minconn=1,maxconn=10,**params)
-    str = str_1.getconn()
+    # params = None
+    # # # str = connect(**params)
+    # # str_1 = None
+    # str = None
 
-    def __init__(self):
 
-        self._conn = connect(**params)
-        self._cur= self._conn.cursor()
+    def __init__(self, keyword = None):
+        if keyword == None:
+            self.params = config()
+            self.str_1 = SimpleConnectionPool(minconn=1,maxconn=10,**self.params)
+            self.str = self.str_1.getconn()
+        else:
+            self.params = config(section=f'{keyword}')
+            self.str_1 = SimpleConnectionPool(minconn=1,maxconn=10,**self.params)
+            self.str = self.str_1.getconn()

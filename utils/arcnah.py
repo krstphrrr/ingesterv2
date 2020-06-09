@@ -67,19 +67,19 @@ class arcno():
                 if t.table_name.startswith('tbl'):
                     self.tablelist.append(t.table_name)
 
-
-    def MakeTableView(self,in_table,whichdima):
+    @staticmethod
+    def MakeTableView(in_table,whichdima):
         """ connects to Microsoft Access .mdb file, selects a table
         and copies it to a dataframe.
         ex.
         arc = arcno()
         arc.MakeTableView('table_name', 'dima_path')
         """
-        self.in_table = in_table
-        self.whichdima = whichdima
+        # self.in_table = in_table
+        # self.whichdima = whichdima
 
         try:
-            return Table(self.in_table, self.whichdima).temp
+            return Table(in_table, whichdima).temp
         except Exception as e:
             print(e)
 
@@ -117,8 +117,8 @@ class arcno():
         self.in_df = in_df
         return self.in_df.shape[0]
 
-    def AddJoin(self,
-    in_df,df2,right_on=None,left_on=None):
+    @staticmethod
+    def AddJoin(in_df, df2, right_on=None, left_on=None):
         """ inner join on two dataframes on 1 or 2 fields
         ex.
         arc = arcno()
@@ -126,36 +126,37 @@ class arcno():
         """
         # self.temp_table = None
         d={}
-        self.right_on = None
-        self.left_on = None
+        right_on = None
+        left_on = None
 
-        d[self.right_on] = right_on
-        d[self.left_on] = left_on
+        d[right_on] = right_on
+        d[left_on] = left_on
 
-        self.in_df = in_df
-        self.df2 = df2
+        # self.in_df = in_df
+        # self.df2 = df2
 
-        if self.right_on==self.left_on and len(self.in_df.columns)==len(self.df2.columns):
+        if right_on==left_on and len(in_df.columns)==len(df2.columns):
             try:
-                frames = [self.in_df, self.df2]
+                frames = [in_df, df2]
                 return pd.concat(frames)
             except Exception as e:
                 print(e)
                 print('1. field or fields invalid' )
-        elif self.right_on==self.left_on and len(self.in_df.columns)!=len(self.df2.columns):
+        elif right_on == left_on and len(in_df.columns) != len(df2.columns):
             try:
                 # frames = [self.in_df, self.df2]
-                return self.in_df.merge(self.df2, on = d[self.right_on], how='inner')
+                return in_df.merge(df2, on = d[right_on], how='inner')
             except Exception as e:
                 print(e)
                 print('2. field or fields invalid')
         else:
             try:
-                return self.in_df.merge(self.df2,right_on=d[self.right_on], left_on=d[self.left_on])
+                return in_df.merge(df2,right_on=d[right_on], left_on=d[left_on])
             except Exception as e:
                 print(e)
                 print('3. field or fields invalid')
 
+    
     def CalculateField(self,in_df,newfield,*fields):
         """ Creates a newfield by concatenating any number of existing fields
         ex.
