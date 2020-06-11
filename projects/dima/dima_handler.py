@@ -6,44 +6,38 @@ from utils.tools import  config
 from datetime import datetime
 from psycopg2 import sql
 import pandas as pd
+from projects.tables.handler import no_pk, lpi_pk, gap_pk, sperich_pk, plantden_pk, bsne_pk
 
-"""
-blm - work;
-jornada symposium : monitoring data, connecting
-working grooup eltar: rangeland soil eroison
-
-collaborative projects: to leverage the datacommons// boise tucson reno//
- - data manager now haha
 
 
 """
-for i in box.StackID:
-    if i in stack.StackID:
-        print(i)
-import pandas as pd
-pd.merge(box,stack, how="inner", on="StackID")
+    elif tablename in linekeylist:
+        if tablename.find('Gap')!=-1:
+            fulldf = gap_pk(dimapath)
+            arc.isolateFields(fulldf, 'LineKey','PrimaryKey')
+            line_tmp = arc.isolates
+            lin = line_tmp.rename(columns={'LineKey':'LineKey2'}).copy(deep=True)
+            lin = lin.drop_duplicates(['LineKey2'])
+            linekeytable = arc.MakeTableView(f'{tablename}',dimapath)
+            linekeytable_pk = lin.merge(linekeytable, left_on=lin.LineKey2, right_on=linekeytable.LineKey)
+            linekeytable_pk.drop('LineKey2', axis=1, inplace=True)
+            linekeytabler_pk = linekeytable_pk.copy(deep=True)
+            linekeytable_pk.drop('key_0', axis=1, inplace=True)
+            # mdb[f'{tablename}'] = linekeytable_pk
+            return linekeytable_pk
+"""
+
+fulldf = gap_pk(path3)
+
+for i in arc.actual_list:
+    print(i)
 
 
-dimapath = r'C:\Users\kbonefont\Desktop\Network_DIMAs\8May2017 DIMA 5.5a as of 2020-03-10.mdb'
-bsne_pk(dimapath)
-lpi_pk(path)
-gap_pk(path)
-sperich_pk(path)
-arc = arcno(path)
-arc.maintablelist
-arcno.MakeTableView('tblLines', path).shape
 for i in arc.maintablelist:
     if arc.MakeTableView(i, path).shape[0]>1:
         print(i)
 
-sp=arcno.MakeTableView("tblSpecies",dimapath)
-spg=arcno.MakeTableView("tblSpeciesGeneric", dimapath)
-arcno.MakeTableView("tblSites", dimapath)
-arcno.MakeTableView("tblBSNE_Box", dimapath)
-pd.merge(sp,spg, how="inner", on="SpeciesCode")
-
-spg.CommonName.unique()
-spg.FinalCode.unique()
+arc.actual_list
 
 
 """
@@ -57,14 +51,30 @@ from path to ingest:
  - pk_add : regular table name and path
 """
 
-gap
-arc.isolateFields()
 
+
+def isolate(tabletype,path):
+    tableswitch ={
+        'lpi':lpi_pk(path),
+        'gap':gap_pk(path),
+        'sperich':sperich_pk(path),
+        'plantden':plantden_pk(path),
+        'bsne':bsne_pk(path)
+    }
+    arc = arcno()
+    fulldf = tableswitch[tabletype]
+
+arcno.MakeTableView('tblPlotNotes', path10).columns
 def pg_send(tablename,dimapath):
     plot = None
+    """
+    build strategies:
+    - plotkeylist
+    """
+    nopk = ['tblPlots','tblLines','tblSpecies', 'tblSpecies', 'tblSpeciesGeneric']
 
-    plotkeylist = ['tblPlots','tblLines','tblQualHeader','tblSoilStabHeader',
-    'tblSoilPits','tblPlantProdHeader','tblPlotNotes', 'tblSoilPitHorizons']
+    plotkeylist = ['tblQualHeader','tblSoilStabHeader',
+    'tblSoilPits','tblPlantProdHeader','tblPlotNotes', 'tblSoilPitHorizons'
 
     linekeylist = ['tblGapHeader','tblLPIHeader','tblSpecRichHeader',
     'tblPlantDenHeader']
@@ -75,148 +85,154 @@ def pg_send(tablename,dimapath):
     nonline = {'tblQualDetail':'tblQualHeader',
     'tblSoilStabDetail':'tblSoilStabHeader','tblPlantProdDetail':'tblPlantProdHeader'}
 
-    if tablename in plotkeylist:
+    # if tablename in plotkeylist:
+test  = arcno.MakeTableView('tblPlantProdDetail', path10)
+testt = arcno.MakeTableView('tblPlantProdHeader', path10)
 
+head_det = pd.merge(test,testt, how="inner", on="RecKey")
+no_pk('plantprod', path10)
 
+def has_plotkey_andformdate(dimapath):
+    """
+    {'tblGapDetail': 'rows: 2350',
+     'tblGapHeader': 'rows: 180',
+     'tblLines': 'rows: 181',
+     'tblLPIDetail': 'rows: 18000',
+     'tblLPIHeader': 'rows: 180',
+     'tblPlantProdDetail': 'rows: 335',
+     'tblPlantProdHeader': 'rows: 27',
+     'tblPlotNotes': 'rows: 41',
+     'tblPlots': 'rows: 61',
+     'tblSites': 'rows: 14',
+     'tblSoilPitHorizons': 'rows: 208',
+     'tblSoilPits': 'rows: 60',
+     'tblSoilStabDetail': 'rows: 180',
+     'tblSoilStabHeader': 'rows: 60',
+     'tblSpecies': 'rows: 6073',
+     'tblSpeciesGeneric': 'rows: 1082',
+     'tblSpecRichDetail': 'rows: 61',
+     'tblSpecRichHeader': 'rows: 60'}
 
-def lpi_pk(dimapath):
-    # tables
-    # arc = arcno()
-    lpi_header = arcno.MakeTableView('tblLPIHeader', dimapath)
-    lpi_detail = arcno.MakeTableView('tblLPIDetail', dimapath)
-    lines = arcno.MakeTableView('tblLines', dimapath)
-    plots = arcno.MakeTableView('tblPlots', dimapath)
-    # joins
-    plot_line = arcno.AddJoin(plots,lines, 'PlotKey','PlotKey')
-    lpihead_detail = arcno.AddJoin(lpi_header, lpi_detail, 'RecKey')
-    plot_line_det = arcno.AddJoin(plot_line, lpihead_detail, 'LineKey', 'LineKey')
+    """
     arc = arcno()
-    plot_pk = arc.CalculateField(plot_line_det, "PrimaryKey", "PlotKey", "FormDate")
-
-    return plot_pk
-
-def gap_pk(dimapath):
-    # tables
+    df = arcno.MakeTableView(dimapath)
+def joinfun(df,whichfield):
     arc = arcno()
-    gap_header = arcno.MakeTableView('tblGapHeader', dimapath)
-    gap_detail = arcno.MakeTableView('tblGapDetail', dimapath)
-    lines = arcno.MakeTableView('tblLines', dimapath)
-    plots = arcno.MakeTableView('tblPlots', dimapath)
-    # joins
-    plot_line = arc.AddJoin(plots,lines, 'PlotKey','PlotKey')
-    gaphead_detail = arc.AddJoin(gap_header, gap_detail, 'RecKey')
-    gaphead_detail = pd.merge(gap_header,gap_detail, how="inner", on="RecKey")
-
-    plot_line_det = arc.AddJoin(plot_line, gaphead_detail, 'LineKey', 'LineKey')
-
-    plot_pk = arc.CalculateField(plot_line_det, "PrimaryKey", "PlotKey", "FormDate")
-
-    return plot_pk
-
-def sperich_pk(dimapath):
-    # tables
-    arc = arcno()
-    spe_header = arcno.MakeTableView('tblSpecRichHeader', dimapath)
-    spe_detail = arcno.MakeTableView('tblSpecRichDetail', dimapath)
-    lines = arcno.MakeTableView('tblLines', dimapath)
-    plots = arcno.MakeTableView('tblPlots', dimapath)
-    # joins
-    plot_line = arcno.AddJoin(plots,lines, 'PlotKey','PlotKey')
-    spehead_detail = arcno.AddJoin(spe_header, spe_detail, 'RecKey')
-    plot_line_det = arcno.AddJoin(plot_line, spehead_detail, 'LineKey', 'LineKey')
-
-    plot_pk = arc.CalculateField(plot_line_det, "PrimaryKey", "PlotKey", "FormDate")
-
-    return plot_pk
-
-def plantden_pk(dimapath):
-    # tables
-    arc = arcno()
-    pla_header = arc.MakeTableView('tblPlantDenHeader', dimapath)
-    pla_detail = arc.MakeTableView('tblPlantDenDetail', dimapath)
-    lines = arc.MakeTableView('tblLines', dimapath)
-    plots = arc.MakeTableView('tblPlots', dimapath)
-    # joins
-    plot_line = arc.AddJoin(plots,lines, 'PlotKey','PlotKey')
-    plahead_detail = arc.AddJoin(pla_header, pla_detail, 'RecKey')
-    plot_line_det = arc.AddJoin(plot_line, plahead_detail, 'LineKey', 'LineKey')
-
-    plot_pk = arc.CalculateField(plot_line_det, "PrimaryKey", "PlotKey", "FormDate")
-
-    return plot_pk
-tst = bsne_pk(dimapath)
-
-def fix_fields(df : pd.DataFrame, keyword: str):
-    df = df.copy()
-    done=False
-    while done!=True:
-        if len([i for i in df.columns if f'{keyword}' in i])>2:
-            df.drop([f'{keyword}_y',f'{keyword}_x'], axis=1, inplace=True)
-            print('aqui 1')
-            done=True
-            return df
-        else:
-            if (f'{keyword}_x' in df.columns) or (f'{keyword}_y' in df.columns):
-                if df[f'{keyword}_x'].equals(df[f'{keyword}_y']):
-                    # if the two notes are the same, keep one of them.
-                    df.drop([f'{keyword}_y'], axis=1, inplace=True)
-                    df.rename(columns={f'{keyword}_x':f'{keyword}'}, inplace=True)
-                    print('aqui 2')
-                    done=True
-                    return df
-
-
-                elif (df[f'{keyword}_x'].equals(df[f'{keyword}_y'])==False) and (len([i for i in df[f'{keyword}_x'] if i==None])>len([i for i in df[f'{keyword}_y'] if i==None])):
-                    # if the two notes are different AND the x is none, keep the y
-                    df.drop([f'{keyword}_x'], axis=1, inplace=True)
-                    df.rename(columns={f'{keyword}_y':f'{keyword}'}, inplace=True)
-                    print('aqui 3')
-                    done=True
-                    return df
-
-                elif (df[f'{keyword}_x'].equals(df[f'{keyword}_y'])==False) and (len([i for i in df[f'{keyword}_x'] if i==None])<len([i for i in df[f'{keyword}_y'] if i==None])):
-                    # if the two notes are different AND the y is none, keep the x
-                    df.drop(['Notes_y'], axis=1, inplace=True)
-                    df.rename(columns={f'{keyword}_x':f'{keyword}'}, inplace=True)
-                    print('aqui 4')
-                    done=True
-                    return df
-
-            else:
-                return df
-            # modcheck+=1
-notes = fix_fields(tst, "Notes")
-
-
-
-def bsne_pk(dimapath):
-    ddt = arcno.MakeTableView("tblBSNE_TrapCollection",dimapath)
-    arc = arcno()
-    if ddt.shape[0]>0:
-        ddt = arcno.MakeTableView("tblBSNE_TrapCollection",dimapath)
-
-        stack = arc.MakeTableView("tblBSNE_Stack", dimapath)
-
-        # df = arc.AddJoin(stack, ddt, "StackID", "StackID")
-        df = pd.merge(stack,ddt, how="inner", on="StackID")
-        df2 = arc.CalculateField(df,"PrimaryKey","PlotKey","collectDate")
-        df2tmp = fix_fields(df2,"Notes")
-        df2tmp2 = fix_fields(df2tmp,"DateModified")
-        df2tmp3 = fix_fields(df2tmp2,"DateEstablished")
-        return df2
+    # df=df.copy()
+    arc.isolateFields(df, f'{whichfield}', 'PrimaryKey')
+    first = arc.isolates.copy()
+    first.rename(columns={f'{whichfield}':f'{whichfield}2'}, inplace=True)
+    # first=first.drop_duplicates(['PlotKey2'])
+    return first
+def pk_yesno(tablename,dimapath):
+    nopk = ['tblPlots','tblLines','tblSpecies', 'tblSpecies', 'tblSpeciesGeneric']
+    if tablename in nopk:
+        df = arcno.MakeTableView(tablename,dimapath)
+        return df
     else:
+        if "tblGap" in tablename:
+            fulldf = gap_pk(tablename)
 
-        box = arcno.MakeTableView("tblBSNE_Box",dimapath)
-        stack = arcno.MakeTableView("tblBSNE_Stack", dimapath)
-        boxcol = arcno.MakeTableView('tblBSNE_BoxCollection', dimapath)
-        # differences 1
 
-        dfx = pd.merge(stack, box[cols_dif1], left_index=True, right_index=True, how="outer")
-        df = pd.merge(box,stack, how="inner", on="StackID")
-        df2 = pd.merge(df,boxcol, how="inner", on="BoxID")
-        # fix
-        df2tmp = fix_fields(df2,"Notes")
-        df2tmp2 = fix_fields(df2tmp,"DateModified")
-        df2tmp3 = fix_fields(df2tmp2,"DateEstablished")
-        df2 = arc.CalculateField(df2tmp3,"PrimaryKey","PlotKey","collectDate")
-        return df2
+if join_back(tablename, dimapath):
+    pass
+arc = arcno(path1,False)
+arc.tablelist
+arc.actual_list
+
+def main_translate(tablename,dimapath):
+    arc = arcno()
+    tableswitch ={
+        'tblPlots':"no pk",
+        'tblLines':"no pk",
+        'tblLPIDetail':"RecKey",
+        'tblLPIHeader':"LineKey",
+        'tblGapDetail':"RecKey",
+        'tblGapHeader':"LineKey",
+        # 'tblQualHeader':no_pk(dimapath,),
+        # 'tblQualDetail':no_pk(dimapath),
+        'tblSoilStabHeader':"PlotKey",
+        'tblSoilStabDetail':"RecKey",
+        'tblSoilPitHorizons':"no pk",
+        'tblSoilPits':"no pk",
+        'tblSpecRichHeader':"LineKey",
+        'tblSpecRichDetail':"RecKey",
+        'tblPlantProdHeader':"PlotKey",
+        'tblPlantProdDetail':"RecKey",
+        'tblPlotNotes':"no pk",
+        'tblPlantDenHeader':"LineKey",
+        'tblPlantDenDetail':"RecKey",
+        'tblSpecies':"no pk",
+        'tblSpeciesGeneric':"no pk",
+        'tblSites':"no pk",
+        'tblBSNE_Box':"BoxID",
+        'tblBSNE_BoxCollection':"BoxID",
+        'tblBSNE_Stack':"PlotKey",
+        'tblBSNE_TrapCollection':"StackID"
+    }
+    translate_table = {
+        'tblPlots':no_pk(tablefam=None,dimapath=dimapath,tablename=tablename),
+        'tblLines':no_pk(tablefam=None,dimapath=dimapath,tablename=tablename),
+        'tblLPIDetail':lpi_pk(dimapath),
+        'tblLPIHeader':lpi_pk(dimapath),
+        'tblGapDetail':gap_pk(dimapath),
+        'tblGapHeader':gap_pk(dimapath),
+        # 'tblQualHeader':no_pk(dimapath),
+        # 'tblQualDetail':no_pk(dimapath),
+        'tblSoilStabHeader':no_pk('soilstab',dimapath,None),
+        'tblSoilStabDetail':no_pk('soilstab',dimapath,None),
+        # 'tblSoilPitHorizons',
+        # 'tblSoilPits',
+        'tblSpecRichHeader':sperich_pk(dimapath),
+        'tblSpecRichDetail':sperich_pk(dimapath),
+        'tblPlantProdHeader':no_pk('plantprod',dimapath,None),
+        'tblPlantProdDetail':no_pk('plantprod',dimapath,None),
+        # 'tblPlotNotes',
+        'tblPlantDenHeader':plantden_pk(dimapath),
+        'tblPlantDenDetail':plantden_pk(dimapath),
+        'tblSpecies':no_pk(tablefam=None,dimapath=dimapath,tablename=tablename),
+        'tblSpeciesGeneric':no_pk(tablefam=None,dimapath=dimapath,tablename=tablename),
+        'tblSites':no_pk(tablefam=None,dimapath=dimapath,tablename=tablename),
+        'tblBSNE_Box':bsne_pk(dimapath),
+        'tblBSNE_BoxCollection':bsne_pk(dimapath),
+        'tblBSNE_Stack':bsne_pk(dimapath),
+        'tblBSNE_TrapCollection':bsne_pk(dimapath)
+    }
+
+    full = translate_table[tablename]
+    if tableswitch[tablename]=="no pk":
+        return full
+    else:
+        iso = arc.isolateFields(full,tableswitch[tablename],"PrimaryKey").copy()
+        iso.drop_duplicates([tableswitch[tablename]],inplace=True)
+
+        target_table = arcno.MakeTableView(tablename, dimapath)
+        retdf = pd.merge(target_table, iso, how="inner", on=tableswitch[tablename])
+        del(arc)
+        return retdf
+
+
+main_translate('tblSpecies',path1)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            # modcheck+=1

@@ -17,7 +17,7 @@ from utils.tools import Acc
 
 
 class arcno():
-    maintablelist = [
+    __maintablelist = [
       'tblPlots',
       'tblLines',
       'tblLPIDetail',
@@ -41,31 +41,57 @@ class arcno():
       'tblSpeciesGeneric',
       'tblSites',
       'tblBSNE_Box',
+      'tblBSNE_BoxCollection',
       'tblBSNE_Stack',
       'tblBSNE_TrapCollection'
       ]
 
-    newtables = [
+    __newtables = [
        'tblHorizontalFlux',
        'tblHorizontalFlux_Locations',
        'tblDustDeposition',
        'tblDustDeposition_Locations'
       ]
-    tablelist = []
+    # tablelist = []
+    # actual_list = {}
     isolates = None
 
-    def __init__(self, whichdima = None):
+    def __init__(self, whichdima = None, all=False):
         """ Initializes a list of tables in dima accessible on tablelist.
         ex.
         arc = arcno(path_to_dima)
         arc.tablelist
         """
+        [self.clear(a) for a in dir(self) if not a.startswith('__') and not callable(getattr(self,a))]
         self.whichdima = whichdima
+        self.tablelist=[]
         if self.whichdima is not None:
             cursor = Acc(self.whichdima).con.cursor()
             for t in cursor.tables():
                 if t.table_name.startswith('tbl'):
                     self.tablelist.append(t.table_name)
+        self.actual_list = {}
+        for i in self.tablelist:
+            if all!=True:
+                # print('false')
+                if (self.MakeTableView(i,whichdima).shape[0]>1) and (i in self.__maintablelist):
+                    self.actual_list.update({i:f'rows: {self.MakeTableView(i,whichdima).shape[0]}'})
+            else:
+                # print('true')
+                if self.MakeTableView(i,whichdima).shape[0]>1:
+                    self.actual_list.update({i:f'rows: {self.MakeTableView(i,whichdima).shape[0]}'})
+
+    def clear(self,var):
+        if isinstance(var, list):
+            var = []
+            return var
+        elif isinstance(var, dict):
+            var = {}
+            return var
+        else:
+            var = None
+            return var
+
 
     @staticmethod
     def MakeTableView(in_table,whichdima):
@@ -156,7 +182,7 @@ class arcno():
                 print(e)
                 print('3. field or fields invalid')
 
-    
+
     def CalculateField(self,in_df,newfield,*fields):
         """ Creates a newfield by concatenating any number of existing fields
         ex.
