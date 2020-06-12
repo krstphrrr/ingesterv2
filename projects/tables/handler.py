@@ -1,28 +1,42 @@
 from utils.arcnah import arcno
 import pandas as pd
+# path10 = r'C:\Users\kbonefont\Desktop\dimas\LCDO_OMDPNM_2018_Final.mdb'
+# no_pk(None,path10,None)
+
 
 def no_pk(tablefam=None,dimapath=None,tablename = None):
     arc = arcno()
     fam = {
         'plantprod':['tblPlantProdDetail','tblPlantProdHeader'],
-        'soilstab':['tblSoilStabDetail','tblSoilStabHeader']
+        'soilstab':['tblSoilStabDetail','tblSoilStabHeader'],
+        'soilpit':['tblSoilPits', 'tblSoilPitHorizons']
     }
-    if tablefam is not None and ('plantprod' in tablefam):
-        header = arcno.MakeTableView(fam['plantprod'][1],dimapath)
-        detail = arcno.MakeTableView(fam['plantprod'][0],dimapath)
-        head_det = pd.merge(header,detail,how="inner", on="RecKey")
-        head_det = arc.CalculateField(head_det,"PrimaryKey","PlotKey","FormDate")
-        return head_det
+    try:
+        if tablefam is not None and ('plantprod' in tablefam):
+            header = arcno.MakeTableView(fam['plantprod'][1],dimapath)
+            detail = arcno.MakeTableView(fam['plantprod'][0],dimapath)
+            head_det = pd.merge(header,detail,how="inner", on="RecKey")
+            head_det = arc.CalculateField(head_det,"PrimaryKey","PlotKey","FormDate")
+            return head_det
 
-    elif tablefam is not None and ('soilstab' in tablefam):
-        header = arcno.MakeTableView(fam['soilstab'][1],dimapath)
-        detail = arcno.MakeTableView(fam['soilstab'][0],dimapath)
-        head_det = pd.merge(header,detail,how="inner", on="RecKey")
-        head_det = arc.CalculateField(head_det,"PrimaryKey","PlotKey","FormDate")
-        return head_det
-    else:
-        no_pk_df = arcno.MakeTableView(tablename, dimapath)
-        return no_pk_df
+        elif tablefam is not None and ('soilstab' in tablefam):
+            header = arcno.MakeTableView(fam['soilstab'][1],dimapath)
+            detail = arcno.MakeTableView(fam['soilstab'][0],dimapath)
+            head_det = pd.merge(header,detail,how="inner", on="RecKey")
+            head_det = arc.CalculateField(head_det,"PrimaryKey","PlotKey","FormDate")
+            return head_det
+
+        elif tablefam is not None and ('soilpit' in tablefam):
+            pits = arcno.MakeTableView(fam['soilpit'][0], dimapath)
+            horizons = arcno.MakeTableView(fam['soilpit'][1], dimapath)
+            merge = pd.merge(pits, horizons, how="inner", on="SoilKey")
+            return merge
+
+        else:
+            no_pk_df = arcno.MakeTableView(tablename, dimapath)
+            return no_pk_df
+    except Exception as e:
+        print(e)
 
 def lpi_pk(dimapath):
     # tables
@@ -52,10 +66,10 @@ def gap_pk(dimapath):
     gaphead_detail = pd.merge(gap_header,gap_detail, how="inner", on="RecKey")
     plot_line_det = pd.merge(plot_line,gaphead_detail,how="inner", on="LineKey")
     # fixing dup fields
-    tmp1 = fix_fields(plot_line_det, 'DateModified')
-    tmp2 = fix_fields(tmp1, 'ElevationType')
+    # tmp1 = fix_fields(plot_line_det, 'DateModified')
+    # tmp2 = fix_fields(tmp1, 'ElevationType')
 
-    plot_pk = arc.CalculateField(tmp2, "PrimaryKey", "PlotKey", "FormDate")
+    plot_pk = arc.CalculateField(plot_line_det, "PrimaryKey", "PlotKey", "FormDate")
 
     return plot_pk
 
@@ -163,3 +177,60 @@ def fix_fields(df : pd.DataFrame, keyword: str):
 
             else:
                 return df
+
+switcher = {
+    'tblPlots':no_pk,
+    'tblLines':no_pk,
+    'tblLPIDetail':lpi_pk ,
+    'tblLPIHeader':lpi_pk ,
+    'tblGapDetail':gap_pk ,
+    'tblGapHeader':gap_pk ,
+    # 'tblQualHeader':no_pk ,
+    # 'tblQualDetail':no_pk ,
+    'tblSoilStabHeader':no_pk ,
+    'tblSoilStabDetail':no_pk ,
+    'tblSoilPitHorizons':no_pk ,
+    'tblSoilPits':no_pk ,
+    'tblSpecRichHeader':sperich_pk ,
+    'tblSpecRichDetail':sperich_pk ,
+    'tblPlantProdHeader':no_pk,
+    'tblPlantProdDetail':no_pk,
+    # 'tblPlotNotes',
+    'tblPlantDenHeader':plantden_pk ,
+    'tblPlantDenDetail':plantden_pk ,
+    'tblSpecies':no_pk,
+    'tblSpeciesGeneric':no_pk,
+    'tblSites':no_pk,
+    'tblBSNE_Box':bsne_pk ,
+    'tblBSNE_BoxCollection':bsne_pk ,
+    'tblBSNE_Stack':bsne_pk ,
+    'tblBSNE_TrapCollection':bsne_pk
+}
+tableswitch ={
+    'tblPlots':"no pk",
+    'tblLines':"no pk",
+    'tblLPIDetail':"RecKey",
+    'tblLPIHeader':"LineKey",
+    'tblGapDetail':"RecKey",
+    'tblGapHeader':"LineKey",
+    # 'tblQualHeader':no_pk(dimapath,),
+    # 'tblQualDetail':no_pk(dimapath),
+    'tblSoilStabHeader':"PlotKey",
+    'tblSoilStabDetail':"RecKey",
+    'tblSoilPitHorizons':"no pk",
+    'tblSoilPits':"no pk",
+    'tblSpecRichHeader':"LineKey",
+    'tblSpecRichDetail':"RecKey",
+    'tblPlantProdHeader':"PlotKey",
+    'tblPlantProdDetail':"RecKey",
+    'tblPlotNotes':"no pk",
+    'tblPlantDenHeader':"LineKey",
+    'tblPlantDenDetail':"RecKey",
+    'tblSpecies':"no pk",
+    'tblSpeciesGeneric':"no pk",
+    'tblSites':"no pk",
+    'tblBSNE_Box':"BoxID",
+    'tblBSNE_BoxCollection':"BoxID",
+    'tblBSNE_Stack':"PlotKey",
+    'tblBSNE_TrapCollection':"StackID"
+}
