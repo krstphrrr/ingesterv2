@@ -1,8 +1,5 @@
 from utils.arcnah import arcno
 import pandas as pd
-# path10 = r'C:\Users\kbonefont\Desktop\dimas\LCDO_OMDPNM_2018_Final.mdb'
-# no_pk(None,path10,None)
-
 
 def no_pk(tablefam=None,dimapath=None,tablename = None):
     arc = arcno()
@@ -34,13 +31,23 @@ def no_pk(tablefam=None,dimapath=None,tablename = None):
 
         else:
             no_pk_df = arcno.MakeTableView(tablename, dimapath)
+            if 'Network_DIMAs' in dimapath:
+                if ('tblPlots' in tablename) or ('tblLines' in tablename):
+                    fulldf = bsne_pk(dimapath)
+                    iso = arc.isolateFields(fulldf,'PlotKey','PrimaryKey').copy()
+                    no_pk_df = pd.merge(no_pk_df,iso,how="inner",on="PlotKey")
+            else:
+                if ('tblPlots' in tablename) or ('tblLines' in tablename):
+                    fulldf = lpi_pk(dimapath)
+                    iso = arc.isolateFields(fulldf,'PlotKey','PrimaryKey').copy()
+                    no_pk_df = pd.merge(no_pk_df,iso,how="inner",on="PlotKey")
             return no_pk_df
     except Exception as e:
         print(e)
 
 def lpi_pk(dimapath):
     # tables
-    # arc = arcno()
+
     lpi_header = arcno.MakeTableView('tblLPIHeader', dimapath)
     lpi_detail = arcno.MakeTableView('tblLPIDetail', dimapath)
     lines = arcno.MakeTableView('tblLines', dimapath)
@@ -50,8 +57,10 @@ def lpi_pk(dimapath):
     lpihead_detail = pd.merge(lpi_header, lpi_detail, how="inner", on="RecKey")
     plot_line_det = pd.merge(plot_line, lpihead_detail, how="inner", on="LineKey")
     arc = arcno()
-    plot_pk = arc.CalculateField(plot_line_det, "PrimaryKey", "PlotKey", "FormDate")
 
+    tmp1 = fix_fields(plot_line_det, 'DateModified')
+    tmp2 = fix_fields(tmp1,'ElevationType')
+    plot_pk = arc.CalculateField(tmp2, "PrimaryKey", "PlotKey", "FormDate")
     return plot_pk
 
 def gap_pk(dimapath):
@@ -66,10 +75,10 @@ def gap_pk(dimapath):
     gaphead_detail = pd.merge(gap_header,gap_detail, how="inner", on="RecKey")
     plot_line_det = pd.merge(plot_line,gaphead_detail,how="inner", on="LineKey")
     # fixing dup fields
-    # tmp1 = fix_fields(plot_line_det, 'DateModified')
-    # tmp2 = fix_fields(tmp1, 'ElevationType')
+    tmp1 = fix_fields(plot_line_det, 'DateModified')
+    tmp2 = fix_fields(tmp1, 'ElevationType')
 
-    plot_pk = arc.CalculateField(plot_line_det, "PrimaryKey", "PlotKey", "FormDate")
+    plot_pk = arc.CalculateField(tmp2, "PrimaryKey", "PlotKey", "FormDate")
 
     return plot_pk
 
@@ -143,40 +152,49 @@ def fix_fields(df : pd.DataFrame, keyword: str):
     df = df.copy()
     done=False
     while done!=True:
-        if len([i for i in df.columns if f'{keyword}' in i])>2:
-            df.drop([f'{keyword}_y',f'{keyword}_x'], axis=1, inplace=True)
-            # print('aqui 1')
-            done=True
-            return df
-        else:
-            if (f'{keyword}_x' in df.columns) or (f'{keyword}_y' in df.columns):
-                if df[f'{keyword}_x'].equals(df[f'{keyword}_y']):
-                    # if the two notes are the same, keep one of them.
-                    df.drop([f'{keyword}_y'], axis=1, inplace=True)
-                    df.rename(columns={f'{keyword}_x':f'{keyword}'}, inplace=True)
-                    # print('aqui 2')
-                    done=True
-                    return df
+        if (f'{keyword}_x' in df.columns) or (f'{keyword}_y' in df.columns):
+            if df[f'{keyword}_x'].equals(df[f'{keyword}_y']):
+                # if the two notes are the same, keep one of them.
+                df.drop([f'{keyword}_y'], axis=1, inplace=True)
+                df.rename(columns={f'{keyword}_x':f'{keyword}'}, inplace=True)
 
-
-                elif (df[f'{keyword}_x'].equals(df[f'{keyword}_y'])==False) and (len([i for i in df[f'{keyword}_x'] if i==None])>len([i for i in df[f'{keyword}_y'] if i==None])):
-                    # if the two notes are different AND the x is none, keep the y
-                    df.drop([f'{keyword}_x'], axis=1, inplace=True)
-                    df.rename(columns={f'{keyword}_y':f'{keyword}'}, inplace=True)
-                    # print('aqui 3')
-                    done=True
-                    return df
-
-                elif (df[f'{keyword}_x'].equals(df[f'{keyword}_y'])==False) and (len([i for i in df[f'{keyword}_x'] if i==None])<len([i for i in df[f'{keyword}_y'] if i==None])):
-                    # if the two notes are different AND the y is none, keep the x
-                    df.drop(['Notes_y'], axis=1, inplace=True)
-                    df.rename(columns={f'{keyword}_x':f'{keyword}'}, inplace=True)
-                    # print('aqui 4')
-                    done=True
-                    return df
-
-            else:
+                done=True
                 return df
+
+            elif (df[f'{keyword}_x'].equals(df[f'{keyword}_y'])==False) and ((None not in df[f'{keyword}_x']) or (None not in df[f'{keyword}_x'])) and (len(df[f'{keyword}_x'].unique())>len(df[f'{keyword}_y'].unique())):
+                # if the two notes are different AND the x is none, keep the y
+                df.drop([f'{keyword}_y'], axis=1, inplace=True)
+                df.rename(columns={f'{keyword}_x':f'{keyword}'}, inplace=True)
+
+                done=True
+                return df
+
+            elif (df[f'{keyword}_x'].equals(df[f'{keyword}_y'])==False) and ((None not in df[f'{keyword}_x']) or (None not in df[f'{keyword}_x'])) and (len(df[f'{keyword}_x'].unique())<len(df[f'{keyword}_y'].unique())):
+                # if the two notes are different AND the x is none, keep the y
+                df.drop([f'{keyword}_x'], axis=1, inplace=True)
+                df.rename(columns={f'{keyword}_y':f'{keyword}'}, inplace=True)
+
+                done=True
+                return df
+
+            elif (df[f'{keyword}_x'].equals(df[f'{keyword}_y'])==False) and (len([i for i in df[f'{keyword}_x'] if i==None])>len([i for i in df[f'{keyword}_y'] if i==None])):
+                # if the two notes are different AND the x is none, keep the y
+                df.drop([f'{keyword}_x'], axis=1, inplace=True)
+                df.rename(columns={f'{keyword}_y':f'{keyword}'}, inplace=True)
+
+                done=True
+                return df
+
+            elif (df[f'{keyword}_x'].equals(df[f'{keyword}_y'])==False) and (len([i for i in df[f'{keyword}_x'] if i==None])<len([i for i in df[f'{keyword}_y'] if i==None])):
+                # if the two notes are different AND the y is none, keep the x
+                df.drop(['Notes_y'], axis=1, inplace=True)
+                df.rename(columns={f'{keyword}_x':f'{keyword}'}, inplace=True)
+
+                done=True
+                return df
+
+        else:
+            return df
 
 switcher = {
     'tblPlots':no_pk,

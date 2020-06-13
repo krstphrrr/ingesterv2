@@ -6,7 +6,8 @@ from utils.tools import  config
 from datetime import datetime
 from psycopg2 import sql
 import pandas as pd
-from projects.tables.handler import no_pk, lpi_pk, gap_pk, sperich_pk, plantden_pk, bsne_pk, switcher, tableswitch
+from projects.tables.handler import no_pk, lpi_pk, gap_pk, sperich_pk, plantden_pk, bsne_pk, switcher, tableswitch, fix_fields
+
 
 def main_translate(tablename,dimapath):
 
@@ -37,7 +38,7 @@ def main_translate(tablename,dimapath):
     elif tablename in d:
         df = switcher[tablename](*types['d'])
         return df
-        
+
     else:
         df = switcher[tablename](types['e'])
         arc = arcno()
@@ -48,48 +49,17 @@ def main_translate(tablename,dimapath):
         retdf = pd.merge(target_table, iso, how="inner", on=tableswitch[tablename])
         return retdf
 
-
-"""
-from path to ingest:
-
-1. path and table name into  'pg_send'
-2. if 'pg_send' finds 'BSNE_Box', 'BSNE_BoxCollection' and 'BSNE_TrapCollection' ==>
- - bsne_pk : adds primary key to lowerlevel, joins and propagates pk upstream
-
-   if NOT ==>
- - pk_add : regular table name and path
-"""
-
 def pg_send(tablename,dimapath):
     plot = None
     """
-    build strategies:
-    - plotkeylist
+    almost done:
+    - add DBKey
+    - create Horizontafllux and dust
+
     """
-    nopk = ['tblPlots','tblLines','tblSpecies', 'tblSpecies', 'tblSpeciesGeneric']
-
-    plotkeylist = ['tblQualHeader','tblSoilStabHeader',
-    'tblSoilPits','tblPlantProdHeader','tblPlotNotes', 'tblSoilPitHorizons'
-
-    linekeylist = ['tblGapHeader','tblLPIHeader','tblSpecRichHeader',
-    'tblPlantDenHeader']
-
-    reckeylist = ['tblGapDetail','tblLPIDetail','tblQualDetail','tblSoilStabDetail',
-    'tblSpecRichDetail','tblPlantProdDetail','tblPlantDenDetail']
-
-    nonline = {'tblQualDetail':'tblQualHeader',
-    'tblSoilStabDetail':'tblSoilStabHeader','tblPlantProdDetail':'tblPlantProdHeader'}
 
 
 
-def joinfun(df,whichfield):
-    arc = arcno()
-    # df=df.copy()
-    arc.isolateFields(df, f'{whichfield}', 'PrimaryKey')
-    first = arc.isolates.copy()
-    first.rename(columns={f'{whichfield}':f'{whichfield}2'}, inplace=True)
-    # first=first.drop_duplicates(['PlotKey2'])
-    return first
 
 
 
