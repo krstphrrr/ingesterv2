@@ -21,11 +21,29 @@ def main_translate(tablename,dimapath):
         'b':('soilstab',dimapath, None),
         'c':('soilpits',dimapath, None),
         'd':('plantprod',dimapath, None),
-        'e':dimapath
+        'e':dimapath,
+        'f':('fake', dimapath, tablename)
     }
     if tablename in a:
-        df = switcher[tablename](*types['a'])
-        return df
+        network_check = 0
+        inst = arcno(dimapath)
+
+        for i,j in inst.actual_list.items():
+            if any([True for i,j in inst.actual_list.items() if 'BSNE' in i]):
+                network_check = 2
+            else:
+                network_check = 1
+        while network_check!=0:
+            print(network_check)
+            if network_check==1:
+                df = switcher[tablename](*types['f'])
+                network_check=0
+                return df
+
+            elif network_check==2:
+                df = switcher[tablename](*types['a'])
+                network_check=0
+                return df
 
     elif tablename in b:
         df = switcher[tablename](*types['b'])

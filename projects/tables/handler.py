@@ -1,7 +1,27 @@
 from utils.arcnah import arcno
 import pandas as pd
 
+
 def no_pk(tablefam=None,dimapath=None,tablename = None):
+    """
+    creates and appends PrimaryKey field for tables:
+    tblPlantProdDetail, tblPlantProdHeader, tblPlots, tblLines
+    tblSoilStabDetail, tblSoilStabHeader.
+    if table = tblSpecies, tblSpeciesGeneric, tblSites, no primarykey is appended
+
+    - soil pits still need source for plotkey/formdate primarykey;
+    unclear if lpi coincides in all dimas with soilpits.
+
+    - tblplots and tblLines get primarykey from LPI if not from networkdima,
+    else it gets its primarykey from plotkey/collectdate like the rest of bsne
+    tables.
+
+    -
+
+    todo: need to include tblQualDetail,tblQualHeader, tblPlotNotes
+
+
+    """
     arc = arcno()
     fam = {
         'plantprod':['tblPlantProdDetail','tblPlantProdHeader'],
@@ -31,22 +51,39 @@ def no_pk(tablefam=None,dimapath=None,tablename = None):
 
         else:
             no_pk_df = arcno.MakeTableView(tablename, dimapath)
-            if 'Network_DIMAs' in dimapath:
+            if ('Network_DIMAs' in dimapath) and (tablefam==None):
                 if ('tblPlots' in tablename) or ('tblLines' in tablename):
                     fulldf = bsne_pk(dimapath)
                     iso = arc.isolateFields(fulldf,'PlotKey','PrimaryKey').copy()
+                    iso.drop_duplicates(['PlotKey'],inplace=True)
                     no_pk_df = pd.merge(no_pk_df,iso,how="inner",on="PlotKey")
-            else:
+                    # return no_pk_df
+
+            elif ('Network_DIMAs' in dimapath) and ('fake' in tablefam):
                 if ('tblPlots' in tablename) or ('tblLines' in tablename):
                     fulldf = lpi_pk(dimapath)
                     iso = arc.isolateFields(fulldf,'PlotKey','PrimaryKey').copy()
+                    iso.drop_duplicates(['PlotKey'],inplace=True)
                     no_pk_df = pd.merge(no_pk_df,iso,how="inner",on="PlotKey")
+                    # return no_pk_df
+            else:
+                if ('tblPlots' in tablename) or ('tblLines' in tablename):
+                    print('not network, no tablefam')
+                    fulldf = lpi_pk(dimapath)
+                    iso = arc.isolateFields(fulldf,'PlotKey','PrimaryKey').copy()
+                    iso.drop_duplicates(['PlotKey'],inplace=True)
+                    no_pk_df = pd.merge(no_pk_df,iso,how="inner",on="PlotKey")
+                    # return no_pk_df
             return no_pk_df
     except Exception as e:
         print(e)
 
 def lpi_pk(dimapath):
-    # tables
+    """
+    returns a dataframe with tblplots, tbllines, tbllpiheader and tblLPIDetail
+    joined. PrimaryKey field is made using formdate and plotkey
+
+    """
 
     lpi_header = arcno.MakeTableView('tblLPIHeader', dimapath)
     lpi_detail = arcno.MakeTableView('tblLPIDetail', dimapath)
@@ -64,7 +101,11 @@ def lpi_pk(dimapath):
     return plot_pk
 
 def gap_pk(dimapath):
-    # tables
+    """
+    returns a dataframe with tblplots, tbllines, tblgapheader and tblgapDetail
+    joined. PrimaryKey field is made using formdate and plotkey
+
+    """
     arc = arcno()
     gap_header = arcno.MakeTableView('tblGapHeader', dimapath)
     gap_detail = arcno.MakeTableView('tblGapDetail', dimapath)
@@ -83,7 +124,11 @@ def gap_pk(dimapath):
     return plot_pk
 
 def sperich_pk(dimapath):
-    # tables
+    """
+    returns a dataframe with tblplots, tbllines, tblsperichheader and tblsperichDetail
+    joined. PrimaryKey field is made using formdate and plotkey
+
+    """
     arc = arcno()
     spe_header = arcno.MakeTableView('tblSpecRichHeader', dimapath)
     spe_detail = arcno.MakeTableView('tblSpecRichDetail', dimapath)
@@ -99,7 +144,11 @@ def sperich_pk(dimapath):
     return plot_pk
 
 def plantden_pk(dimapath):
-    # tables
+    """
+    returns a dataframe with tblplots, tbllines, tblplantdenheader and tblplantdenDetail
+    joined. PrimaryKey field is made using formdate and plotkey
+
+    """
     arc = arcno()
     pla_header = arcno.MakeTableView('tblPlantDenHeader', dimapath)
     pla_detail = arcno.MakeTableView('tblPlantDenDetail', dimapath)
@@ -116,6 +165,15 @@ def plantden_pk(dimapath):
     return plot_pk
 
 def bsne_pk(dimapath):
+    """
+    returns a dataframe with tblplots, tblBSNE_Box, tblBSNE_Stack and
+    tblBSNE_BoxCollection and tblBSNE_TrapCollection joined. if tblBSNE_TrapCollection
+    does not exist in networkdima, skip it and join: box, stack and boxcollection.
+    if it exists, join trapcollection and stack.
+
+    PrimaryKey field is made using formdate and plotkey
+
+    """
     ddt = arcno.MakeTableView("tblBSNE_TrapCollection",dimapath)
     arc = arcno()
     if ddt.shape[0]>0:
