@@ -46,7 +46,7 @@ def main():
         print('ok')
 
 
-
+db = db('dima')
 
 
 class request_handler:
