@@ -11,21 +11,6 @@ from projects.tables.handler import plantden_pk, bsne_pk, switcher, tableswitch
 from projects.tables.handler import fix_fields, new_tablename, table_create,tablecheck
 from projects.tall_tables.talltables_handler import ingesterv2
 
-path1 = r'C:\Users\kbonefont\Desktop\Network_DIMAs\8May2017 DIMA 5.5a as of 2020-03-10.mdb'
-path2 = r"C:\Users\kbonefont\Desktop\Network_DIMAs\21May2015 DIMA 5.5a as of 2020-03-10.mdb"
-path3 = r"C:\Users\kbonefont\Desktop\Network_DIMAs\REPORT 5May15 - 5Mar19 JER DIMA 5.4 as of 2019-04-19.mdb"
-path4 = r"C:\Users\kbonefont\Desktop\Network_DIMAs\REPORT 7Jun19 JER DIMA 5.4 as of 2019-04-19.mdb"
-path5 = r"C:\Users\kbonefont\Desktop\Network_DIMAs\REPORT 13Dec19 JER DIMA 5.4 as of 2019-04-19.mdb"
-path6 = r"C:\Users\kbonefont\Desktop\Network_DIMAs\REPORT 18Sept19 JER DIMA 5.4 as of 2019-04-19.mdb"
-path7 = r"C:\Users\kbonefont\Desktop\Network_DIMAs\REPORT 31Oct19 JER DIMA 5.4 as of 2019-04-19.mdb"
-
-path8 = r'C:\Users\kbonefont\Desktop\other dima\REPORT 3Aug16 - 27Oct17 Mandan DIMA 5.3 as of 2018-02-14.mdb'
-path9 = r'C:\Users\kbonefont\Desktop\dimas\DIMA 5.2 as of 2017-07-18.mdb'
-path10 = r'C:\Users\kbonefont\Desktop\dimas\LCDO_OMDPNM_2018_Final.mdb'
-
-
-df = main_translate('tblBSNE_Box', path1)
-
 
 def main_translate(tablename,dimapath):
 
