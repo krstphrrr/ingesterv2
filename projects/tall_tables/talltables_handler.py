@@ -192,12 +192,10 @@ class ingesterv2:
                 df = df.copy()
 
                 escaped = {'\\': '\\\\', '\n': r'\n', '\r': r'\r', '\t': r'\t',}
-                for col in range(0,len(df.columns)):
-                    if df.iloc[:,col].dtype.name == 'object':
-                    # if df.dtypes[col] == 'object':
+                for col in df.columns:
+                    if df.dtypes[col] == 'object':
                         for v, e in escaped.items():
-
-                            df.iloc[:,col] = df.iloc[:,col].apply(lambda x: x.replace(v, e) if isinstance(x,str) else x)
+                            df[col] = df[col].apply(lambda x: x.replace(v, '') if (x is not None) and (isinstance(x,str)) else x)
                 try:
                     for i in tqdm(range(0, df.shape[0], chunk_size)):
                         f = StringIO()
