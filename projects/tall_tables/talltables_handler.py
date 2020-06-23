@@ -182,19 +182,22 @@ class ingesterv2:
             self.con = db.str
             self.cur = self.con.cursor()
 
-    def main_ingest(self, df: pd.DataFrame, table:str,
+    @staticmethod
+    def main_ingest( df: pd.DataFrame, table:str,
                     connection: psycopg2.extensions.connection,
                     chunk_size:int = 10000):
                 """needs a table first"""
+                print(connection)
                 cursor = connection.cursor()
                 df = df.copy()
 
                 escaped = {'\\': '\\\\', '\n': r'\n', '\r': r'\r', '\t': r'\t',}
-                for col in df.columns:
-                    if df.dtypes[col] == 'object':
+                for col in range(0,len(df.columns)):
+                    if df.iloc[:,col].dtype.name == 'object':
+                    # if df.dtypes[col] == 'object':
                         for v, e in escaped.items():
 
-                            df[col] = df[col].apply(lambda x: x.replace(v, e) if isinstance(x,str) else x)
+                            df.iloc[:,col] = df.iloc[:,col].apply(lambda x: x.replace(v, e) if isinstance(x,str) else x)
                 try:
                     for i in tqdm(range(0, df.shape[0], chunk_size)):
                         f = StringIO()

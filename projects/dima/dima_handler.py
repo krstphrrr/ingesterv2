@@ -1,4 +1,5 @@
 from utils.arcnah import arcno
+import os
 from os.path import normpath, split, splitext, join
 from utils.tools import db
 from sqlalchemy import create_engine
@@ -6,11 +7,17 @@ from utils.tools import  config
 from datetime import datetime
 from psycopg2 import sql
 import pandas as pd
-from projects.tables.handler import no_pk, lpi_pk, gap_pk, sperich_pk
-from projects.tables.handler import plantden_pk, bsne_pk, switcher, tableswitch
-from projects.tables.handler import fix_fields, new_tablename, table_create,tablecheck
-from projects.tall_tables.talltables_handler import ingesterv2
+from projects.dima.tables.bsnepk import bsne_pk
+from projects.dima.tables.lpipk import lpi_pk
+from projects.dima.tables.nopk import no_pk
+from projects.dima.tables.gappk import gap_pk
+from projects.dima.tables.sperichpk import sperich_pk
+from projects.dima.tables.plantdenpk import plantden_pk
+from projects.dima.tables.qualpk import qual_pk
 
+from projects.dima.handler import switcher, tableswitch
+from projects.dima.tabletools import fix_fields, new_tablename, table_create,tablecheck
+from projects.tall_tables.talltables_handler import ingesterv2
 
 def main_translate(tablename,dimapath):
 
@@ -80,6 +87,7 @@ def main_translate(tablename,dimapath):
             retdf = pd.merge(target_table, iso, how="inner", on=tableswitch[tablename])
             return retdf
 
+
 def pg_send(table,path):
     plot = None
     """
@@ -112,30 +120,4 @@ def pg_send(table,path):
             ingesterv2.main_ingest(df, table, d.str, 10000)
 
 
-
-def table_create(df: pd.DataFrame, tablename: str):
-    """
-    pulls all fields from dataframe and constructs a postgres table schema;
-    using that schema, create new table in postgres.
-    """
-    type_translate = {
-        'int64':'int',
-        "object":'text',
-        'datetime64[ns]':'timestamp',
-        'bool':'boolean',
-        'float64':'float'
-    }
-    table_fields = {}
-
-
-    for i in df.columns:
-        # print(df[i].dtype)
-        table_fields.update({f'{i}':f'{type_translate[df.dtypes[i].name]}'})
-
-    if table_fields:
-        comm = sql_command(table_fields, tablename)
-        d = db('dima')
-        con = d.str
-        cur = con.cursor()
-        return comm
             # modcheck+=1
