@@ -1,6 +1,7 @@
 from utils.arcnah import arcno
 import pandas as pd
 from projects.dima.tabletools import fix_fields
+from projects.dima.tables.lpipk import lpi_pk
 
 def gap_pk(dimapath):
     """
@@ -21,6 +22,6 @@ def gap_pk(dimapath):
     # tmp1 = fix_fields(plot_line_det, 'DateModified')
     # tmp2 = fix_fields(tmp1, 'ElevationType')
 
-    plot_pk = arc.CalculateField(tmp2, "PrimaryKey", "PlotKey", "FormDate")
+    plot_pk = arc.CalculateField(plot_line_det, "PrimaryKey", "PlotKey", "FormDate")
 
     return plot_pk

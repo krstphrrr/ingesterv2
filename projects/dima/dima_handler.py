@@ -19,7 +19,14 @@ from projects.dima.handler import switcher, tableswitch
 from projects.dima.tabletools import fix_fields, new_tablename, table_create,tablecheck
 from projects.tall_tables.talltables_handler import ingesterv2
 
-def main_translate(tablename,dimapath):
+path = r"C:\Users\kbonefont\Desktop\DIMA 5.4_BlueMountains_2020-01-06.accdb"
+arc = arcno(path)
+arc.actual_list
+
+
+main_translate('tblSites', path)
+[i for i in d.columns]
+def main_translate(tablename,dimapath, debug=None):
 
     a = ['tblPlots', 'tblLines', 'tblSpecies','tblSpeciesGeneric','tblSites']
     b = ['tblSoilStabDetail', 'tblSoilStabHeader']
@@ -48,11 +55,13 @@ def main_translate(tablename,dimapath):
         while network_check!=0:
 
             if network_check==1:
+                print('no_pk; netdima in path; line or plot') if debug else None
                 df = switcher[tablename](*types['f'])
                 network_check=0
                 return df
 
             elif network_check==2:
+                print('no_pk; netdima in path; line or plot') if debug else None
                 df = switcher[tablename](*types['a'])
                 network_check=0
                 return df

@@ -2,66 +2,65 @@ import pandas as pd
 from utils.tools import db
 from utils.arcnah import arcno
 
-def fix_fields(df : pd.DataFrame, keyword: str):
+def fix_fields(df : pd.DataFrame, keyword: str, debug=None):
     df = df.copy()
     done=False
     while done!=True:
-        # for i in range(0, len(df.columns)):
-        #     if df.columns[i]=="Notes":
-        #         print('dropped notes')
-        #         df.drop(["Notes"],axis=1, inplace=True)
-        #     else:
-        #         pass
-
-        if (f'{keyword}_x' in df.columns) or (f'{keyword}_y' in df.columns):
-            if df[f'{keyword}_x'].equals(df[f'{keyword}_y']):
-                # if the two notes are the same, keep one of them.
-                print(f'1. {keyword}_x equals y (drops y)')
-                df.drop([f'{keyword}_y'], axis=1, inplace=True)
-                df.rename(columns={f'{keyword}_x':f'{keyword}'}, inplace=True)
-
-                done=True
-                return df
-
-
-            elif (df[f'{keyword}_x'].equals(df[f'{keyword}_y'])==False) and ((None not in df[f'{keyword}_x']) or (None not in df[f'{keyword}_x'])) and (len(df[f'{keyword}_x'].unique())>len(df[f'{keyword}_y'].unique())):
-                # if the two notes are different AND the x is none, keep the y
-                print(f'2. {keyword}_x does not equal y, and \'None\' is not in column x or y, and the length of x.unique is larger than y.unique (deletes y)')
-                df.drop([f'{keyword}_y'], axis=1, inplace=True)
-                df.rename(columns={f'{keyword}_x':f'{keyword}'}, inplace=True)
-
-                done=True
-                return df
-
-            elif (df[f'{keyword}_x'].equals(df[f'{keyword}_y'])==False) and ((None not in df[f'{keyword}_x']) or (None not in df[f'{keyword}_x'])) and (len(df[f'{keyword}_x'].unique())<len(df[f'{keyword}_y'].unique())):
-                # if the two notes are different AND the x is none, keep the y
-                print(f'3. {keyword}_x does not equal y, and \'None\' is not in column x or y, and the length of x.unique is smaller than y.unique (deletes x)')
-                df.drop([f'{keyword}_x'], axis=1, inplace=True)
-                df.rename(columns={f'{keyword}_y':f'{keyword}'}, inplace=True)
-
-                done=True
-                return df
-
-            elif (df[f'{keyword}_x'].equals(df[f'{keyword}_y'])==False) and (len([i for i in df[f'{keyword}_x'] if i==None])>len([i for i in df[f'{keyword}_y'] if i==None])):
-                # if the two notes are different AND the x is none, keep the y
-                print(f'4. {keyword}_x does not equal y, and the length of Nones in x is larger than the length of Nones in y')
-                df.drop([f'{keyword}_x'], axis=1, inplace=True)
-                # df.rename(columns={f'{keyword}_y':f'{keyword}'}, inplace=True)
-
-                done=True
-                return df
-
-            elif (df[f'{keyword}_x'].equals(df[f'{keyword}_y'])==False) and (len([i for i in df[f'{keyword}_x'] if i==None])<len([i for i in df[f'{keyword}_y'] if i==None])):
-                # if the two notes are different AND the y is none, keep the x
-                print(f'5. {keyword}_x does not equal y, and the length of Nones in x is smaller than the length of Nones in y')
-                df.drop(['Notes_y'], axis=1, inplace=True)
-                df.rename(columns={f'{keyword}_x':f'{keyword}'}, inplace=True)
-
-                done=True
-                return df
-
-        else:
+        if len([i for i in df.columns if keyword in i])>=3:
+            print(f'0.1, {keyword} field occurs 3 times, dropping both additional iterations') if debug else None
+            df.drop([f'{keyword}_y',f'{keyword}_x'], axis=1, inplace=True)
+            done=True
             return df
+        else:
+            if (f'{keyword}_x' in df.columns) or (f'{keyword}_y' in df.columns):
+                if df[f'{keyword}_x'].equals(df[f'{keyword}_y']):
+                    # if the two notes are the same, keep one of them.
+                    print(f'1. {keyword}_x equals y (drops y)') if debug else None
+                    df.drop([f'{keyword}_y'], axis=1, inplace=True)
+                    df.rename(columns={f'{keyword}_x':f'{keyword}'}, inplace=True)
+
+                    done=True
+                    return df
+
+
+                elif (df[f'{keyword}_x'].equals(df[f'{keyword}_y'])==False) and ((None not in df[f'{keyword}_x']) or (None not in df[f'{keyword}_x'])) and (len(df[f'{keyword}_x'].unique())>len(df[f'{keyword}_y'].unique())):
+                    # if the two notes are different AND the x is none, keep the y
+                    print(f'2. {keyword}_x does not equal y, and \'None\' is not in column x or y, and the length of x.unique is larger than y.unique (deletes y)') if debug else None
+                    df.drop([f'{keyword}_y'], axis=1, inplace=True)
+                    df.rename(columns={f'{keyword}_x':f'{keyword}'}, inplace=True)
+
+                    done=True
+                    return df
+
+                elif (df[f'{keyword}_x'].equals(df[f'{keyword}_y'])==False) and ((None not in df[f'{keyword}_x']) or (None not in df[f'{keyword}_x'])) and (len(df[f'{keyword}_x'].unique())<len(df[f'{keyword}_y'].unique())):
+                    # if the two notes are different AND the x is none, keep the y
+                    print(f'3. {keyword}_x does not equal y, and \'None\' is not in column x or y, and the length of x.unique is smaller than y.unique (deletes x)') if debug else None
+                    df.drop([f'{keyword}_x'], axis=1, inplace=True)
+                    df.rename(columns={f'{keyword}_y':f'{keyword}'}, inplace=True)
+
+                    done=True
+                    return df
+
+                elif (df[f'{keyword}_x'].equals(df[f'{keyword}_y'])==False) and (len([i for i in df[f'{keyword}_x'] if i==None])>len([i for i in df[f'{keyword}_y'] if i==None])):
+                    # if the two notes are different AND the x is none, keep the y
+                    print(f'4. {keyword}_x does not equal y, and the length of Nones in x is larger than the length of Nones in y') if debug else None
+                    df.drop([f'{keyword}_x'], axis=1, inplace=True)
+                    # df.rename(columns={f'{keyword}_y':f'{keyword}'}, inplace=True)
+
+                    done=True
+                    return df
+
+                elif (df[f'{keyword}_x'].equals(df[f'{keyword}_y'])==False) and (len([i for i in df[f'{keyword}_x'] if i==None])<len([i for i in df[f'{keyword}_y'] if i==None])):
+                    # if the two notes are different AND the y is none, keep the x
+                    print(f'5. {keyword}_x does not equal y, and the length of Nones in x is smaller than the length of Nones in y') if debug else None
+                    df.drop(['Notes_y'], axis=1, inplace=True)
+                    df.rename(columns={f'{keyword}_x':f'{keyword}'}, inplace=True)
+
+                    done=True
+                    return df
+
+            else:
+                return df
 
 def new_tablename(df:pd.DataFrame):
     """

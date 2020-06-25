@@ -9,8 +9,6 @@ from projects.dima.tables.sperichpk import sperich_pk
 from projects.dima.tables.plantdenpk import plantden_pk
 from projects.dima.tables.qualpk import qual_pk
 
-
-
 switcher = {
     'tblPlots':no_pk,
     'tblLines':no_pk,

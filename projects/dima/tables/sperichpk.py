@@ -1,6 +1,6 @@
 from utils.arcnah import arcno
 import pandas as pd
-
+from projects.dima.tabletools import fix_fields
 
 def sperich_pk(dimapath):
     """
@@ -17,6 +17,9 @@ def sperich_pk(dimapath):
     plot_line = pd.merge(plots, lines, how="inner", on="PlotKey")
     spehead_detail = pd.merge(spe_header, spe_detail, how="inner", on="RecKey")
     plot_line_det = pd.merge(plot_line, spehead_detail, how="inner", on="LineKey")
+    # tmp1 = fix_fields(plot_line_det,"DateModified")
+    # tmp2 = fix_fields(tmp1,"ElevationType")
+    # tmp3 = fix_fields(tmp2, "SpeciesList")
 
     plot_pk = arc.CalculateField(plot_line_det, "PrimaryKey", "PlotKey", "FormDate")
 
