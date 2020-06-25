@@ -100,7 +100,10 @@ def pg_send(table,path,csv=None):
 
     df['DateLoadedInDB'] = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
     # dbkey add calibration HERE
-    df['DBKey']=split(splitext(path)[0])[1].replace(" ","")
+    if ('calibration' in path) or ('Calibration' in path):
+            df['DBKey'] = os.path.join(split(splitext(path)[0])[1].replace(" ",""),'calibration')
+    else:
+        df['DBKey'] = split(splitext(path)[0])[1].replace(" ","")
 
     if 'ItemType' in df.columns:
         newtablename = new_tablename(df)

@@ -1,7 +1,8 @@
 from projects.tall_tables.talltables_handler import model_handler, field_parse, ingesterv2
 from projects.tall_tables.models.gap import dataGap
+from projects.dima.dima_handler import pg_send
+from utils.arcnah import arcno
 
-# path = r"C:\Users\kbonefont\Desktop\data\gap_tall.csv"
 
 """
 **once projecttype is tall!:
@@ -46,9 +47,6 @@ def main():
         print('ok')
 
 
-db = db('dima')
-
-
 class request_handler:
     tablename = None
     fields = None
@@ -66,11 +64,11 @@ class request_handler:
         'd':'dima'
         }
 
-    def __init__(self, projecttype:str, path:str, dictionary:{}, tablename:str):
+    def __init__(self, projecttype:str, path:str):
         [self.clear(a) for a in dir(self) if not a.startswith('__') and not callable(getattr(self,a))]
         self.path = path
-        self.fields = dictionary
-        self.tablename = tablename
+        # self.fields = dictionary
+        # self.tablename = tablename
         self.projectswitch = self.__projects[projecttype]
 
 
@@ -78,10 +76,18 @@ class request_handler:
         var = None
         return var
 
-    def set_model(self):
+    def set_model(self,fields=None, tablename=None):
         if self.projectswitch=='tall':
+
+            self.fields = fields
+            self.tablename = tablename
             self.modelhandler = model_handler(self.path, self.fields, self.tablename)
-        # elif self.projectswitch=='nri':
+
+        elif self.projectswitch=='dima':
+            arc = arcno(self.path)
+            for i,j in arc.actual_list.items():
+                pg_send(i,self.path)
+
         else:
             print('handling not implemented')
 
