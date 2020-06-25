@@ -14,7 +14,7 @@ from projects.tall_tables.talltables_handler import ingesterv2
 
 def main_translate(tablename,dimapath, debug=None):
 
-    a = ['tblPlots', 'tblLines', 'tblSpecies','tblSpeciesGeneric','tblSites','tblPlotNotes']
+    a = ['tblPlots', 'tblLines', 'tblSpecies','tblSpeciesGeneric','tblSites','tblPlotNotes', 'tblSites']
     b = ['tblSoilStabDetail', 'tblSoilStabHeader']
     c = ['tblSoilPits','tblSoilPitHorizons']
     d = ['tblPlantProdDetail', 'tblPlantProdHeader']
@@ -38,6 +38,7 @@ def main_translate(tablename,dimapath, debug=None):
                 network_check = 2
             else:
                 network_check = 1
+
         while network_check!=0:
 
             if network_check==1:
@@ -116,6 +117,7 @@ def pg_send(table,path,csv=None):
             ingesterv2.main_ingest(df, newtablename, d.str, 10000) if csv else csv_fieldcheck(df,path,table)
 
     else:
+        newtablename = table
         if tablecheck(table):
             ingesterv2.main_ingest(df, newtablename, d.str, 10000) if csv else csv_fieldcheck(df,path,table)
 

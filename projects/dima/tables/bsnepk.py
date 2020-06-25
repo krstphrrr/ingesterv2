@@ -22,10 +22,10 @@ def bsne_pk(dimapath):
         # df = arc.AddJoin(stack, ddt, "StackID", "StackID")
         df = pd.merge(stack,ddt, how="inner", on="StackID")
         df2 = arc.CalculateField(df,"PrimaryKey","PlotKey","collectDate")
-        # df2tmp = fix_fields(df2,"Notes")
-        # df2tmp2 = fix_fields(df2tmp,"DateModified")
-        # df2tmp3 = fix_fields(df2tmp2,"DateEstablished")
-        return df2
+        df2tmp = fix_fields(df2,"Notes")
+        df2tmp2 = fix_fields(df2tmp,"DateModified")
+        df2tmp3 = fix_fields(df2tmp2,"DateEstablished")
+        return df2tmp3
     else:
 
         box = arcno.MakeTableView("tblBSNE_Box",dimapath)
@@ -37,8 +37,9 @@ def bsne_pk(dimapath):
         df = pd.merge(box,stack, how="inner", on="StackID")
         df2 = pd.merge(df,boxcol, how="inner", on="BoxID")
         # fix
-        # df2tmp = fix_fields(df2,"Notes")
-        # df2tmp2 = fix_fields(df2tmp,"DateModified")
-        # df2tmp3 = fix_fields(df2tmp2,"DateEstablished")
         df2 = arc.CalculateField(df2,"PrimaryKey","PlotKey","collectDate")
-        return df2
+        df2tmp = fix_fields(df2,"Notes")
+        df2tmp2 = fix_fields(df2tmp,"DateModified")
+        df2tmp3 = fix_fields(df2tmp2,"DateEstablished")
+
+        return df2tmp3

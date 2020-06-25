@@ -132,6 +132,7 @@ class ingesterv2:
                     self.cursor = self.con.cursor
             else:
                 print("connection object not initialized")
+                
     def drop_fk(self, table):
 
         key_str = "{}_PrimaryKey_fkey".format(str(table))

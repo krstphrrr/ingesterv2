@@ -46,7 +46,6 @@ def main():
         a = request_handler(proj,pth,fld,tbl)
         print('ok')
 
-
 class request_handler:
     tablename = None
     fields = None
@@ -76,7 +75,7 @@ class request_handler:
         var = None
         return var
 
-    def set_model(self,fields=None, tablename=None):
+    def set_model(self,fields=None, tablename=None, pg=None):
         if self.projectswitch=='tall':
 
             self.fields = fields
@@ -86,7 +85,8 @@ class request_handler:
         elif self.projectswitch=='dima':
             arc = arcno(self.path)
             for i,j in arc.actual_list.items():
-                pg_send(i,self.path)
+                if 'Box' not in i:
+                    pg_send(i,self.path) if pg==None else pg_send(i,self.path,1)
 
         else:
             print('handling not implemented')

@@ -1,6 +1,7 @@
 from utils.arcnah import arcno
 import pandas as pd
 from projects.dima.tables.lpipk import lpi_pk
+from projects.dima.tables.bsnepk import bsne_pk
 
 def no_pk(tablefam:str=None,dimapath:str=None,tablename:str= None):
     """
@@ -46,36 +47,38 @@ def no_pk(tablefam:str=None,dimapath:str=None,tablename:str= None):
 
         else:
             no_pk_df = arcno.MakeTableView(tablename, dimapath)
+            # print('netdima in path')
             if ('Network_DIMAs' in dimapath) and (tablefam==None):
                 if ('tblPlots' in tablename) or ('tblLines' in tablename):
                     print("lines,plots; networkdima in the path")
-                    fulldf = lpi_pk(dimapath)
+                    fulldf = bsne_pk(dimapath)
                     iso = arc.isolateFields(fulldf,'PlotKey','PrimaryKey').copy()
-                    # iso.drop_duplicates(['PlotKey'],inplace=True)
                     no_pk_df = pd.merge(no_pk_df,iso,how="inner",on=["PlotKey"]).drop_duplicates(["LineKey","PrimaryKey"]) if "tblLines" in tablename else pd.merge(no_pk_df,iso,how="inner",on=["PlotKey"]).drop_duplicates(["PrimaryKey"])
+                    return no_pk_df
+                else:
+                    print("network, but not line or plot, no pk")
                     return no_pk_df
 
             elif ('Network_DIMAs' in dimapath) and ('fake' in tablefam):
                 if ('tblPlots' in tablename) or ('tblLines' in tablename):
                     fulldf = lpi_pk(dimapath)
                     iso = arc.isolateFields(fulldf,'PlotKey','PrimaryKey').copy()
-                    # iso.drop_duplicates(['PlotKey'],inplace=True)
+
                     no_pk_df = pd.merge(no_pk_df,iso,how="inner",on=["PlotKey"]).drop_duplicates(["LineKey","PrimaryKey"]) if "tblLines" in tablename else pd.merge(no_pk_df,iso,how="inner",on=["PlotKey"]).drop_duplicates(["PrimaryKey"])
                     return no_pk_df
+                else:
+                    print("network, but not line or plot, no pk --fakebranch")
+                    return no_pk_df
+
             else:
                 if ('tblPlots' in tablename) or ('tblLines' in tablename):
                     print('not network, no tablefam')
                     fulldf = lpi_pk(dimapath)
                     iso = arc.isolateFields(fulldf,'PlotKey','PrimaryKey').copy()
-                    # iso.drop_duplicates(['PlotKey'],inplace=True)
                     no_pk_df = pd.merge(no_pk_df,iso,how="inner",on=["PlotKey"]).drop_duplicates(["LineKey","PrimaryKey"]) if "tblLines" in tablename else pd.merge(no_pk_df,iso,how="inner",on=["PlotKey"]).drop_duplicates(["PrimaryKey"])
                     return no_pk_df
                 else:
                     print("not network, not line or plot, no pk")
-                    # fulldf = lpi_pk(dimapath)
-                    # iso = arc.isolateFields(fulldf,'PlotKey','PrimaryKey').copy()
-                    # iso.drop_duplicates(['PlotKey'],inplace=True)
-                    # no_pk_df = pd.merge(no_pk_df,iso,how="inner",on="PlotKey")
                     return no_pk_df
             # return no_pk_df
     except Exception as e:
