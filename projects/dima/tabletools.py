@@ -1,6 +1,7 @@
 import pandas as pd
 from utils.tools import db
 from utils.arcnah import arcno
+import os
 
 def fix_fields(df : pd.DataFrame, keyword: str, debug=None):
     df = df.copy()
@@ -151,3 +152,21 @@ def tablecheck(tablename):
         d = db('dima')
         con = d.str
         cur = con.cursor()
+
+def csv_fieldcheck(df: pd.DataFrame, path: str, table: str):
+    checked = 0
+    try:
+        escaped = {'\\': '\\\\', '\n': r'\n', '\r': r'\r', '\t': r'\t',}
+        for col in df.columns:
+            if df.dtypes[col] == 'object':
+                for v, e in escaped.items():
+                    df[col] = df[col].apply(lambda x: x.replace(v, '') if (x is not None) and (isinstance(x,str)) else x)
+                    checked = 1
+    except Exception as e:
+        print(e)
+
+    finally:
+        if checked==1:
+            df.to_csv(os.path.join(os.path.dirname(path),table.replace('tbl','')+'.csv'))
+        else:
+            print('fields not fixed; csv export aborted')

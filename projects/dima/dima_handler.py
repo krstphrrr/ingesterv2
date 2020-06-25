@@ -9,9 +9,8 @@ from psycopg2 import sql
 import pandas as pd
 
 from projects.dima.handler import switcher, tableswitch
-from projects.dima.tabletools import fix_fields, new_tablename, table_create,tablecheck
+from projects.dima.tabletools import fix_fields, new_tablename, table_create,tablecheck, csv_fieldcheck
 from projects.tall_tables.talltables_handler import ingesterv2
-
 
 def main_translate(tablename,dimapath, debug=None):
 
@@ -107,19 +106,19 @@ def pg_send(table,path,csv=None):
         newtablename = new_tablename(df)
         if tablecheck(newtablename):
             print('llegue aqui 1')
-            ingesterv2.main_ingest(df, newtablename, d.str, 10000) if csv else df.to_csv(os.path.join(os.path.dirname(path),table.replace('tbl','')+'.csv'))
+            ingesterv2.main_ingest(df, newtablename, d.str, 10000) if csv else csv_fieldcheck(df,path,table)
         else:
             table_create(df, newtablename)
             print('llegue a 2')
-            ingesterv2.main_ingest(df, newtablename, d.str, 10000) if csv else df.to_csv(os.path.join(os.path.dirname(path),table.replace('tbl','')+'.csv'))
+            ingesterv2.main_ingest(df, newtablename, d.str, 10000) if csv else csv_fieldcheck(df,path,table)
 
     else:
         if tablecheck(table):
-            ingesterv2.main_ingest(df, newtablename, d.str, 10000) if csv else df.to_csv(os.path.join(os.path.dirname(path),table.replace('tbl','')+'.csv'))
+            ingesterv2.main_ingest(df, newtablename, d.str, 10000) if csv else csv_fieldcheck(df,path,table)
 
         else:
             table_create(df, table)
-            ingesterv2.main_ingest(df, newtablename, d.str, 10000) if csv else df.to_csv(os.path.join(os.path.dirname(path),table.replace('tbl','')+'.csv'))
+            ingesterv2.main_ingest(df, newtablename, d.str, 10000) if csv else csv_fieldcheck(df,path,table)
 
 
 
