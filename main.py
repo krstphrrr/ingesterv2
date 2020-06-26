@@ -46,6 +46,16 @@ def main():
         a = request_handler(proj,pth,fld,tbl)
         print('ok')
 
+path1 = r'C:\Users\kbonefont\Desktop\Network_DIMAs\8May2017 DIMA 5.5a as of 2020-03-10.mdb'
+path2 = r"C:\Users\kbonefont\Desktop\Network_DIMAs\21May2015 DIMA 5.5a as of 2020-03-10.mdb"
+path3 = r"C:\Users\kbonefont\Desktop\Network_DIMAs\REPORT 5May15 - 5Mar19 JER DIMA 5.4 as of 2019-04-19.mdb"
+path4 = r"C:\Users\kbonefont\Desktop\Network_DIMAs\REPORT 7Jun19 JER DIMA 5.4 as of 2019-04-19.mdb"
+path5 = r"C:\Users\kbonefont\Desktop\Network_DIMAs\REPORT 13Dec19 JER DIMA 5.4 as of 2019-04-19.mdb"
+path6 = r"C:\Users\kbonefont\Desktop\Network_DIMAs\REPORT 18Sept19 JER DIMA 5.4 as of 2019-04-19.mdb"
+path7 = r"C:\Users\kbonefont\Desktop\Network_DIMAs\REPORT 31Oct19 JER DIMA 5.4 as of 2019-04-19.mdb"
+r = request_handler('d',path7)
+r.set_model(pg=1)
+
 class request_handler:
     tablename = None
     fields = None

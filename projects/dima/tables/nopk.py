@@ -12,7 +12,7 @@ def no_pk(tablefam:str=None,dimapath:str=None,tablename:str= None):
         'plantprod':['tblPlantProdDetail','tblPlantProdHeader'],
         'soilstab':['tblSoilStabDetail','tblSoilStabHeader'],
         'soilpit':['tblSoilPits', 'tblSoilPitHorizons']
-    }
+        }
     try:
         if tablefam is not None and ('plantprod' in tablefam):
 
@@ -57,7 +57,11 @@ def no_pk(tablefam:str=None,dimapath:str=None,tablename:str= None):
                     return no_pk_df
                 else:
                     print("network, but not line or plot, no pk")
-                    return no_pk_df
+                    if 'Sites' in tablename:
+                        no_pk_df = no_pk_df[(no_pk_df.SiteKey!='888888888') & (no_pk_df.SiteKey!='999999999')]
+                        return no_pk_df
+                    else:
+                        return no_pk_df
 
             elif ('Network_DIMAs' in dimapath) and ('fake' in tablefam):
                 if ('tblPlots' in tablename) or ('tblLines' in tablename):
@@ -68,7 +72,11 @@ def no_pk(tablefam:str=None,dimapath:str=None,tablename:str= None):
                     return no_pk_df
                 else:
                     print("network, but not line or plot, no pk --fakebranch")
-                    return no_pk_df
+                    if 'Sites' in tablename:
+                        no_pk_df = no_pk_df[(no_pk_df.SiteKey!='888888888') & (no_pk_df.SiteKey!='999999999')]
+                        return no_pk_df
+                    else:
+                        return no_pk_df
 
             else:
                 if ('tblPlots' in tablename) or ('tblLines' in tablename):
@@ -79,7 +87,11 @@ def no_pk(tablefam:str=None,dimapath:str=None,tablename:str= None):
                     return no_pk_df
                 else:
                     print("not network, not line or plot, no pk")
-                    return no_pk_df
+                    if 'Sites' in tablename:
+                        no_pk_df = no_pk_df[(no_pk_df.SiteKey!='888888888') & (no_pk_df.SiteKey!='999999999')]
+                        return no_pk_df
+                    else:
+                        return no_pk_df
             # return no_pk_df
     except Exception as e:
         print(e)

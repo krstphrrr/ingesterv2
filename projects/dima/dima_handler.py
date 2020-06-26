@@ -87,6 +87,8 @@ def main_translate(tablename,dimapath, debug=None):
             target_table = arcno.MakeTableView(tablename, dimapath)
             retdf = pd.merge(target_table, iso, how="inner", on=tableswitch[tablename])
             return retdf
+path1 = r'C:\Users\kbonefont\Desktop\Network_DIMAs\8May2017 DIMA 5.5a as of 2020-03-10.mdb'
+pg_send('tblSites', path1,1)
 
 def pg_send(table,path,csv=None):
     plot = None
