@@ -42,7 +42,7 @@ class header_fetch:
         else:
             print('file is not in supplied directory')
 
-# and (file.startswith('~$')==False) and (file.endswith('.xlsx')==True) and (steps==0)
+
 
 def dbkey_gen(df,newfield, *fields):
     df[f'{newfield}'] = (df[[f'{field.strip()}' for field in fields]].astype(str)).agg(''.join,axis=1).astype(object)
