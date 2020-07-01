@@ -6,6 +6,10 @@ from psycopg2 import sql
 
 
 def fix_fields(df : pd.DataFrame, keyword: str, debug=None):
+    """ Checks for duplicate fields produced by primarykey joins
+
+    
+    """
     df = df.copy()
     done=False
     while done!=True:
@@ -172,8 +176,7 @@ def csv_fieldcheck(df: pd.DataFrame, path: str, table: str):
             df.to_csv(os.path.join(os.path.dirname(path),table.replace('tbl','')+'.csv'))
         else:
             print('fields not fixed; csv export aborted')
-path1 = r'C:\Users\kbonefont\Desktop\Network_DIMAs\8May2017 DIMA 5.5a as of 2020-03-10.mdb'
-drop_dbkey('tblSites',path1)
+
 def drop_dbkey(table, path):
     squished_path = os.path.split(os.path.splitext(path)[0])[1].replace(" ","")
     d = db('dima')

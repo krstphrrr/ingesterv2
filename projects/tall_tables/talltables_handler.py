@@ -107,6 +107,9 @@ class ingesterv2:
         self.cur = self.con.cursor()
         """ populate properties """
         self.pull_tablenames()
+    def clear(self,var):
+        var = None
+        return var
 
     def pull_tablenames(self):
         if self.__tablenames is not None:
@@ -132,7 +135,7 @@ class ingesterv2:
                     self.cursor = self.con.cursor
             else:
                 print("connection object not initialized")
-                
+
     def drop_fk(self, table):
 
         key_str = "{}_PrimaryKey_fkey".format(str(table))

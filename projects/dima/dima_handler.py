@@ -12,7 +12,27 @@ from projects.dima.handler import switcher, tableswitch
 from projects.dima.tabletools import fix_fields, new_tablename, table_create,tablecheck, csv_fieldcheck
 from projects.tall_tables.talltables_handler import ingesterv2
 
-def main_translate(tablename,dimapath, debug=None):
+
+def main_translate(tablename:str, dimapath:str, debug=None):
+    """ Translates between tables and different function argument strategies
+
+    This function will map the tablename to an appropriate tuple of arguments.
+    first block of 'a' argument tuple will check if the dima has 'BSNE' tables
+    within the DIMA. It could still be a vegetation dima however, that will be checked
+    further along on the no_pk function.
+
+    Parameters
+    ----------
+    tablename : str
+        Name of the table in DIMA. example: 'tblLines'
+
+    dimapath : str
+        Physical path to DIMA Access file. example: 'c://Folder/dima_file.mdb'
+
+    debug : any character or None (default value: None)
+        Prints out how trayectory of the mapping process throughout the function.
+
+    """
 
     a = ['tblPlots', 'tblLines', 'tblSpecies','tblSpeciesGeneric','tblSites','tblPlotNotes', 'tblSites']
     b = ['tblSoilStabDetail', 'tblSoilStabHeader']
@@ -87,16 +107,31 @@ def main_translate(tablename,dimapath, debug=None):
             target_table = arcno.MakeTableView(tablename, dimapath)
             retdf = pd.merge(target_table, iso, how="inner", on=tableswitch[tablename])
             return retdf
-path1 = r'C:\Users\kbonefont\Desktop\Network_DIMAs\8May2017 DIMA 5.5a as of 2020-03-10.mdb'
-pg_send('tblSites', path1,1)
 
-def pg_send(table,path,csv=None):
+
+def pg_send(table:str, path:str, csv=None, debug=None):
     plot = None
-    """
-    almost done:
-    - add DBKey
-    - create Horizontafllux and dust
+    """ Sends dataframe to postgres or prints out CSV.
 
+    Given a Dima path and tablename, uses the function main_translate to create
+    a dataframe and either send it to a postgres database, or print it out to
+    a CSV in the same directory where the DIMA file is in.
+
+    Parameters
+    ----------
+
+    table : str
+        Name of the table in DIMA. example: 'tblLines'
+
+    path : str
+        Physical path to DIMA Access file. example: 'c://Folder/dima_file.mdb'
+
+    csv : None or any character. (default value: None)
+        If not None, it will print out the table dataframe to CSV.
+
+    debug : None or any character. (default value: None)
+        If not None, it will print out each of the steps the function's processes
+        take.
     """
     d = db('dima')
     df = main_translate(table,path)
@@ -106,12 +141,16 @@ def pg_send(table,path,csv=None):
     if ('calibration' in path) or ('Calibration' in path):
             df['DBKey'] = os.path.join(split(splitext(path)[0])[1].replace(" ",""),'calibration')
     else:
+        # creates non-calibration DBKey here
         df['DBKey'] = split(splitext(path)[0])[1].replace(" ","")
 
     if 'ItemType' in df.columns:
+        # if one of the non-vegetation bsne tables, use 'new_tablename' ,
+        # function to produce a new tablename: 'tblHorizontalFlux' or
+        # 'tblDustDeposition'
         newtablename = new_tablename(df)
         if tablecheck(newtablename):
-            print('llegue aqui 1')
+            print('MWACK')
             ingesterv2.main_ingest(df, newtablename, d.str, 10000) if csv else csv_fieldcheck(df,path,table)
         else:
             table_create(df, newtablename)
