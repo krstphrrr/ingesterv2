@@ -1,6 +1,8 @@
 
 import os
 import pandas as pd
+import numpy as np
+from datetime import date
 
 class header_fetch:
 
@@ -42,35 +44,45 @@ class header_fetch:
 
 # and (file.startswith('~$')==False) and (file.endswith('.xlsx')==True) and (steps==0)
 
+def dbkey_gen(df,newfield, *fields):
+    df[f'{newfield}'] = (df[[f'{field.strip()}' for field in fields]].astype(str)).agg(''.join,axis=1).astype(object)
 
+class type_lookup:
+    df = None
+    tbl = None
+    target = None
+    list = {}
+    length = {}
 
-def extract_fields(path : str, which_dataset : str, tablelist:list):
-    return_dict = {}
-    steps = 0
-    while steps<2:
-        # print(f'step 1. steps value = {steps}')
-        for file in os.listdir(path):
-            # print(f'step 2. steps value = {steps}')
-            if 'RangeChange2004-2008' in which_dataset:
-                # print(f'step 3. steps value = {steps}')
-                if (file.find('Point Coordinates')!=-1) and (file.startswith('~$')==False) and (file.endswith('.xlsx')==True) and (steps==0):
-                    # print('extracting coordinates',steps)
-                    header = header_fetch(path)
-                    header.pull(file)
-                    return_dict.update({'pointcoordinates':header.fields})
-                    steps+=1
+    dbkey = {
+        1:'RangeChange2004-2008',
+        2:'RangeChange2009-2015',
+        3:'range2011-2016',
+        4:'rangepasture2017_2018'
+    }
 
-                if (file.find('2004')!=-1) and(file.find('Dump Columns')!=-1) and (file.startswith('~$')==False) and (file.endswith('.xlsx')==True) and (steps==1):
-                    for table in tablelist:
-                        if 'POINTCOORDINATES' not in table:
-                            # print('extracting the rest')
-                            header = header_fetch(path)
-                            header.pull(file, table)
-                            return_dict.update({f'{table.lower()}':header.fields})
-                            steps+=1
+    def __init__(self,df,tablename,dbkeyindex, path):
 
-            else:
-                print('which_dataset variable not implemented')
-    else:
-        # print('returning whole dict')
-        return return_dict
+        mainp = os.path.dirname(os.path.dirname(path))
+        expl = os.listdir(os.path.dirname(os.path.dirname(path)))[-1]
+        exp_file = os.path.join(mainp,expl)
+
+        self.df = df
+        self.tbl = tablename
+        key = self.dbkey[dbkeyindex]
+
+        nri_explanations = pd.read_csv(exp_file)
+
+        is_target = nri_explanations['TABLE.NAME'] == f'{tablename.upper()}'
+        self.target = nri_explanations[is_target]
+        for i in self.df.columns:
+            temprow = self.target[(self.target['FIELD.NAME']==i) & (self.target['DBKey']==key)  ]
+
+            packed = temprow["DATA.TYPE"].values
+            lengths = temprow["FIELD.SIZE"].values
+            # self.length = temprow['FIELD.SIZE']
+
+            for j in packed:
+                self.list.update({ i:f'{j}'})
+            for k in lengths:
+                self.length.update({i:k})
