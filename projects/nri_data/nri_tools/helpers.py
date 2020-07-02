@@ -55,9 +55,9 @@ class type_lookup:
     length = {}
 
     dbkey = {
-        1:'RangeChange2004-2008',
+        3:'RangeChange2004-2008',
         2:'RangeChange2009-2015',
-        3:'range2011-2016',
+        1:'range2011-2016',
         4:'rangepasture2017_2018'
     }
 

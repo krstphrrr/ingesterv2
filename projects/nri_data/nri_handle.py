@@ -215,7 +215,7 @@ class df_build:
                                     dbkey_gen(tempdf, 'PrimaryKey', 'SURVEY', 'STATE', 'COUNTY','PSU','POINT')
                                     dbkey_gen(tempdf, 'FIPSPSUPNT', 'STATE', 'COUNTY','PSU','POINT')
                                 tempdf['DBKey'] = ''.join(['NRI_',f'{date.today().year}'])
-                                self.temp_coords = tempdf.copy(deep=True)
+                                self.temp_coords = tempdf.copy()
                                 self.dfs.update({'pointcoordinates':tempdf})
                                 steps+=1
                 else:
@@ -242,47 +242,47 @@ class df_build:
                             #
                                 t = type_lookup(tempdf, os.path.splitext(item)[0], self.dbkey, backuppath)
 
-                                # if (t.list[field]=="numeric") and (tempdf[field].dtype!=np.float64) and (tempdf[field].dtype!=np.int64):
-                                #     print(field)
-                                #     self.newvar = t.list
-                            #         tempdf[field] = tempdf[field].apply(lambda i: i.strip())
+                                if (t.list[field]=="numeric") and (tempdf[field].dtype!=np.float64) and (tempdf[field].dtype!=np.int64):
+
+                                    self.newvar = t.list
+                                    tempdf[field] = tempdf[field].apply(lambda i: i.strip())
                             #
-                            #     if t.list[field]=="numeric" and field not in stay_in_varchar:
-                            #         tempdf[field] = pd.to_numeric(tempdf[field])
-                            #
-                            #     # for fields with dots in them..
-                            #     dot_list = ['HIT1','HIT2','HIT3', 'HIT4', 'HIT5', 'HIT6', 'NONSOIL']
-                            #     if field in dot_list:
-                            #         tempdf[field] = tempdf[field].apply(lambda i: "" if ('.' in i) and (any([(j.isalpha()) or (j.isdigit()) for j in i])!=True) else i)
-                            #
-                            #     ##### STRIP ANYWAY
-                            #     if tempdf[field].dtype==np.object:
-                            #         tempdf[field] = tempdf[field].apply(lambda i: i.strip() if type(i)!=float else i)
-                            #
-                            #
-                            # # for all tables not in "less_fields" list, create two new fields
-                            #
-                            #     # if table has field 'COUNTY', fill with leading zeroes
-                            #     if 'COUNTY' in tempdf.columns:
-                            #         tempdf['COUNTY'] = tempdf['COUNTY'].map(lambda x: f'{x:0>3}')
-                            #     # if table has field 'STATE', fill with leading zeroes
-                            #     if 'STATE' in tempdf.columns:
-                            #         tempdf['STATE'] = tempdf['STATE'].map(lambda x: f'{x:0>2}')
-                            #     # create simple dbkey field
-                            #     tempdf['DBKey'] = ''.join(['NRI_',f'{date.today().year}'])
-                            #
-                            # less_fields = ['statenm','countynm']
-                            # if os.path.splitext(item)[0] not in less_fields:
-                            #     # print(item)
-                            #     dbkey_gen(tempdf, 'PrimaryKey', 'SURVEY', 'STATE', 'COUNTY','PSU','POINT')
-                            #     dbkey_gen(tempdf, 'FIPSPSUPNT', 'STATE', 'COUNTY','PSU','POINT')
-                            #
-                            # if 'point' in item:
-                            #     # adding landuse from points table to coords
-                            #     point_slice = tempdf[['LANDUSE', 'PrimaryKey']].copy(deep=True)
-                            #     coords_dup = pd.concat([self.temp_coords,point_slice], axis=1, join="inner")
-                            #     coords_full = coords_dup.loc[:,~coords_dup.columns.duplicated()]
-                            #     self.dfs.update({'pointcoordinates': coords_full})
+                                if t.list[field]=="numeric" and field not in stay_in_varchar:
+                                    tempdf[field] = pd.to_numeric(tempdf[field])
+
+                                # for fields with dots in them..
+                                dot_list = ['HIT1','HIT2','HIT3', 'HIT4', 'HIT5', 'HIT6', 'NONSOIL']
+                                if field in dot_list:
+                                    tempdf[field] = tempdf[field].apply(lambda i: "" if ('.' in i) and (any([(j.isalpha()) or (j.isdigit()) for j in i])!=True) else i)
+
+                                ##### STRIP ANYWAY
+                                if tempdf[field].dtype==np.object:
+                                    tempdf[field] = tempdf[field].apply(lambda i: i.strip() if type(i)!=float else i)
+
+
+                            # for all tables not in "less_fields" list, create two new fields
+
+                                # if table has field 'COUNTY', fill with leading zeroes
+                                if 'COUNTY' in tempdf.columns:
+                                    tempdf['COUNTY'] = tempdf['COUNTY'].map(lambda x: f'{x:0>3}')
+                                # if table has field 'STATE', fill with leading zeroes
+                                if 'STATE' in tempdf.columns:
+                                    tempdf['STATE'] = tempdf['STATE'].map(lambda x: f'{x:0>2}')
+                                # create simple dbkey field
+                                tempdf['DBKey'] = ''.join(['NRI_',f'{date.today().year}'])
+
+                            less_fields = ['statenm','countynm']
+                            if os.path.splitext(item)[0] not in less_fields:
+                                # print(item)
+                                dbkey_gen(tempdf, 'PrimaryKey', 'SURVEY', 'STATE', 'COUNTY','PSU','POINT')
+                                dbkey_gen(tempdf, 'FIPSPSUPNT', 'STATE', 'COUNTY','PSU','POINT')
+
+                            if 'point' in item:
+                                # adding landuse from points table to coords
+                                point_slice = tempdf[['LANDUSE', 'PrimaryKey']].copy(deep=True)
+                                coords_dup = pd.concat([self.temp_coords,point_slice], axis=1, join="inner")
+                                coords_full = coords_dup.loc[:,~coords_dup.columns.duplicated()]
+                                self.dfs.update({'pointcoordinates': coords_full})
                             self.dfs.update({f'{os.path.splitext(item)[0]}':tempdf})
                             steps+=1
                 # return tempdf
