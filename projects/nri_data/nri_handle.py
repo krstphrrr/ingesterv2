@@ -14,59 +14,18 @@ import urllib
 import pyodbc as pyo
 
 from projects.nri_data.nri_tools.helpers import header_fetch, type_lookup, dbkey_gen
+from projects.nri_data.nri_tools.table_preppers import concern, disturbance, pastureheights
 
 """
-extract cant handle  2011 type lookup
+
 TODO
-try:
-    - type_lookup( dataframe, tablename, dbkeyindex(?), path (without raw dump? check old script))
-    - check why cultivation throws error. bet typelookup is not looking up the right table and fails
-
-
-LATER:
-if path  = 2004-2015,  (firstpath)
-two options : 2004  or 2009
----------
-instance( firstpath, 'RangeChange2009-2015')
-builderinstance. extract 2004 or 2009
-builderinstance. append 2004 or 2009
-returns dictionary of all dataframes
-
-
-if path = 2011 - 2016 (second path)
-one option : 2009
-----------------
-instance(second path, 'range2011-2016')
-builder instance. extract 2009
-builder instance. append 2011
-returns dictionary w all dataframes
-
-
-
-if path = 2013 (third path - pasture2013-2016)
-----------------
-builderinstance(thirdpath ,'range2011-2016')
-builderinstance. extract(2009)
-builderinstance. append('pasture2013')
-
-
-if path = 2017 (fourth path )
-----------------
-builderinstance(fourthpath,'rangepasture2017_2018')
-bulderinstance. extract(2018)
-builderinstance. append(rangepasture2017)
-
-
 
 tablebuilder:
-- create the four dictionaries
-- choose table to save for each set
-- discard tables not chosen (free ram)
-- append all
 - apply fixes per chosen dataset/table
 
 
 """
+
 
 class df_build:
 
@@ -122,7 +81,7 @@ class df_build:
         var = None
         return var
 
-    def extract_fields(self, findable_string):
+    def extract_fields(self, findable_string, tname=None):
         """
         usage:
            instance = df_builder_for_2004('target_directory', 1)
@@ -132,6 +91,8 @@ class df_build:
 
 
         """
+        if tname!=None:
+            tname=tname.upper()
         do_not_add_raw = ['RangeChange2004-2008', 'RangeChange2009-2015']
         backuppath = self.path
         steps = 0
@@ -156,7 +117,9 @@ class df_build:
                         pass
 
                 if (file.find(f'{findable_string}')!=-1) and(file.find('Dump Columns')!=-1) and (file.startswith('~$')==False) and (file.endswith(f'{self.set_2018}')==True) and (steps==1):
-                    for table in self.tablelist:
+
+                    tlist = self.tablelist if tname==None else [tname]
+                    for table in tlist:
                         if 'POINTCOORDINATES' not in table:
                             header = header_fetch(self.path)
                             header.pull(file, table)
@@ -168,7 +131,7 @@ class df_build:
 
 
     #
-    def append_fields(self, findable_string):
+    def append_fields(self, findable_string, tname=None):
         """
         usage:
            instance = df_builder_for_2004('target_directory', 1)
@@ -176,6 +139,8 @@ class df_build:
         -> instance.append_fields('RangeChange2004')
             - populates instance.dfs with all the dataframes
         """
+        if tname!=None:
+            tname=tname.upper()
         do_not_add_raw = ['RangeChange2004-2008', 'RangeChange2009-2015']
         backuppath = self.path
         steps = 0
@@ -226,7 +191,8 @@ class df_build:
 
                 if (file.find(findable_string)!=-1) and (file.endswith('.xlsx')==False) and (steps==1) and ('PointCoordinates' not in file) and (file.endswith('.zip')==False):
                     for item in os.listdir(os.path.join(self.path, file)):
-                        if os.path.splitext(item)[0].upper() in self.tablelist:
+                        tlist = self.tablelist if tname==None else [tname]
+                        if os.path.splitext(item)[0].upper() in tlist:
                             # print(self.path, item, file)
 
                             tempdf = pd.read_csv(os.path.join(self.path,file,item), sep='|', index_col=False,low_memory=False, names=self.fields_dict[os.path.splitext(item)[0].upper()])
@@ -237,17 +203,16 @@ class df_build:
                             # t = type_lookup(tempdf, os.path.splitext(item)[0], self.dbkey, backuppath)
 
                             for field in tempdf.columns:
-                            #     print(field)
+                                # print(f'{item}, {field}') # debug
                                 stay_in_varchar = ['STATE', 'COUNTY']
                             #
                                 t = type_lookup(tempdf, os.path.splitext(item)[0], self.dbkey, backuppath)
-
                                 if (t.list[field]=="numeric") and (tempdf[field].dtype!=np.float64) and (tempdf[field].dtype!=np.int64):
-
-                                    self.newvar = t.list
                                     tempdf[field] = tempdf[field].apply(lambda i: i.strip())
                             #
                                 if t.list[field]=="numeric" and field not in stay_in_varchar:
+                                    if 'SAGEBRUSH_SHAPE' in field:
+                                        tempdf[field] = tempdf[field].apply(lambda i: np.nan if ('.' in i) and (any([j.isdigit() for j in i])!=True) else i)
                                     tempdf[field] = pd.to_numeric(tempdf[field])
 
                                 # for fields with dots in them..
@@ -277,7 +242,7 @@ class df_build:
                                 dbkey_gen(tempdf, 'PrimaryKey', 'SURVEY', 'STATE', 'COUNTY','PSU','POINT')
                                 dbkey_gen(tempdf, 'FIPSPSUPNT', 'STATE', 'COUNTY','PSU','POINT')
 
-                            if 'point' in item:
+                            if 'point' in item and ('RangeChange2009-2015' not in self.dbkeys[self.dbkey]):
                                 # adding landuse from points table to coords
                                 point_slice = tempdf[['LANDUSE', 'PrimaryKey']].copy(deep=True)
                                 coords_dup = pd.concat([self.temp_coords,point_slice], axis=1, join="inner")
@@ -289,3 +254,88 @@ class df_build:
             if steps>=2:
                 if self.path!=backuppath:
                     self.path=backuppath
+
+def task_parser(tablename):
+
+    table_map = {
+        'concern': ['2004','2009','2011','2013','2017'],
+        'disturbance' : ['2004','2009','2011','2013','2017'],
+        'ecosite':['2004'],
+        'esfsg':['2009','2011','2013','2017'],
+        'gintercept': ['2004','2009','2011','2013','2017'],
+        'gps': ['2004','2009','2011','2013','2017'],
+        'point' : ['2004','2011','2013','2017'],
+        'pastureheights': ['2009','2011','2013','2017'],
+    }
+    tablelist = []
+    # task=0
+
+    if tablename in table_map.keys():
+        if '2004' in table_map[tablename]:
+            a = df_build(path1_2, 'RangeChange2004-2008')
+            a.extract_fields('2004',tablename)
+            a.append_fields('2004',tablename)
+            df1 = a.dfs[tablename]
+            tablelist.append(df1)
+
+        if '2009' in table_map[tablename]:
+            b = df_build(path1_2, 'RangeChange2009-2015')
+            b.extract_fields('2009', tablename)
+            b.append_fields('2009',tablename)
+            df2 = b.dfs[tablename]
+            tablelist.append(df2)
+
+        if '2011' in table_map[tablename]:
+            c = df_build(path3, 'range2011-2016')
+            c.extract_fields('2009',tablename)
+            c.append_fields('2011',tablename)
+            df3 = c.dfs[tablename]
+            tablelist.append(df3)
+
+        if '2013' in table_map[tablename]:
+            d = df_build(path4, 'range2011-2016')
+            d.extract_fields('2009',tablename)
+            d.append_fields('pasture2013',tablename)
+            df4 = d.dfs[tablename]
+            tablelist.append(df4)
+
+        if '2017' in table_map[tablename]:
+            e = df_build(path5, 'rangepasture2017_2018')
+            e.extract_fields('2018',tablename)
+            e.append_fields('rangepasture2017',tablename)
+            df5 = e.dfs[tablename]
+            tablelist.append(df5)
+    if 'pastureheights' not in tablename:
+        main_df = pd.concat([i for i in tablelist]).drop_duplicates()
+    else:
+        height = pd.concat([df2,df3,df4]).drop_duplicates().copy()
+        height2 = pd.concat([height,df5],ignore_index=True)
+
+    if 'concern' in tablename:
+        main_df = concern(main_df)
+
+    if 'disturbance' in tablename:
+        main_df = disturbance(main_df)
+
+    if 'pastureheights' in tablename:
+        main_df = pastureheights(height2)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    return main_df
