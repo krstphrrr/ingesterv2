@@ -81,3 +81,73 @@ def pastureheights(df):
     almost['HEIGHT_UNIT'] = 'ft'
     # almost['HPLANT'] = almost['HPLANT'].apply(lambda x: '' if ('None' in x) else x)
     return almost
+
+def soilhorizon(df):
+
+    df1 = df.iloc[:,:7]
+    df1['DEPTH_UNIT'] = df['DEPTH'].apply(lambda x: 'in' if pd.isnull(x)!=True else x)
+    df2 = df.iloc[:,7:]
+    dff = pd.concat([df1,df2], axis=1)
+
+    dff['HORIZON_TEXTURE'] = dff['HORIZON_TEXTURE'].apply(lambda x: np.nan if (isinstance(x, float)!=True) and (any([i.isalpha() for i in x])!=True) else x)
+    dff['TEXTURE_MODIFIER'] = dff['TEXTURE_MODIFIER'].apply(lambda x: np.nan if (isinstance(x, float)!=True) and (any([i.isalpha() for i in x])!=True) else x)
+    dff['EFFERVESCENCE_CLASS'] = dff['EFFERVESCENCE_CLASS'].apply(lambda x: np.nan if (isinstance(x, float)!=True) and (any([i.isalpha() for i in x])!=True) else x)
+
+    return dff
+
+def statenm(df):
+
+    midwest = ['IL', 'IN','IA','MI','MN','MO','OH','WI']
+    northeast = ['CT', 'DE', 'ME', 'MD', 'MA', 'NH', 'NJ', 'NY', 'PA', 'RI', 'VT', 'WV']
+    nplains = ['CO','KS', 'MT', 'NE', 'ND','SD','WY']
+    scentral = ['AR','LA','OK','TX']
+    seast = ['AL','FL','GA','KY', 'MS','NC','SC','TN','VA']
+    west = ['AZ', 'CA', 'ID', 'NV', 'NM', 'OR','UT','WA']
+
+    def chooser(state):
+        if state in midwest:
+            return 'Midwest'
+        elif state in northeast:
+            return 'North East'
+        elif state in nplains:
+            return 'Northern Plains'
+        elif state in scentral:
+            return 'South Central'
+        elif state in seast:
+            return 'South East'
+        elif state in west:
+            return 'West'
+
+    df['PastureRegion'] = '0'
+    df['PastureRegion'] = statenm['STABBR'].apply(lambda x: chooser(x))
+
+def pintercept(df):
+    df['HIT1'] = df['HIT1'].apply(lambda x: np.nan if ('None' in x ) else x)
+    df['HIT2'] = df['HIT2'].apply(lambda x: np.nan if ('None' in x ) else x)
+    df['HIT3'] = df['HIT3'].apply(lambda x: np.nan if ('None' in x ) else x)
+    df['HIT4'] = df['HIT4'].apply(lambda x: np.nan if ('None' in x ) else x)
+    df['HIT5'] = df['HIT5'].apply(lambda x: np.nan if ('None' in x ) else x)
+    df['HIT6'] = df['HIT6'].apply(lambda x: np.nan if ('None' in x ) else x)
+    df['BASAL'] = df['BASAL'].apply(lambda x: np.nan if ('None' in x ) else x)
+    return df
+
+
+def practice(df):
+
+    mask = pd.isnull(df.P528A)!=True
+    mask2 = pd.isnull(df.N528A)!=True
+
+    df.loc[df.P528A.isnull()!=True,'P528'] = df.P528A[mask]
+    df.loc[df.N528A.isnull()!=True,'N528'] = df.N528A[mask2]
+
+    df.drop(columns=['N528A','P528A'], inplace=True)
+
+    addins = ['PrimaryKey','FIPSPSUPNT','DBKey']
+    for field in [i for i in df.columns[5:] if i not in addins ]:
+        df[field] = df[field].apply(lambda x: np.nan if (isinstance(x,float)!=True) and x!='N' and x!='Y'  else x)
+    for field in [i for i in df.columns[5:] if i not in addins ]:
+        df[field] = df[field].apply(lambda x: 1 if x=='Y' else (0 if x=='N' else x) )
+    for field in [i for i in df.columns[5:] if i not in addins ]:
+        df[field] = df[field].astype("Int64")
+
+    return df

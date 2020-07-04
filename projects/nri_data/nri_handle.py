@@ -14,7 +14,7 @@ import urllib
 import pyodbc as pyo
 
 from projects.nri_data.nri_tools.helpers import header_fetch, type_lookup, dbkey_gen
-from projects.nri_data.nri_tools.table_preppers import concern, disturbance, pastureheights
+from projects.nri_data.nri_tools.table_preppers import concern, disturbance, pastureheights, soilhorizon, pintercept, practice
 
 """
 
@@ -266,6 +266,16 @@ def task_parser(tablename):
         'gps': ['2004','2009','2011','2013','2017'],
         'point' : ['2004','2011','2013','2017'],
         'pastureheights': ['2009','2011','2013','2017'],
+        'plantcensus': ['2009','2011','2013','2017'],
+        'point': ['2004','2009','2011','2013','2017'],
+        'pointcoordinates': ['2004','2011','2013','2017'],
+        'ptnote': ['2004','2009','2011','2013','2017'],
+        'rangehealth' : ['2004','2009','2011','2017'],
+        'soildisag': ['2004','2009','2011','2013','2017'],
+        'soilhorizon' : ['2009','2011','2013','2017'],
+        'statenm': ['2004','2009','2011','2013','2017'],
+        'pintercept': ['2004','2009','2011','2013','2017'],
+        'practice': ['2004','2009','2011','2013','2017'],
     }
     tablelist = []
     # task=0
@@ -319,6 +329,15 @@ def task_parser(tablename):
 
     if 'pastureheights' in tablename:
         main_df = pastureheights(height2)
+
+    if 'soilhorizon' in tablename:
+        main_df = soilhorizon(main_df)
+
+    if 'pintercept' in tablename:
+        main_df = pintercept(main_df)
+
+    if 'practice' in tablename:
+        main_df = practice(main_df)
 
 
 
