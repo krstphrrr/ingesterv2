@@ -30,11 +30,12 @@ tablebuilder:
 class df_build:
 
     _dbkey = {
-        'RangeChange2004-2008':3,
-        'RangeChange2009-2015':2,
         'range2011-2016':1,
+        'RangeChange2009-2015':2,
+        'RangeChange2004-2008':3,
         'rangepasture2017_2018':4
     }
+
     dbkey = None
 
     def __init__(self, path, dbkey):
@@ -63,11 +64,21 @@ class df_build:
         # self.realp = os.path.join(path,'Raw data dump')
         self.expl = os.listdir(self.mainp)[-1]
         self.df = pd.read_csv(os.path.join(self.mainp, self.expl))
-        self.dbkeys = {key:value for (key,value) in enumerate([i for i in self.df['DBKey'].unique()])}
+        # self.dbkeys = {key:value for (key,value) in enumerate([i for i in self.df['DBKey'].unique()])}
+        self.dbkeys = {key:value for (key,value) in enumerate([i for i in self._dbkey], start=1)}
         if dbkey in self._dbkey.keys():
             self.dbkey = self._dbkey[dbkey]
+        if '2004' in self.path:
+            table_list_path = os.path.join(self.path,dbkey)
+        elif '2011' in self.path:
+            table_list_path = os.path.join(self.path,'Raw data dump',dbkey)
+        elif '2013' in self.path:
+            table_list_path = os.path.join(self.path, 'Raw data dump', 'pasture2013-2018')
+        elif '2017' in self.path:
+            table_list_path = os.path.join(self.path, 'Raw data dump',  'rangepasture2017_2018')
 
-        self.tablelist = [i for i in self.df[self.df['DBKey']==f'{dbkey}']['TABLE.NAME'].unique()]
+        # self.tablelist = [i for i in self.df[self.df['DBKey']==f'{dbkey}']['TABLE.NAME'].unique()]
+        self.tablelist = [i.split('.')[0].upper() for i in os.listdir(table_list_path)]
 
         if 'rangepasture2017_2018' in dbkey:
             self.set_2018 = '.csv'
@@ -257,7 +268,11 @@ class df_build:
 
 def task_parser(tablename):
 
+
     table_map = {
+        'altwoody':['2013'],
+        'biomass':['2013'],
+        'dryweightrank':['2013'],
         'concern': ['2004','2009','2011','2013','2017'],
         'disturbance' : ['2004','2009','2011','2013','2017'],
         'ecosite':['2004'],

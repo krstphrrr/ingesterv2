@@ -48,6 +48,7 @@ def dbkey_gen(df,newfield, *fields):
     df[f'{newfield}'] = (df[[f'{field.strip()}' for field in fields]].astype(str)).agg(''.join,axis=1).astype(object)
 
 class type_lookup:
+    
     df = None
     tbl = None
     target = None
@@ -73,13 +74,13 @@ class type_lookup:
 
         nri_explanations = pd.read_csv(exp_file)
 
-        is_target = nri_explanations['TABLE.NAME'] == f'{tablename.upper()}'
+        is_target = nri_explanations['Table name'] == f'{tablename.upper()}'
         self.target = nri_explanations[is_target]
         for i in self.df.columns:
-            temprow = self.target[(self.target['FIELD.NAME']==i) & (self.target['DBKey']==key)  ]
-
-            packed = temprow["DATA.TYPE"].values
-            lengths = temprow["FIELD.SIZE"].values
+            temprow = self.target[(self.target['Field name']==i)]
+            # temprow = self.target[(self.target['Field name']==i) & (self.target['DBKey']==key)  ]
+            packed = temprow["Data type"].values
+            lengths = temprow["Field size"].values
             # self.length = temprow['FIELD.SIZE']
 
             for j in packed:
