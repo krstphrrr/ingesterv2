@@ -3,6 +3,9 @@ import os
 import pandas as pd
 import numpy as np
 from datetime import date
+from sqlalchemy import create_engine, DDL
+from win32com.client import Dispatch
+from projects.nri_data.nri_tools.paths import path1_2
 
 class header_fetch:
 
@@ -48,7 +51,7 @@ def dbkey_gen(df,newfield, *fields):
     df[f'{newfield}'] = (df[[f'{field.strip()}' for field in fields]].astype(str)).agg(''.join,axis=1).astype(object)
 
 class type_lookup:
-    
+
     df = None
     tbl = None
     target = None
@@ -87,3 +90,78 @@ class type_lookup:
                 self.list.update({ i:f'{j}'})
             for k in lengths:
                 self.length.update({i:k})
+
+
+def mdb_create(output):
+    try:
+        dbname = f'NRI_EXPORT_{date.today().month}_{date.today().day}_{date.today().year}.mdb'
+        pathname = os.path.join(output,dbname)
+        accApp = Dispatch("Access.Application")
+        dbEngine = accApp.DBEngine
+        workspace = dbEngine.Workspaces(0)
+        dbLangGeneral = ';LANGID=0x0409;CP=1252;COUNTRY=0'
+        newdb = workspace.CreateDatabase(pathname, dbLangGeneral, 64)
+
+        newdb.Execute("""CREATE TABLE Table1 (
+                          ID autoincrement,
+                          Col1 varchar(50),
+                          Col2 double,
+                          Col3 datetime);""")
+    except Exception as e:
+        print(e)
+
+    finally:
+        accApp.DoCmd.CloseDatabase
+        accApp.Quit
+        newdb = None
+        workspace = None
+        dbEngine = None
+        accApp = None
+
+def ret_access(whichmdb):
+    MDB = whichmdb
+    DRV = '{Microsoft Access Driver (*.mdb, *.accdb)}'
+    mdb_string = r"DRIVER={};DBQ={};".format(DRV,MDB)
+    connection_url = f"access+pyodbc:///?odbc_connect={urllib.parse.quote_plus(mdb_string)}"
+    engine = create_engine(connection_url)
+    return engine
+
+
+
+def access_dictionary(df, tablename):
+    onthefly={}
+    only_once = set()
+    t = type_lookup(df,tablename,1,path1_2)
+    temptypes = t.list
+    templengths = t.length
+    def alchemy_ret(type,len=None):
+        """
+        function that takes a type(numeric or character+length) returns
+        a sqlalchemy/pg compatible type
+        """
+        if (type=='numeric') and (len==None):
+            return sqlalchemy.types.Float(precision=3, asdecimal=True)
+        elif (type=='character') and (len!=None):
+            return sqlalchemy.types.VARCHAR(length=len)
+    for key in temptypes:
+        """
+        creating custom dictionary per table to map pandas types to pg
+        """
+        state_key = ["STATE", "COUNTY"]
+        if key not in only_once:
+            only_once.add(key)
+
+            if temptypes[key]=='numeric':
+                onthefly.update({f'{key}':alchemy_ret(temptypes[key])})
+                for k in state_key:
+                    if k == "STATE":
+                        onthefly.update({f'{k}':alchemy_ret('character',2)})
+                    if k=="COUNTY":
+                        onthefly.update({f'{k}':alchemy_ret('character',3)})
+
+            if temptypes[key]=='character':
+                onthefly.update({f'{key}':alchemy_ret(temptypes[key],templengths[key])})
+
+                if key == "PTNOTE":
+                    onthefly.update({"PTNOTE":sqlalchemy.types.Text})
+    return onthefly

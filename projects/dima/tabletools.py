@@ -8,7 +8,7 @@ from psycopg2 import sql
 def fix_fields(df : pd.DataFrame, keyword: str, debug=None):
     """ Checks for duplicate fields produced by primarykey joins
 
-    
+
     """
     df = df.copy()
     done=False
@@ -83,13 +83,14 @@ def new_tablename(df:pd.DataFrame):
             newtablename = 'tblDustDeposition'
             return newtablename
 
-def table_create(df: pd.DataFrame, tablename: str):
+def table_create(df: pd.DataFrame, tablename: str, conn:str='dima'):
     """
     pulls all fields from dataframe and constructs a postgres table schema;
     using that schema, create new table in postgres.
     """
     type_translate = {
         'int64':'int',
+        'Int64':'int',
         "object":'text',
         'datetime64[ns]':'timestamp',
         'bool':'boolean',
@@ -103,8 +104,8 @@ def table_create(df: pd.DataFrame, tablename: str):
             table_fields.update({f'{i}':f'{type_translate[df.dtypes[i].name]}'})
 
         if table_fields:
-            comm = sql_command(table_fields, tablename)
-            d = db('dima')
+            comm = sql_command(table_fields, tablename) if conn==None else sql_command(table_fields, tablename, 'nritest')
+            d = db(f'{conn}')
             con = d.str
             cur = con.cursor()
             # return comm
@@ -113,18 +114,18 @@ def table_create(df: pd.DataFrame, tablename: str):
 
     except Exception as e:
         print(e)
-        d = db('dima')
+        d = db(f'{conn}')
         con = d.str
         cur = con.cursor()
 
-def sql_command(typedict:{}, name:str):
+def sql_command(typedict:{}, name:str, db:str=None):
     """
     create a string for a psycopg2 cursor execute command to create a new table.
     it receives a dictionary with fields and fieldtypes, and builds the string
     using them.
     """
     inner_list = [f"\"{k}\" {v}" for k,v in typedict.items()]
-    part_1 = f""" CREATE TABLE postgres.public.\"{name}\" ("""
+    part_1 = f""" CREATE TABLE postgres.public.\"{name}\" (""" if db==None else f""" CREATE TABLE {db}.public.\"{name}\" ("""
     try:
         for i,x in enumerate(inner_list):
             if i==len(inner_list)-1:
@@ -137,14 +138,14 @@ def sql_command(typedict:{}, name:str):
         part_1+=");"
         return part_1
 
-def tablecheck(tablename):
+def tablecheck(tablename, conn=None):
     """
     receives a tablename and returns true if table exists in postgres table
     schema, else returns false
 
     """
     try:
-        d = db('dima')
+        d = db(f'{conn}')
         con = d.str
         cur = con.cursor()
         cur.execute("select exists(select * from information_schema.tables where table_name=%s)", (f'{tablename}',))
@@ -155,7 +156,7 @@ def tablecheck(tablename):
 
     except Exception as e:
         print(e)
-        d = db('dima')
+        d = db('conn')
         con = d.str
         cur = con.cursor()
 

@@ -13,8 +13,10 @@ from datetime import date
 import urllib
 import pyodbc as pyo
 
-from projects.nri_data.nri_tools.helpers import header_fetch, type_lookup, dbkey_gen
+from projects.nri_data.nri_tools.helpers import header_fetch, type_lookup, dbkey_gen, ret_access, mdb_create, access_dictionary
 from projects.nri_data.nri_tools.table_preppers import concern, disturbance, pastureheights, soilhorizon, pintercept, practice
+from projects.nri_data.nri_tools.paths import path1_2, path3, path4, path5, table_map
+# from
 
 """
 
@@ -81,7 +83,7 @@ class df_build:
         self.tablelist = [i.split('.')[0].upper() for i in os.listdir(table_list_path)]
 
         if 'rangepasture2017_2018' in dbkey:
-            self.set_2018 = '.csv'
+            self.set_2018 = '.xlsx'
         else:
             self.set_2018 = '.xlsx'
 
@@ -108,7 +110,9 @@ class df_build:
         backuppath = self.path
         steps = 0
         while steps<2:
+            # print('entering loop')
             if self.dbkeys[self.dbkey] not in do_not_add_raw:
+                # print('adding raw to path')
                 if 'Raw data dump' not in self.path:
                     self.path = os.path.join(self.path, 'Raw data dump')
                 else:
@@ -116,7 +120,9 @@ class df_build:
             for file in os.listdir(self.path):
                 # if '2009' not in findable_string:
                 if 'RangeChange2009-2015' not in self.dbkeys[self.dbkey]:
+
                     if (file.find('Point Coordinates')!=-1) and (file.startswith('~$')==False) and (file.endswith('.xlsx')==True) and (steps==0):
+                        # print('entering coordinates header fetch')
                         header = header_fetch(self.path)
                         header.pull(file)
                         self.fields_dict.update({'pointcoordinates':header.fields})
@@ -128,15 +134,20 @@ class df_build:
                         pass
 
                 if (file.find(f'{findable_string}')!=-1) and(file.find('Dump Columns')!=-1) and (file.startswith('~$')==False) and (file.endswith(f'{self.set_2018}')==True) and (steps==1):
-
+                    # print('entering the rest of tables header fetch')
                     tlist = self.tablelist if tname==None else [tname]
                     for table in tlist:
-                        if 'POINTCOORDINATES' not in table:
+                        if 'POINTCOORDINATES' not in table or 'pointcoordinates' not in table:
+                            # print('if its not a pointcoords file')
                             header = header_fetch(self.path)
                             header.pull(file, table)
                             self.fields_dict.update({f'{table}':header.fields})
                             steps+=1
+                        else:
+                            # print('its..pointcoordintes. exiting loop')
+                            steps+=1
             if steps>=2:
+                # print('returning path to original')
                 if self.path!=backuppath:
                     self.path=backuppath
 
@@ -162,13 +173,18 @@ class df_build:
                 else:
                     pass
             for file in os.listdir(self.path): # realp
+                # print('entered pre while loop')
+                # print(steps)
                 if 'RangeChange2009-2015' not in self.dbkeys[self.dbkey]:
                     if (file.find('Coordinates')!=-1) and (file.endswith('.xlsx')==False) and (steps==0):
+                        # print('found directory with coordinates')
                         for item in os.listdir(os.path.join(self.path,file)): #realp
                             if item.find('pointcoordinates')!=-1:
+                                # print('found file with coords')
                                 tempdf =pd.read_csv(os.path.join(self.path,file,item), sep='|', index_col=False, names=self.fields_dict['pointcoordinates'])
-
+                                # print('made df')
                                 t = type_lookup(tempdf, os.path.splitext(item)[0], self.dbkey, backuppath) # not realp
+                                # print('instantiated type lookup')
                                 fix_longitudes = ['TARGET_LONGITUDE','FIELD_LONGITUDE']
                                 for field in tempdf.columns:
                                     if (t.list[field]=="numeric") and (tempdf[field].dtype!=np.float64) and (tempdf[field].dtype!=np.int64):
@@ -177,9 +193,9 @@ class df_build:
 
                                     if field in fix_longitudes:
                                         tempdf[field] = tempdf[field].map(lambda i: i*(-1))
-
-
+                                # print('fixed bunch of columns')
                                 if 'COUNTY' in tempdf.columns:
+                                    # print('found conti')
                                     tempdf['COUNTY'] = tempdf['COUNTY'].map(lambda x: f'{x:0>3}')
 
                                 if 'STATE' in tempdf.columns:
@@ -187,24 +203,39 @@ class df_build:
 
                                 less_fields = ['statenm','countynm']
                                 if os.path.splitext(item)[0] not in less_fields:
-
+                                    # print('getting new dbkeyss')
                                     dbkey_gen(tempdf, 'PrimaryKey', 'SURVEY', 'STATE', 'COUNTY','PSU','POINT')
                                     dbkey_gen(tempdf, 'FIPSPSUPNT', 'STATE', 'COUNTY','PSU','POINT')
                                 tempdf['DBKey'] = ''.join(['NRI_',f'{date.today().year}'])
+                                # print('more dbkey action')
                                 self.temp_coords = tempdf.copy()
+                                # print('coords copy')
                                 self.dfs.update({'pointcoordinates':tempdf})
-                                steps+=1
-                else:
-                    if steps<1:
-                        steps+=1
-                    else:
-                        pass
 
-                if (file.find(findable_string)!=-1) and (file.endswith('.xlsx')==False) and (steps==1) and ('PointCoordinates' not in file) and (file.endswith('.zip')==False):
+                                steps+=1
+
+                                # print(steps, 'updated steps??')
+                            else:
+                                if 'ptnote' in tname:
+                                    pass
+                                    # print('passed')
+                                else:
+                                    # steps+=1
+                                    pass
+                elif steps<1:
+                    # print('adding another step')
+                    steps+=1
+                else:
+                    # print(file, 'second pass')
+                    pass
+                # print(file,steps)
+                if (file.find(findable_string)!=-1) and (file.endswith('.xlsx')==False) and ('PointCoordinates' not in file) and (steps==1):
+                    # print('entered second part')
                     for item in os.listdir(os.path.join(self.path, file)):
                         tlist = self.tablelist if tname==None else [tname]
                         if os.path.splitext(item)[0].upper() in tlist:
                             # print(self.path, item, file)
+                            # print('entered')
 
                             tempdf = pd.read_csv(os.path.join(self.path,file,item), sep='|', index_col=False,low_memory=False, names=self.fields_dict[os.path.splitext(item)[0].upper()])
 
@@ -249,7 +280,7 @@ class df_build:
 
                             less_fields = ['statenm','countynm']
                             if os.path.splitext(item)[0] not in less_fields:
-                                # print(item)
+                                # print(item, 'deep')
                                 dbkey_gen(tempdf, 'PrimaryKey', 'SURVEY', 'STATE', 'COUNTY','PSU','POINT')
                                 dbkey_gen(tempdf, 'FIPSPSUPNT', 'STATE', 'COUNTY','PSU','POINT')
 
@@ -261,13 +292,15 @@ class df_build:
                                 self.dfs.update({'pointcoordinates': coords_full})
                             self.dfs.update({f'{os.path.splitext(item)[0]}':tempdf})
                             steps+=1
+                        else:
+                            # print('exiting out of second part due to ', tlist)
+                            steps+=1
                 # return tempdf
             if steps>=2:
                 if self.path!=backuppath:
                     self.path=backuppath
 
 def task_parser(tablename):
-
 
     table_map = {
         'altwoody':['2013'],
@@ -279,10 +312,9 @@ def task_parser(tablename):
         'esfsg':['2009','2011','2013','2017'],
         'gintercept': ['2004','2009','2011','2013','2017'],
         'gps': ['2004','2009','2011','2013','2017'],
-        'point' : ['2004','2011','2013','2017'],
+        'point' : ['2004','2009','2011','2013','2017'],
         'pastureheights': ['2009','2011','2013','2017'],
         'plantcensus': ['2009','2011','2013','2017'],
-        'point': ['2004','2009','2011','2013','2017'],
         'pointcoordinates': ['2004','2011','2013','2017'],
         'ptnote': ['2004','2009','2011','2013','2017'],
         'rangehealth' : ['2004','2009','2011','2017'],
@@ -354,22 +386,56 @@ def task_parser(tablename):
     if 'practice' in tablename:
         main_df = practice(main_df)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     return main_df
+
+
+
+def pg_access(tablename=None,method=None, output=None):
+    df = task_parser(tablename) if method!='mdb' else None
+    if method==None:
+        print('please choose \'pg\' or \'mdb\' output')
+
+    elif method=='pg':
+        # if sending to postgres (hmmm how to include onthefly field definitions??)
+        d = db('nri')
+
+        if tablecheck(tablename):
+            ingesterv2.main_ingest(df, tablename, d.str)
+        else:
+            table_create(df, tablename, 'nri')
+            ingesterv2.main_ingest(df, tablename, d.str)
+
+    elif method=='mdb':
+        #if sending to access db
+        def chunker(seq, size): # used by tqdm
+            return (seq[pos:pos + size] for pos in range(0, len(seq), size))
+
+        if tablename==None: # TODO implement reading all the tables when no tablename is specified
+            for table in table_map.keys():
+                print(table)
+        else:
+            # create df, create field dictionary, if mdb exists: pass df into it, if not create mdb and pass df.
+            df = task_parser(tablename)
+            onthefly = access_dictionary(df,tablename)
+            mdb_name = f'NRI_EXPORT_{date.today().month}_{date.today().day}_{date.today().year}.mdb'
+            mdb_path = os.path.join(output,mdb_name)
+            if mdb_name in os.listdir(output):
+                print('ok')
+                chunksize = int(len(df) / 10)
+                with tqdm(total=len(df)) as pbar:
+                    for i, cdf in enumerate(chunker(df,chunksize)):
+                        replace = "replace" if i == 0 else "append"
+                        cdf.to_sql(name=f'{tablename}', con=ret_access(mdb_path),index=False, if_exists=replace,dtype=onthefly)
+                        pbar.update(chunksize)
+                        tqdm._instances.clear()
+            else:
+                print('no')
+                mdb_create(output)
+                chunksize = int(len(df) / 10)
+
+                with tqdm(total=len(df)) as pbar:
+                    for i, cdf in enumerate(chunker(df,chunksize)):
+                        replace = "replace" if i == 0 else "append"
+                        cdf.to_sql(name=f'{tablename}', con=ret_access(mdb_path),index=False, if_exists=replace, dtype=onthefly)
+                        pbar.update(chunksize)
+                        tqdm._instances.clear()
