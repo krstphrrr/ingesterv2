@@ -66,6 +66,7 @@ class request_handler:
                 if 'Box' not in i:
                     pg_send(i,self.path) if pg==None else pg_send(i,self.path,1)
 
+
         else:
             print('handling not implemented')
 

@@ -14,7 +14,7 @@ import urllib
 import pyodbc as pyo
 
 from projects.nri_data.nri_tools.helpers import header_fetch, type_lookup, dbkey_gen, ret_access, mdb_create, access_dictionary
-from projects.nri_data.nri_tools.table_preppers import concern, disturbance, pastureheights, soilhorizon, pintercept, practice
+from projects.nri_data.nri_tools.table_preppers import concern, disturbance, pastureheights, soilhorizon, pintercept, practice, statenm, ecosite,point
 from projects.nri_data.nri_tools.paths import path1_2, path3, path4, path5, table_map
 # from
 
@@ -386,6 +386,15 @@ def task_parser(tablename):
     if 'practice' in tablename:
         main_df = practice(main_df)
 
+    if 'statenm' in tablename:
+        main_df = statenm(main_df)
+
+    if 'ecosite' in tablename:
+        main_df = ecosite(main_df)
+
+    if 'point' in tablename:
+        main_df = point(main_df)
+
     return main_df
 
 
@@ -425,7 +434,7 @@ def pg_access(tablename=None,method=None, output=None):
                 with tqdm(total=len(df)) as pbar:
                     for i, cdf in enumerate(chunker(df,chunksize)):
                         replace = "replace" if i == 0 else "append"
-                        cdf.to_sql(name=f'{tablename}', con=ret_access(mdb_path),index=False, if_exists=replace,dtype=onthefly)
+                        cdf.to_sql(name=f'{tablename}', con=ret_access(mdb_path),index=False, if_exists=replace,dtype=onthefly,chunksize=100000)
                         pbar.update(chunksize)
                         tqdm._instances.clear()
             else:
@@ -436,6 +445,6 @@ def pg_access(tablename=None,method=None, output=None):
                 with tqdm(total=len(df)) as pbar:
                     for i, cdf in enumerate(chunker(df,chunksize)):
                         replace = "replace" if i == 0 else "append"
-                        cdf.to_sql(name=f'{tablename}', con=ret_access(mdb_path),index=False, if_exists=replace, dtype=onthefly)
+                        cdf.to_sql(name=f'{tablename}', con=ret_access(mdb_path),index=False, if_exists=replace, dtype=onthefly, chunksize=100000)
                         pbar.update(chunksize)
                         tqdm._instances.clear()

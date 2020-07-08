@@ -58,7 +58,6 @@ def dimaconfig(filename='utils/database.ini', section='dima'):
         section, filename))
     return db
 
-
 class db:
     # params = None
     # # # str = connect(**params)

@@ -11,10 +11,12 @@ def disturbance(df):
     addins = ['PrimaryKey','FIPSPSUPNT','DBKey']
     for field in df[[col for col in df.columns if col not in addins]].columns[6:]:
         df[field] = df[field].apply(lambda x: 1 if (x=='Y') else (0 if x=='N' else x)).astype('Int64')
+    df.drop(columns=['LARGER_MAMMALS','LIVESTOCK_TANKS_PIPELINES','MACHINERY','FENCES','OIL_FIELD_EQUIPMENT'], inplace=True)
     return df
 
 def ecosite(df):
-    pass
+    df.drop(columns=['SEQNUM','COVERAGE','START_MARK','END_MARK','ECO_SITE_STATE','ECO_SITE_MLRA','ECO_SITE_LRU','ECO_SITE_NAME'], inplace=True)
+    return df
 
 def pastureheights(df):
     height_1 = df[['SURVEY', 'STATE', 'COUNTY', 'PSU', 'POINT', 'TRANSECT', 'DISTANCE','HPLANT','HEIGHT']]
@@ -150,4 +152,13 @@ def practice(df):
     for field in [i for i in df.columns[5:] if i not in addins ]:
         df[field] = df[field].astype("Int64")
 
+    return df
+
+def statenm(df):
+    df.drop(columns=['STATENM'], inplace=True)
+    df = df.drop_duplicates()
+    return df
+
+def point(df):
+    df.drop(columns=['ESD_FITS_SOIL','ACTIVE_CUTTING'],inplace=True)
     return df
