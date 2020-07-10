@@ -8,6 +8,13 @@ from win32com.client import Dispatch
 from projects.nri_data.nri_tools.paths import path1_2
 
 class header_fetch:
+    """ function that pulls the fields from a columns dump file
+
+    Uses the supplied directory to create attributes that store the path, all
+    the files inside the directory, and all the folders inside the directory.
+    the pull method is used to read a csv/excel file, find the target table, and
+    populate the `fields` attribute with a list of fields for a given table.
+    """
 
     def __init__(self, targetdir):
         [self.clear(a) for a in dir(self) if not a.startswith('__') and not callable(getattr(self,a))]
@@ -21,6 +28,19 @@ class header_fetch:
         return var
 
     def pull(self,file, col=None):
+        """reads an excel file, finds a table, appends the fields to the `fields`
+        attribute .
+
+        -------------------------
+        Args:
+            file (string): name of the file to read using a the pandas `read_excel`
+                           method.
+            col (string): tablename inside the excel file.
+
+        Returns:
+            Nothing.
+
+        """
         self.fields = []
 
         if (file in self.files) and (file.find('Coordinates')!=-1):
@@ -37,9 +57,9 @@ class header_fetch:
 
         elif (file.endswith('.csv')) and ('Coordinates' not in file):
             full = pd.read_csv(os.path.join(self.dir,file))
-            is_target = full['TABLE.NAME']==f'{col}'
+            is_target = full['Table name']==f'{col}'
             temphead = full[is_target]
-            for i in temphead['FIELD.NAME']:
+            for i in temphead['Table name']:
                 self.fields.append(i)
 
         else:
@@ -48,9 +68,49 @@ class header_fetch:
 
 
 def dbkey_gen(df,newfield, *fields):
+    """ creates a pandas `DBKey` field on a given dataframe using any number of
+    other values.
+
+    TODO:
+        maybe it should return the altered dataframe. unclear if change is
+        persistent.
+
+    Args:
+        newfield (string): name of the new field
+
+        fields (sequence of strings): list or tuple of strings to concatenate
+                                    and set as values for a given row in a field.
+    Returns:
+        Nothing.
+    """
     df[f'{newfield}'] = (df[[f'{field.strip()}' for field in fields]].astype(str)).agg(''.join,axis=1).astype(object)
 
 class type_lookup:
+    """ create a dictionary with fields and types, or create a
+    a dictionary with the fields and lengths
+
+    Uses the tablename to pull from the nri_explanations file (which should be
+    at the upper directory) and create  `list` dictionary with fields as keys and
+    field types as values, and `length` dictionary with fields as keys, and the
+    field length as values.
+
+    todo:
+        functionality that uses arguments `df` and `dbkeys` has been deprecated.
+        remove all trace of them from other functions/classes.
+
+    -------------------------
+
+    Args:
+        tablename (string): used to fetch fields for a given table inside the
+                            `nri_explanations` file.
+
+        path (string): path to year range directory.
+
+    -------------------------
+    Returns:
+        Nothing.
+
+    """
 
     df = None
     tbl = None
@@ -93,6 +153,12 @@ class type_lookup:
 
 
 def mdb_create(output):
+    """ creates an access .mdb file at a user-defined directory.
+
+    An access .mdb file is initialized at the supplied directory. The file will
+    contain a dummy table `Table1` that can be safely removed.
+
+    """
     try:
         dbname = f'NRI_EXPORT_{date.today().month}_{date.today().day}_{date.today().year}.mdb'
         pathname = os.path.join(output,dbname)
@@ -128,7 +194,26 @@ def ret_access(whichmdb):
 
 
 
-def access_dictionary(df, tablename):
+def access_dictionary(df:pd.DataFrame, tablename:str):
+    """ creates a dictionary with access-safe field types
+
+    Reads all the columns of a supplied dataframe, creates a list of types and
+    a list lengths using the `type_lookup` class, and then creates a new
+    dictionary with the fields as keys and the appropriate field sqlalchemy
+    function.
+
+    -------------------------
+    Args:
+        df (dataframe): a pandas dataframe to create the field list from.
+
+        tablename (string): name of the table to be used in the `type_lookup`
+                            function.
+
+    -------------------------
+    Returns:
+        dictionary
+
+    """
     onthefly={}
     only_once = set()
     t = type_lookup(df,tablename,1,path1_2)
