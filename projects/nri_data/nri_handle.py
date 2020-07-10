@@ -3,7 +3,7 @@ import os, sqlalchemy
 import os.path
 import pandas as pd
 import numpy as np
-# from utils import db, sql_str, config, Acc
+
 from utils.tools import db
 from sqlalchemy import create_engine, DDL
 import sqlalchemy_access as sa_a
@@ -16,20 +16,35 @@ import pyodbc as pyo
 from projects.nri_data.nri_tools.helpers import header_fetch, type_lookup, dbkey_gen, ret_access, mdb_create, access_dictionary
 from projects.nri_data.nri_tools.table_preppers import concern, disturbance, pastureheights, soilhorizon, pintercept, practice, statenm, ecosite,point
 from projects.nri_data.nri_tools.paths import path1_2, path3, path4, path5, table_map
-# from
-
-"""
-
-TODO
-
-tablebuilder:
-- apply fixes per chosen dataset/table
-
-
-"""
 
 
 class df_build:
+    """ takes a path and a dbkey and creates a postgres-ready dataframe
+
+    Initializes class with a list of tables available for a particular year
+    range.
+
+    path has to follow:
+     >>folder with explanations file /
+        >>folders with nri data by year range /
+            >> Raw data dump
+    example:
+        path = r"C:\ extracted\ 2004-2015 Rangeland Change Database with Weights"
+        this directory in turn should have a folder named Raw data dump with
+        more folders with the actual .txt data files and coordinates.
+
+    dbkey should be one of these:
+        'range2011-2016', 'RangeChange2009-2015', 'RangeChange2004-2008',
+        'rangepasture2017_2018'
+
+    -------------------------
+    attributes:
+        fields_dict (dictionary): holds tablenames as keys with lists of fields
+                       values
+
+        dfs (dictionary): holds tablenames as keys, dataframes as values
+
+    """
 
     _dbkey = {
         'range2011-2016':1,
@@ -46,21 +61,20 @@ class df_build:
         -> instance = df_builder_for_2004('target_directory', 1)
             - populates tablelist
 
-        'Raw data dump' does not exist here, so self.realp is unnecessary
+        -------------------------
+        Args:
+            path (str): path to the directory that holds nri data for a
+                        particular year range
 
-        """
-        """
-        vacuuming
+            dbkey (str): string that indicates how to handle the files contained
+                         in the path
+
         """
         [self.clear(a) for a in dir(self) if not a.startswith('__') and not callable(getattr(self,a))]
         self.fields_dict = {}
         self.dfs = {}
         self.dbkcount = 0
 
-
-        """
-
-        """
         self.path = path # setting path
         self.mainp = os.path.dirname(os.path.dirname(path))
         # self.realp = os.path.join(path,'Raw data dump')
@@ -79,7 +93,6 @@ class df_build:
         elif '2017' in self.path:
             table_list_path = os.path.join(self.path, 'Raw data dump',  'rangepasture2017_2018')
 
-        # self.tablelist = [i for i in self.df[self.df['DBKey']==f'{dbkey}']['TABLE.NAME'].unique()]
         self.tablelist = [i.split('.')[0].upper() for i in os.listdir(table_list_path)]
 
         if 'rangepasture2017_2018' in dbkey:
@@ -87,21 +100,29 @@ class df_build:
         else:
             self.set_2018 = '.xlsx'
 
-        # exctrac_fields ==> path, which_dataset(user chooses), tablelist
-        # self.fields_dict = extract_fields(self.path, self.dbkeys[dbkey], self.tablelist)
 
     def clear(self,var):
         var = None
         return var
 
     def extract_fields(self, findable_string, tname=None):
-        """
-        usage:
-           instance = df_builder_for_2004('target_directory', 1)
-        -> instance.extract_fields('2004')
-            - populates instance.fields_dict with fields
-           instance.append_fields('RangeChange2004')
+        """ Creates a dictionary with tablenames as keys, and lists of fields
+        as values.
 
+        Using the `findable_string` argument, populates a dictionary with all
+        the tables in within the directory and appends a list of fields for each
+        of the tables as values. if `tname` is speficied, bring only that
+        table/list of fields.
+
+        -------------------------
+        Args:
+            findable_string (string): year to find within directory with data
+
+            tname (string): default `None`. specifies a table to be pulled. if
+                                `None`, the `fields_dict` attribute will have
+                                all tables, whereas if a table is specified only
+                                that table and its fields are pulled into the
+                                `fields_dict`
 
         """
         if tname!=None:
@@ -153,13 +174,24 @@ class df_build:
 
 
     #
-    def append_fields(self, findable_string, tname=None):
-        """
-        usage:
-           instance = df_builder_for_2004('target_directory', 1)
-           instance.extract_fields('2004')
-        -> instance.append_fields('RangeChange2004')
-            - populates instance.dfs with all the dataframes
+    def append_fields(self, findable_string:str, tname:str = None):
+        """ Creates a dictionary that stores table names as keys, dataframe as
+        value.
+
+        Using the `findable_string` argument, populates a dictionary with all
+        the tables within the directory as keys, and appends its appropriate
+        dataframe as value. if `tname` is specified, only bring that
+        table/dataframe
+
+        -------------------------
+        Args:
+            findable_string (string): year to find within directory with data
+
+            tname (string): default `None`. specifies a table to be pulled. if
+                            `None`, the `dfs` attribute will have all tables and
+                            dataframes, whereas if a table is specified only
+                            that table and its fields are pulled into the `dfs`
+
         """
         if tname!=None:
             tname=tname.upper()
@@ -300,7 +332,19 @@ class df_build:
                 if self.path!=backuppath:
                     self.path=backuppath
 
-def task_parser(tablename):
+def task_parser(tablename:str):
+    """ creates fully joined dataframes for each of the nri tables
+
+    uses `table_map` dictionary to track which tables are available per year
+    range. uses `df_builder` to create the dataframes, then fully joins them.
+    -------------------------
+    Args:
+        tablename (string): table to pull and build dataframe with.
+
+    Returns:
+        dataframe
+
+    """
 
     table_map = {
         'altwoody':['2013'],
@@ -400,6 +444,27 @@ def task_parser(tablename):
 
 
 def pg_access(tablename=None,method=None, output=None):
+    """ sends dataframe to an access Database or pg
+
+    using the `task_parser`, assembles a specific table and either
+    sends it to postgres or exports it to an access database. if the access db
+    does not exist, creates it in the `output` path specified.
+
+    todo:
+    - implement using only method to send all tables not just one.
+
+    - implement faster access mdb write
+    -------------------------
+    Args:
+        tablename (string): table to pull using `task_parser`
+
+        method (string): `pg` or `mdb`; required to choose if sending to
+                        postgres database or a local access .mdb
+
+        output (string): path of directory where the access database will be
+                         created.
+
+    """
     df = task_parser(tablename) if method!='mdb' else None
     if method==None:
         print('please choose \'pg\' or \'mdb\' output')
@@ -429,22 +494,22 @@ def pg_access(tablename=None,method=None, output=None):
             mdb_name = f'NRI_EXPORT_{date.today().month}_{date.today().day}_{date.today().year}.mdb'
             mdb_path = os.path.join(output,mdb_name)
             if mdb_name in os.listdir(output):
-                print('ok')
+                # print('ok')
                 chunksize = int(len(df) / 10)
                 with tqdm(total=len(df)) as pbar:
                     for i, cdf in enumerate(chunker(df,chunksize)):
                         replace = "replace" if i == 0 else "append"
-                        cdf.to_sql(name=f'{tablename}', con=ret_access(mdb_path),index=False, if_exists=replace,dtype=onthefly,chunksize=100000)
+                        cdf.to_sql(name=f'{tablename}', con=ret_access(mdb_path),index=False, if_exists=replace,dtype=onthefly,chunksize=chunksize)
                         pbar.update(chunksize)
                         tqdm._instances.clear()
             else:
-                print('no')
+                # print('no')
                 mdb_create(output)
                 chunksize = int(len(df) / 10)
 
                 with tqdm(total=len(df)) as pbar:
                     for i, cdf in enumerate(chunker(df,chunksize)):
                         replace = "replace" if i == 0 else "append"
-                        cdf.to_sql(name=f'{tablename}', con=ret_access(mdb_path),index=False, if_exists=replace, dtype=onthefly, chunksize=100000)
+                        cdf.to_sql(name=f'{tablename}', con=ret_access(mdb_path),index=False, if_exists=replace, dtype=onthefly, chunksize=chunksize)
                         pbar.update(chunksize)
                         tqdm._instances.clear()

@@ -160,5 +160,6 @@ def statenm(df):
     return df
 
 def point(df):
-    df.drop(columns=['ESD_FITS_SOIL','ACTIVE_CUTTING'],inplace=True)
+    # df.drop(columns=['ESD_FITS_SOIL','ACTIVE_CUTTING'],inplace=True)
+    # return df
     return df
