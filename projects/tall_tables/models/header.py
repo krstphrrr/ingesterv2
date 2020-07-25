@@ -16,7 +16,7 @@ dataHeader = {
     "source": "text",
     "LocationType": "v_20",
     "DateVisited": "date",
-    "Elevation": "float",
+    "ELEVATION": "float",
     "PercentCoveredByEcoSite": "float",
     'wkb_geometry': 'geom'
 }

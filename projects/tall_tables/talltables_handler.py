@@ -3,6 +3,7 @@
 depending on protocol choice,
 the function spits out the right format
 """
+import datetime as dt
 from psycopg2 import sql
 from tqdm import tqdm
 from io import StringIO
@@ -15,6 +16,64 @@ from geoalchemy2 import Geometry, WKTElement, WKBElement
 from shapely.geometry import Point
 import geopandas as gpd
 
+from projects.tall_tables.models.header import dataHeader
+# # #
+path = r"C:\Users\kbonefont\Desktop\new_data_tall\header.csv"
+
+m = model_handler(path, dataHeader,'dataHeader')
+new = splitPK(m.checked_df, 'dataHeader')
+new['df']
+new['conflicts']
+# send new entries to postgres
+m.send_to_pg(new['df']) # wont go in, broken geometry due to missing latitude
+
+nacoord = new['df']
+nacoord[pd.isna(nacoord.Latitude_NAD83)].shape # 45 records with missing latitude
+
+"""
+TODO:
+    - new datasets are the oldones + new entries
+    - similar primarykeys for header will have to be filtered out with
+    splitPK function. then ingest the resulting dataframe
+
+    - once ingested use that same list to filter the rest of the new tables
+    - cannot ingest some of the new WY points: missing latitude on 45 records
+
+    - once  that ingests, the other tables follow
+    - fix tomcat headers + check if the layer reflects newly ingested data
+
+"""
+def bring_PKlist(table):
+    """ returns a list of the primary keys of a given table
+    """
+    con = create_engine(os.environ.get('DBSTR'))
+    df = pd.read_sql_query(f'select * from gisdb.public."{table}"',con=con)
+    return [i for i in df.PrimaryKey.unique()]
+
+
+def splitPK(dataframe, tablename):
+    """ takes a dataframe and tablename and returns dictionary with two object
+
+    the 'df' object returns a dataframe without the conflicting PK's.
+    the 'conflicts' object returns a list with the conflicting PK's.
+
+    """
+    df = dataframe
+    all = bring_PKlist(tablename)
+
+    conflicts = [i for i in df.PrimaryKey if i in all]
+    package = {}
+
+    package['df'] = df[~df.PrimaryKey.isin([i for i in df.PrimaryKey if i in all])]
+    package['conflicts'] = conflicts
+    return package
+
+def filterDF(dataframe, conflictlist):
+    return dataframe[~dataframe.PrimaryKey.isin(conflictlist)]
+
+# a = splitPK(m.checked_df, 'dataHeader')
+# a['df'][a['df'].SpeciesState=="WY"]
+
 class model_handler:
     engine = None
     initial_dataframe = None
@@ -25,6 +84,7 @@ class model_handler:
     psycopg2_types = None
     psycopg2_command = None
     geo_dataframe = None
+    table_name = None
 
     def __init__(self,path, name2dictionary, tablename):
         """ needs to match name to model and pull dictionary """
@@ -33,10 +93,29 @@ class model_handler:
         self.engine = create_engine(os.environ.get('DBSTR'))
         [self.clear(a) for a in dir(self) if not a.startswith('__') and not callable(getattr(self,a))]
 
+        """ creating type dictionaries """
+        self.typedict = name2dictionary
+        self.sqlalchemy_types = field_parse('sqlalchemy', self.typedict)
+        self.pandas_dtypes = field_parse('pandas', self.typedict)
+        self.psycopg2_types = field_parse('pg', self.typedict)
+        self.psycopg2_command = sql_command(self.psycopg2_types,tablename)
+
         """ prepping a geodf from path """
+        self.tablename = tablename
 
         if 'dataHeader' in tablename:
-            self.initial_dataframe = pd.read_csv(path, low_memory=False)
+
+            try:
+                self.initial_dataframe = pd.read_csv(path,encoding='utf-8', low_memory=False)
+                self.initial_dataframe["DateLoadedInDb"] = dt.date.today().isoformat()
+                self.initial_dataframe.drop(['PLOTKEY'], inplace=True, axis=1)
+            except Exception as e:
+                print(e)
+                print('Continuing...')
+                self.initial_dataframe = pd.read_csv(path,encoding='cp1252', low_memory=False)
+                self.initial_dataframe["DateLoadedInDb"] = dt.date.today().isoformat()
+                self.initial_dataframe.drop(['PLOTKEY'], inplace=True, axis=1)
+
             self.geo_dataframe = gpd.GeoDataFrame(
                 self.initial_dataframe,
                 crs='epsg:4326',
@@ -47,34 +126,59 @@ class model_handler:
                 )
             self.geo_dataframe['wkb_geometry'] = self.geo_dataframe['geometry'].apply(lambda x: WKTElement(x.wkt, srid=4326))
             self.geo_dataframe.drop('geometry', axis=1, inplace=True)
-            self.checked_df = self.geo_dataframe.copy()
+            checked = self.check(self.geo_dataframe)
+            self.checked_df = checked.copy()
         else:
-            self.initial_dataframe = pd.read_csv(path, low_memory=False)
-            self.checked_df = self.initial_dataframe.copy()
+            try:
+
+                self.initial_dataframe = pd.read_csv(path,encoding='utf-8', low_memory=False)
+                self.initial_dataframe["DateLoadedInDb"] = dt.date.today().isoformat()
+                # self.initial_dataframe.drop(['PLOTKEY'], inplace=True, axis=1)
+            except Exception as e:
+                print(e)
+                print('Continuing..')
+                self.initial_dataframe = pd.read_csv(path,encoding='cp1252', low_memory=False)
+                self.initial_dataframe["DateLoadedInDb"] = dt.date.today().isoformat()
+                # self.initial_dataframe.drop(['PLOTKEY'], inplace=True, axis=1)
+            checked = self.check(self.initial_dataframe)
+            self.checked_df = checked.copy()
 
 
-        """ creating type dictionaries """
-        self.typedict = name2dictionary
-        self.sqlalchemy_types = field_parse('sqlalchemy', self.typedict)
-        self.pandas_dtypes = field_parse('pandas', self.typedict)
-        self.psycopg2_types = field_parse('pg', self.typedict)
-        self.psycopg2_command = sql_command(self.psycopg2_types,tablename)
 
 
-    def checked(self):
+    def clear(self,var):
+        var = None
+        return var
+
+
+    def check(self, df):
         """ fieldtype check """
-        for i in self.checked_df.columns:
-            if self.checked_df[i].dtype!=self.pandas_dtypes[i]:
-                self.checked_df[i] = self.typecast(df=self.checked_df,field=i,fieldtype=self.pandas_dtypes[i])
+        for i in df.columns:
+            # print(i)
+            if df[i].dtype!=self.pandas_dtypes[i]:
+                df[i] = self.typecast(df=df,field=i,fieldtype=self.pandas_dtypes[i])
+
+        return df
 
     def typecast(self,df,field,fieldtype):
         data = df
         castfield = data[field].astype(fieldtype)
         return castfield
 
-    def send_to_pg(self):
 
-        self.initial_dataframe.to_sql('dataLPI', self.engine, index=False, dtype=self.sqlalchemy_types)
+    def send_to_pg(self,df):
+
+        # self.initial_dataframe.to_sql(self.checked_df, self.engine, index=False, dtype=self.sqlalchemy_types)
+        def chunker(seq, size):
+            # from http://stackoverflow.com/a/434328
+            return (seq[pos:pos + size] for pos in range(0, len(seq), size))
+
+        chunksize = int(len(df) / 10) # 10%
+        with tqdm(total=len(df)) as pbar:
+            for i, cdf in enumerate(chunker(df, chunksize)):
+                # replace = "replace" if i == 0 else "append"
+                cdf.to_sql(con=self.engine, name=self.tablename, if_exists="append", index=False, dtype=self.sqlalchemy_types)
+                pbar.update(chunksize)
 
     def create_empty_table(self):
         con = db.str
@@ -214,6 +318,7 @@ class ingesterv2:
                     connection.rollback()
                 cursor.close()
 
+
 def protocol_typecast( protocol_choice : str, type : str):
     # customtype = None
     customsize = None
@@ -248,7 +353,7 @@ def protocol_typecast( protocol_choice : str, type : str):
     }
     geom = {
         'sqlalchemy' : Geometry('POINT', srid=4326),
-        'pandas' : 'geometry',
+        'pandas' : 'object',
         'pg' : 'GEOMETRY(POINT, 4326)'
     }
 
@@ -266,6 +371,8 @@ def protocol_typecast( protocol_choice : str, type : str):
             return date['sqlalchemy']
         elif 'v_' in type:
             return text['custom']
+        elif 'geom' in type:
+            return geom['sqlalchemy']
         else:
             print('type not yet implemented')
 
@@ -280,6 +387,8 @@ def protocol_typecast( protocol_choice : str, type : str):
             return date['pandas']
         elif 'v_' in type:
             return text['pandas']
+        elif 'geom' in type:
+            return geom['pandas']
         else:
             print('type not yet implemented')
 
@@ -294,6 +403,8 @@ def protocol_typecast( protocol_choice : str, type : str):
             return date['pg']
         elif 'v_' in type:
             return text['custompg']
+        elif 'geom' in type:
+            return geom['pg']
         else:
             print('type not yet implemented')
 

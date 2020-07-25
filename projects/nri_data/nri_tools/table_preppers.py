@@ -58,7 +58,7 @@ def ecosite(df:pd.DataFrame):
         Altered dataframe.
 
     """
-    df.drop(columns=['SEQNUM','COVERAGE','START_MARK','END_MARK','ECO_SITE_STATE','ECO_SITE_MLRA','ECO_SITE_LRU','ECO_SITE_NAME'], inplace=True)
+    # df.drop(columns=['SEQNUM','COVERAGE','START_MARK','END_MARK','ECO_SITE_STATE','ECO_SITE_MLRA','ECO_SITE_LRU','ECO_SITE_NAME'], inplace=True)
     return df
 
 def pastureheights(df:pd.DataFrame):
@@ -210,7 +210,7 @@ def statenm(df:pd.DataFrame):
             return 'West'
 
     df['PastureRegion'] = '0'
-    df['PastureRegion'] = statenm['STABBR'].apply(lambda x: chooser(x))
+    df['PastureRegion'] = df['STABBR'].apply(lambda x: chooser(x))
 
     return df.drop_duplicates()
 
@@ -284,7 +284,7 @@ def point(df:pd.DataFrame):
 
     Changes implemented:
         - removed 'ESD_FITS_SOIL','ACTIVE_CUTTING'
-        
+
     -------------------------
     Args:
         df (dataframe): dataframe to be changed.
