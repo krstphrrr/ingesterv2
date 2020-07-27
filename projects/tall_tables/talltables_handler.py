@@ -17,29 +17,17 @@ from shapely.geometry import Point
 import geopandas as gpd
 
 from projects.tall_tables.models.header import dataHeader
-# # #
+# # # #
 path = r"C:\Users\kbonefont\Desktop\new_data_tall\header.csv"
-
+# # #
 m = model_handler(path, dataHeader,'dataHeader')
-new = splitPK(m.checked_df, 'dataHeader')
-new['df']
-new['conflicts']
-# send new entries to postgres
-m.send_to_pg(new['df']) # wont go in, broken geometry due to missing latitude
-
-nacoord = new['df']
-nacoord[pd.isna(nacoord.Latitude_NAD83)].shape # 45 records with missing latitude
 
 """
 TODO:
     - new datasets are the oldones + new entries
-    - similar primarykeys for header will have to be filtered out with
-    splitPK function. then ingest the resulting dataframe
-
-    - once ingested use that same list to filter the rest of the new tables
-    - cannot ingest some of the new WY points: missing latitude on 45 records
-
-    - once  that ingests, the other tables follow
+    - need to drop foreign keys before droping pg rows
+    - need to ingest the other tables but filter out duplicate rows
+    - need to ingest more quick
     - fix tomcat headers + check if the layer reflects newly ingested data
 
 """
@@ -85,6 +73,7 @@ class model_handler:
     psycopg2_command = None
     geo_dataframe = None
     table_name = None
+    conflict_list = None
 
     def __init__(self,path, name2dictionary, tablename):
         """ needs to match name to model and pull dictionary """
@@ -127,11 +116,16 @@ class model_handler:
             self.geo_dataframe['wkb_geometry'] = self.geo_dataframe['geometry'].apply(lambda x: WKTElement(x.wkt, srid=4326))
             self.geo_dataframe.drop('geometry', axis=1, inplace=True)
             checked = self.check(self.geo_dataframe)
-            self.checked_df = checked.copy()
+            if any(~pd.isna(checked.wkb_geometry)): # originally, they geom wont have null values
+                temp = splitPK(checked, 'dataHeader')
+                self.checked_df = fix_header_geom(temp['df'].copy())
+            else:
+                temp = splitPK(checked, 'dataHeader')
+                self.checked_df = temp['df'].copy()
         else:
             try:
 
-                self.initial_dataframe = pd.read_csv(path,encoding='utf-8', low_memory=False)
+                self.initial_dataframe = pd.read_csv(path,encoding='utf-8', low_memory=False) # trying utf-8 enconding
                 self.initial_dataframe["DateLoadedInDb"] = dt.date.today().isoformat()
                 # self.initial_dataframe.drop(['PLOTKEY'], inplace=True, axis=1)
             except Exception as e:
@@ -240,24 +234,27 @@ class ingesterv2:
             else:
                 print("connection object not initialized")
 
-    def drop_fk(self, table):
-
+    @staticmethod
+    def drop_fk(self, tabl, con):
+        conn = con
+        cur = conn.cursor()
         key_str = "{}_PrimaryKey_fkey".format(str(table))
         print('try: dropping keys...')
         try:
             # print(table)
-            self.cur.execute(
+            cur.execute(
             sql.SQL("""ALTER TABLE gisdb.public.{0}
                    DROP CONSTRAINT IF EXISTS {1}""").format(
                    sql.Identifier(table),
                    sql.Identifier(key_str))
             )
-            self.con.commit()
+            conn.commit()
         except Exception as e:
             print(e)
-            self.con = db.str
-            self.cur = self.con.cursor()
+            conn = con
+            cur = conn.cursor()
         print(f"Foreign keys on {table} dropped")
+
     def drop_table(self, table):
         try:
             self.cur.execute(
