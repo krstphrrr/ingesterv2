@@ -269,23 +269,28 @@ class ingesterv2:
         print(f"Foreign keys on {table} dropped")
 
     def drop_table(self, table):
+        conn = self.con
+        cur = conn.cursor()
         try:
-            self.cur.execute(
+            cur.execute(
             sql.SQL("DROP TABLE IF EXISTS gisdb.public.{};").format(
             sql.Identifier(table))
             )
-            self.con.commit()
+            conn.commit()
             print(table +' dropped')
         except Exception as e:
             print(e)
-            self.con = db.str
-            self.cur = self.con.cursor()
+            conn = self.con
+            cur = conn.cursor()
+            
     def reestablish_fk(self,table):
+        conn = self.con
+        cur = conn.cursor()
         key_str = "{}_PrimaryKey_fkey".format(str(table))
 
         try:
 
-            self.cur.execute(
+            cur.execute(
             sql.SQL("""ALTER TABLE gisdb.public.{0}
                    ADD CONSTRAINT {1}
                    FOREIGN KEY ("PrimaryKey")
@@ -294,11 +299,11 @@ class ingesterv2:
                    sql.Identifier(table),
                    sql.Identifier(key_str))
             )
-            self.con.commit()
+            conn.commit()
         except Exception as e:
             print(e)
-            self.con = db.str
-            self.cur = self.con.cursor()
+            conn = self.con
+            cur = conn.cursor()
 
     @staticmethod
     def main_ingest( df: pd.DataFrame, table:str,
