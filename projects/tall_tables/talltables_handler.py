@@ -18,16 +18,19 @@ import geopandas as gpd
 
 from projects.tall_tables.models.header import dataHeader
 # # # #
-path = r"C:\Users\kbonefont\Desktop\new_data_tall\header.csv"
-# # #
-m = model_handler(path, dataHeader,'dataHeader')
+# path = r"C:\Users\kbonefont\Desktop\new_data_tall\header.csv"
+# # # #
+# m = model_handler(path, dataHeader,'dataHeader')
 
 """
 TODO:
     - new datasets are the oldones + new entries
-    - need to drop foreign keys before droping pg rows
-    - need to ingest the other tables but filter out duplicate rows
-    - need to ingest more quick
+
+
+    - once ingested use that same list to filter the rest of the new tables
+    - cannot ingest some of the new WY points: missing latitude on 45 records
+
+    - once  that ingests, the other tables follow
     - fix tomcat headers + check if the layer reflects newly ingested data
 
 """
@@ -38,6 +41,13 @@ def bring_PKlist(table):
     df = pd.read_sql_query(f'select * from gisdb.public."{table}"',con=con)
     return [i for i in df.PrimaryKey.unique()]
 
+def fix_header_geom(df):
+    # find rows that are not currently in
+     # = splitPK(df,'dataHeader')
+    df2 = df.copy()
+    # fix missing geoms
+    df2.loc[pd.isna(df.Latitude_NAD83), 'wkb_geometry'] = None
+    return df2
 
 def splitPK(dataframe, tablename):
     """ takes a dataframe and tablename and returns dictionary with two object
@@ -76,6 +86,7 @@ class model_handler:
     conflict_list = None
 
     def __init__(self,path, name2dictionary, tablename):
+        geosp = ['geoSpecies', 'geoIndicators']
         """ needs to match name to model and pull dictionary """
 
         """ clearing attributes & setting engine """
@@ -116,22 +127,23 @@ class model_handler:
             self.geo_dataframe['wkb_geometry'] = self.geo_dataframe['geometry'].apply(lambda x: WKTElement(x.wkt, srid=4326))
             self.geo_dataframe.drop('geometry', axis=1, inplace=True)
             checked = self.check(self.geo_dataframe)
+
             if any(~pd.isna(checked.wkb_geometry)): # originally, they geom wont have null values
-                temp = splitPK(checked, 'dataHeader')
-                self.checked_df = fix_header_geom(temp['df'].copy())
+                # temp = splitPK(checked, 'dataHeader') # split pk with the rows in pg
+                self.checked_df = fix_header_geom(checked.copy())
             else:
-                temp = splitPK(checked, 'dataHeader')
-                self.checked_df = temp['df'].copy()
+                # temp = splitPK(checked, 'dataHeader')
+                self.checked_df = checked.copy()
         else:
             try:
 
-                self.initial_dataframe = pd.read_csv(path,encoding='utf-8', low_memory=False) # trying utf-8 enconding
+                self.initial_dataframe = pd.read_csv(path,encoding='utf-8', low_memory=False) if 'geoSpecies' not in tablename else pd.read_csv(path, low_memory=False, encoding='utf-8', index_col=False, usecols=[i for i in range(0,19)])
                 self.initial_dataframe["DateLoadedInDb"] = dt.date.today().isoformat()
                 # self.initial_dataframe.drop(['PLOTKEY'], inplace=True, axis=1)
             except Exception as e:
                 print(e)
                 print('Continuing..')
-                self.initial_dataframe = pd.read_csv(path,encoding='cp1252', low_memory=False)
+                self.initial_dataframe = pd.read_csv(path,encoding='cp1252', low_memory=False) if 'geoSpecies' not in tablename else pd.read_csv(path, low_memory=False, encoding='cp1252', index_col=False, usecols=[i for i in range(0,19)])
                 self.initial_dataframe["DateLoadedInDb"] = dt.date.today().isoformat()
                 # self.initial_dataframe.drop(['PLOTKEY'], inplace=True, axis=1)
             checked = self.check(self.initial_dataframe)
@@ -156,7 +168,8 @@ class model_handler:
 
     def typecast(self,df,field,fieldtype):
         data = df
-        castfield = data[field].astype(fieldtype)
+        datetypes = ["DateModified","FormDate","DateLoadedInDb","created_date","last_edited_date"]
+        castfield = data[field].astype(fieldtype) if field not in datetypes else pd.to_datetime(data[f"{field}"], errors='coerce')
         return castfield
 
 
@@ -174,16 +187,16 @@ class model_handler:
                 cdf.to_sql(con=self.engine, name=self.tablename, if_exists="append", index=False, dtype=self.sqlalchemy_types)
                 pbar.update(chunksize)
 
-    def create_empty_table(self):
-        con = db.str
+    def create_empty_table(self, con):
+        conn = con
         cur = con.cursor()
         try:
             cur.execute(self.psycopg2_command)
-            con.commit()
+            conn.commit()
             # cur.execute("selec")
         except Exception as e:
-            con = db.str
-            cur = con.cursor()
+            conn = con
+            cur = conn.cursor()
             print(e)
 
 class ingesterv2:
@@ -194,14 +207,14 @@ class ingesterv2:
     __tablenames = []
     __seen = set()
 
-    def __init__(self):
+    def __init__(self, con):
         """ clearing old instances """
         [self.clear(a) for a in dir(self) if not a.startswith('__') and not callable(getattr(self,a))]
         self.__tablenames = []
         self.__seen = set()
 
         """ init connection objects """
-        self.con = db.str
+        self.con = con
         self.cur = self.con.cursor()
         """ populate properties """
         self.pull_tablenames()
@@ -235,8 +248,8 @@ class ingesterv2:
                 print("connection object not initialized")
 
     @staticmethod
-    def drop_fk(self, tabl, con):
-        conn = con
+    def drop_fk(self, table):
+        conn = self.con
         cur = conn.cursor()
         key_str = "{}_PrimaryKey_fkey".format(str(table))
         print('try: dropping keys...')
@@ -251,7 +264,7 @@ class ingesterv2:
             conn.commit()
         except Exception as e:
             print(e)
-            conn = con
+            conn = self.con
             cur = conn.cursor()
         print(f"Foreign keys on {table} dropped")
 

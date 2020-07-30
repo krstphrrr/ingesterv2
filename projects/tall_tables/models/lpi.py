@@ -25,9 +25,10 @@ dataLPI = {
     "ShrubShape" : "text",
     "layer" : "text",
     "code" : "text",
-    "chckbox" : "int",
+    "chckbox" : "integer",
     "source" : "text",
     "STATE" : "v_50",
+    "DateLoadedInDb": "text",
     "SAGEBRUSH_SPP": "text",
     "PLOTKEY":"v_100"
 }

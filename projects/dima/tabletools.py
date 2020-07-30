@@ -83,7 +83,7 @@ def new_tablename(df:pd.DataFrame):
             newtablename = 'tblDustDeposition'
             return newtablename
 
-def table_create(df: pd.DataFrame, tablename: str, conn:str='dima'):
+def table_create(df: pd.DataFrame, tablename: str, conn:str='nri'):
     """
     pulls all fields from dataframe and constructs a postgres table schema;
     using that schema, create new table in postgres.
@@ -138,7 +138,7 @@ def sql_command(typedict:{}, name:str, db:str=None):
         part_1+=");"
         return part_1
 
-def tablecheck(tablename, conn=None):
+def tablecheck(tablename, conn="dima"):
     """
     receives a tablename and returns true if table exists in postgres table
     schema, else returns false

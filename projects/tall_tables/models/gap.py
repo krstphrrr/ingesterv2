@@ -9,7 +9,7 @@ dataGap = {
     "Recorder" : "text",
     "DataEntry" : "text",
     "DataErrorChecking" : "text",
-    "Direction" : "float",
+    "Direction" : "text",
     "Measure" : "float",
     "LineLengthAmount" : "float",
     "GapMin" : "float",
