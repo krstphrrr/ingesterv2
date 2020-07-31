@@ -17,20 +17,20 @@ from shapely.geometry import Point
 import geopandas as gpd
 
 from projects.tall_tables.models.header import dataHeader
-# # # #
-# path = r"C:\Users\kbonefont\Desktop\new_data_tall\header.csv"
-# # # #
-# m = model_handler(path, dataHeader,'dataHeader')
+
 
 """
 TODO:
-    - new datasets are the oldones + new entries
+    - include header-primarykey check before ingesting
+        - for rows in new-dataframe, if row not in header stop ingestion and
+        store rows.
 
+    - describe at a very high level how data flows from csv to pg for debugging
 
-    - once ingested use that same list to filter the rest of the new tables
-    - cannot ingest some of the new WY points: missing latitude on 45 records
+    - need to implement graceful closing of pg session
+    - fix DateLoadedInDb before consulting hardcoded model/schema
+        (add field further along?)
 
-    - once  that ingests, the other tables follow
     - fix tomcat headers + check if the layer reflects newly ingested data
 
 """
@@ -42,7 +42,7 @@ def bring_PKlist(table):
     return [i for i in df.PrimaryKey.unique()]
 
 def fix_header_geom(df):
-    # find rows that are not currently in
+    # find rows that are not currently in (deprecated)
      # = splitPK(df,'dataHeader')
     df2 = df.copy()
     # fix missing geoms
@@ -54,7 +54,7 @@ def splitPK(dataframe, tablename):
 
     the 'df' object returns a dataframe without the conflicting PK's.
     the 'conflicts' object returns a list with the conflicting PK's.
-
+    deprecated
     """
     df = dataframe
     all = bring_PKlist(tablename)
@@ -282,7 +282,7 @@ class ingesterv2:
             print(e)
             conn = self.con
             cur = conn.cursor()
-            
+
     def reestablish_fk(self,table):
         conn = self.con
         cur = conn.cursor()
@@ -332,6 +332,60 @@ class ingesterv2:
                     print(e)
                     connection.rollback()
                 cursor.close()
+
+        @staticmethod
+        def composite_pk(self,*field,con,maintable):
+            """ Creates composite primary keys in postgres for a given table
+            """
+            conn = con
+            cur = conn.cursor()
+            key_str = "{}_PrimaryKey_fkey".format(str(maintable))
+            fields = [f'"{i}"' for i in field]
+            fields_str = ', '.join(fields)
+            fields_str2 = f'{fields_str}'
+
+
+            try:
+
+                cur.execute(
+                sql.SQL("""ALTER TABLE gisdb.public.{0}
+                       ADD CONSTRAINT {1}
+                       PRIMARY KEY ({2})
+                       """).format(
+                       sql.Identifier(maintable),
+                       sql.Identifier(key_str),
+                       sql.Identifier(fields_str2))
+                )
+
+                conn.commit()
+            except Exception as e:
+                print(e)
+                conn = con
+                cur = conn.cursor()
+
+        @staticmethod
+        def drop_rows(self, con, maintable, field, result):
+            """ removing rows that fit a specific value from a given table
+
+            - need to implement graceful closing of pg session
+            """
+            conn = con
+            cur = conn.cursor()
+            try:
+
+                cur.execute(
+                sql.SQL("""DELETE from gisdb.public.{0}
+                      WHERE {1} = '%s'
+                       """ % result).format(
+                       sql.Identifier(maintable),
+                       sql.Identifier(field))
+                )
+
+                conn.commit()
+            except Exception as e:
+                print(e)
+                conn = con
+                cur = conn.cursor()
 
 
 def protocol_typecast( protocol_choice : str, type : str):
