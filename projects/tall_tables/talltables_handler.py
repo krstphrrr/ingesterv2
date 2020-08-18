@@ -333,59 +333,59 @@ class ingesterv2:
                     connection.rollback()
                 cursor.close()
 
-        @staticmethod
-        def composite_pk(self,*field,con,maintable):
-            """ Creates composite primary keys in postgres for a given table
-            """
+    @staticmethod
+    def composite_pk(self,*field,con,maintable):
+        """ Creates composite primary keys in postgres for a given table
+        """
+        conn = con
+        cur = conn.cursor()
+        key_str = "{}_PrimaryKey_fkey".format(str(maintable))
+        fields = [f'"{i}"' for i in field]
+        fields_str = ', '.join(fields)
+        fields_str2 = f'{fields_str}'
+
+
+        try:
+
+            cur.execute(
+            sql.SQL("""ALTER TABLE gisdb.public.{0}
+                   ADD CONSTRAINT {1}
+                   PRIMARY KEY ({2})
+                   """).format(
+                   sql.Identifier(maintable),
+                   sql.Identifier(key_str),
+                   sql.Identifier(fields_str2))
+            )
+
+            conn.commit()
+        except Exception as e:
+            print(e)
             conn = con
             cur = conn.cursor()
-            key_str = "{}_PrimaryKey_fkey".format(str(maintable))
-            fields = [f'"{i}"' for i in field]
-            fields_str = ', '.join(fields)
-            fields_str2 = f'{fields_str}'
 
+    @staticmethod
+    def drop_rows(self, con, maintable, field, result):
+        """ removing rows that fit a specific value from a given table
 
-            try:
+        - need to implement graceful closing of pg session
+        """
+        conn = con
+        cur = conn.cursor()
+        try:
 
-                cur.execute(
-                sql.SQL("""ALTER TABLE gisdb.public.{0}
-                       ADD CONSTRAINT {1}
-                       PRIMARY KEY ({2})
-                       """).format(
-                       sql.Identifier(maintable),
-                       sql.Identifier(key_str),
-                       sql.Identifier(fields_str2))
-                )
+            cur.execute(
+            sql.SQL("""DELETE from gisdb.public.{0}
+                  WHERE {1} = '%s'
+                   """ % result).format(
+                   sql.Identifier(maintable),
+                   sql.Identifier(field))
+            )
 
-                conn.commit()
-            except Exception as e:
-                print(e)
-                conn = con
-                cur = conn.cursor()
-
-        @staticmethod
-        def drop_rows(self, con, maintable, field, result):
-            """ removing rows that fit a specific value from a given table
-
-            - need to implement graceful closing of pg session
-            """
+            conn.commit()
+        except Exception as e:
+            print(e)
             conn = con
             cur = conn.cursor()
-            try:
-
-                cur.execute(
-                sql.SQL("""DELETE from gisdb.public.{0}
-                      WHERE {1} = '%s'
-                       """ % result).format(
-                       sql.Identifier(maintable),
-                       sql.Identifier(field))
-                )
-
-                conn.commit()
-            except Exception as e:
-                print(e)
-                conn = con
-                cur = conn.cursor()
 
 
 def protocol_typecast( protocol_choice : str, type : str):

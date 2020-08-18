@@ -3,6 +3,7 @@ from utils.tools import db
 from utils.arcnah import arcno
 import os
 from psycopg2 import sql
+import numpy as np
 
 
 def fix_fields(df : pd.DataFrame, keyword: str, debug=None):
@@ -83,7 +84,7 @@ def new_tablename(df:pd.DataFrame):
             newtablename = 'tblDustDeposition'
             return newtablename
 
-def table_create(df: pd.DataFrame, tablename: str, conn:str='nri'):
+def table_create(df: pd.DataFrame, tablename: str, conn:str=None):
     """
     pulls all fields from dataframe and constructs a postgres table schema;
     using that schema, create new table in postgres.
@@ -94,7 +95,7 @@ def table_create(df: pd.DataFrame, tablename: str, conn:str='nri'):
         "object":'text',
         'datetime64[ns]':'timestamp',
         'bool':'boolean',
-        'float64':'float'
+        'float64':'float(5)'
     }
     table_fields = {}
 
@@ -104,7 +105,7 @@ def table_create(df: pd.DataFrame, tablename: str, conn:str='nri'):
             table_fields.update({f'{i}':f'{type_translate[df.dtypes[i].name]}'})
 
         if table_fields:
-            comm = sql_command(table_fields, tablename) if conn==None else sql_command(table_fields, tablename, 'nritest')
+            comm = sql_command(table_fields, tablename) if conn!='nri' else sql_command(table_fields, tablename, 'nritest')
             d = db(f'{conn}')
             con = d.str
             cur = con.cursor()
@@ -195,3 +196,22 @@ def drop_dbkey(table, path):
         con = d.str
         cur = con.cursor()
         print(e)
+
+
+def blank_fixer(df):
+    for i in df.columns:
+        if df[i].dtype=='object':
+            df[i].replace('',np.nan,inplace=True)
+    return df
+
+def significant_digits_fix_pandas(df):
+    colist = ['sedimentGperDay','emptyWeight', 'recordedWeight', 'sedimentWeight']
+    for i in df.columns:
+        if i in colist:
+            df[i] = df[i].apply(lambda x: round(x,4))
+    return df
+
+
+def float_field(df, field):
+    temp_series = df[field].astype('float64')
+    return temp_series
