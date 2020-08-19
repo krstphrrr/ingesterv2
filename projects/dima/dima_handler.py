@@ -187,6 +187,29 @@ def pg_send(table:str, path:str, csv=None, debug=None):
             table_create(df, table, 'dima')
             ingesterv2.main_ingest(df, newtablename, d.str, 10000) if csv else csv_fieldcheck(df,path,table)
 
+def looper(path2mdbs, tablename, csv=False):
+    """
+    creates fully concatenated table of multiple dimas in a single folder.
+    either returns dataframe or returns csv.
+    does not send to pg yet.
+    """
+    containing_folder = path2mdbs
+    contained_files = os.listdir(containing_folder)
+    df_dictionary={}
 
+    count = 1
+    basestring = 'file_'
+    for i in contained_files:
+        if os.path.splitext(os.path.join(containing_folder,i))[1]=='.mdb':
+            countup = basestring+str(count)
+            # df creation/manipulation starts here
+            df = main_translate(tablename,os.path.join(containing_folder,i))
+            df['DateLoadedInDB'] = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
+            df['DBKey'] = os.path.split(os.path.splitext(i)[0])[1].replace(" ","")
+            # df add to dictionary list
+            df_dictionary[countup] = df.copy()
+            count+=1
+    final_df = pd.concat([j for i,j in df_dictionary.items()])
+    return final_df if csv==False else final_df.to_csv(os.path.join(containing_folder,tablename+'.csv'))
 
             # modcheck+=1
