@@ -195,7 +195,12 @@ def pg_send(table:str, path:str, csv=None, debug=None):
             ingesterv2.main_ingest(df, newtablename, d.str, 10000) if csv else csv_fieldcheck(df,path,table)
 
 
-def batch_looper(dimacontainer):
+def batch_looper(dimacontainer, pg=False):
+    """
+    creates an exhaustive list of tables across all dimas in a folder
+    and then uses looper to gothrough the list of tables and create csv's for
+    each.
+    """
     tablelist = None
     while tablelist is None:
         print('gathering tables within dimas..')
@@ -203,10 +208,44 @@ def batch_looper(dimacontainer):
     else:
         print('creating csvs for each table..')
         for table in tablelist:
-            looper(dimacontainer, table, csv=True)
+            if pg!=True:
+                looper(dimacontainer, table, csv=True)
+            else:
+                df = looper(dimacontainer,table,csv=False)
+                if 'ItemType' in df.columns:
+                    # if one of the non-vegetation bsne tables, use 'new_tablename' ,
+                    # function to produce a new tablename: 'tblHorizontalFlux' or
+                    # 'tblDustDeposition'
+                    newtablename = new_tablename(df)
+                    if tablecheck(newtablename):
+                        print('MWACK')
+                        ingesterv2.main_ingest(df, newtablename, d.str, 10000) if csv else csv_fieldcheck(df,path,table)
+                    else:
+                        table_create(df, newtablename, 'dima')
+                        print('llegue a 2')
+                        ingesterv2.main_ingest(df, newtablename, d.str, 10000) if csv else csv_fieldcheck(df,path,table)
+
+                else:
+                    print("NOT A HORFLUX TABLE")
+                    newtablename = table
+                    if tablecheck(table):
+                        print("FOUND THE TABLE IN PG")
+                        ingesterv2.main_ingest(df, newtablename, d.str, 10000) if csv else csv_fieldcheck(df,path,table)
+
+                    else:
+                        print("DID NOT FIND TABLE IN PG, CREATING...")
+                        table_create(df, table, 'dima')
+                        ingesterv2.main_ingest(df, newtablename, d.str, 10000) if csv else csv_fieldcheck(df,path,table)
 
 
 def looper(path2mdbs, tablename, csv=False):
+    """
+    goes through all the files(.mdb or .accdb extensions) inside a folder,
+    create a dataframe of the chosen table using the 'main_translate' function,
+    adds the dataframe into a dictionary,
+    finally appends all the dataframes
+    and returns the entire appended dataframe
+    """
     containing_folder = path2mdbs
     contained_files = os.listdir(containing_folder)
     df_dictionary={}
@@ -233,15 +272,27 @@ def looper(path2mdbs, tablename, csv=False):
                 pass
             count+=1
     final_df = pd.concat([j for i,j in df_dictionary.items()])
+
     return final_df if csv==False else final_df.to_csv(os.path.join(containing_folder,tablename+'.csv'))
 
 
 def table_check(tablename, path):
+    """
+    returns true if table is present in a particular dima
+    uses "arcno.actual_list" to compile a list of tables
+    then checks if the chosen table is present in that list
+    """
     instance = arcno(path)
     tablelist = [i for i,j in instance.actual_list.items()]
     return True if tablename in tablelist else False
 
 def table_collector(path2mdbs):
+    """
+    returns a list of all tables present in a folder of dimas
+    because dimas may each have a different set of tables, this function
+    goes through the list of tables per dima and appends any table not previously
+    seen into an internal list which is ultimately returned.
+    """
     containing_folder = path2mdbs
     contained_files = os.listdir(containing_folder)
     table_list = []
