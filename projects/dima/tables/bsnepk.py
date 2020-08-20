@@ -2,9 +2,6 @@ from utils.arcnah import arcno
 import pandas as pd
 from projects.dima.tabletools import fix_fields
 
-path = r"C:\Users\kbonefont\Desktop\new networok\2May19 - 20Aug19 JER MWAC DIMA 5.5a as of 2020-03-10.mdb"
-bsne_pk(path)
-
 def bsne_pk(dimapath):
     """
     returns a dataframe with tblplots, tblBSNE_Box, tblBSNE_Stack and

@@ -1,5 +1,6 @@
 from utils.arcnah import arcno
 import pandas as pd
+import numpy as np
 from projects.dima.tables.lpipk import lpi_pk
 from projects.dima.tables.bsnepk import bsne_pk
 
@@ -37,11 +38,14 @@ def no_pk(tablefam:str=None,dimapath:str=None,tablename:str= None):
             merge = pd.merge(pits, horizons, how="inner", on="SoilKey")
 
             allpks = lpi_pk(dimapath)
-            iso = allpks.loc[:,["PrimaryKey", "FormDate"]].copy()
+            iso = allpks.loc[:,["PrimaryKey", "EstablishDate", "FormDate", "DateModified"]].copy()
             merge['FormDate2'] = pd.to_datetime(merge.DateRecorded.apply(lambda x: pd.Timestamp(x).date()))
 
-            mergepk = pd.merge(merge, iso, how="left", left_on="FormDate2", right_on="FormDate").drop_duplicates('HorizonKey')
-            mergepk.drop(['FormDate','FormDate2'], axis=1, inplace=True)
+            mergepk = date_column_chooser(merge,iso) if "tetonAIM" not in dimapath else pd.merge(merge, iso, how="left", left_on="FormDate2", right_on="FormDate").drop_duplicates('HorizonKey')
+            if "DateModified2" in mergepk.columns:
+                mergepk.drop(['EstablishDate',"FormDate",'FormDate2',"DateModified2"], axis=1, inplace=True)
+            else:
+                mergepk.drop(['EstablishDate',"FormDate",'FormDate2'], axis=1, inplace=True)
 
             return mergepk
 
@@ -95,3 +99,15 @@ def no_pk(tablefam:str=None,dimapath:str=None,tablename:str= None):
             # return no_pk_df
     except Exception as e:
         print(e)
+
+def date_column_chooser(df,iso):
+    df_establish = pd.merge(df, iso, how="left", left_on="FormDate2", right_on="EstablishDate").drop_duplicates('HorizonKey')
+    df_formdate = pd.merge(df, iso, how="left", left_on="FormDate2", right_on="FormDate").drop_duplicates('HorizonKey')
+    if np.nan not in [i for i in df_formdate.PrimaryKey]:
+        return df_formdate
+    elif np.nan not in [i for i in df_establish.PrimaryKey]:
+        return df_establish
+    else:
+        iso["DateModified2"] = pd.to_datetime(iso.DateModified.apply(lambda x: pd.Timestamp(x).date()))
+        df_datemod = pd.merge(df, iso, how="left", left_on="FormDate2", right_on="DateModified2").drop_duplicates('HorizonKey')
+        return df_datemod

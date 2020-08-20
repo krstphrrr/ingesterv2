@@ -50,81 +50,88 @@ def main_translate(tablename:str, dimapath:str, debug=None):
         'e': dimapath,
         'f': ('fake', dimapath, tablename)
     }
-    if tablename in a:
-        # no_pk branch
-        network_check = 0
-        inst = arcno(dimapath)
+    if table_check(tablename, dimapath):
+        if tablename in a:
+            # no_pk branch
+            network_check = 0
+            inst = arcno(dimapath)
 
-        for i,j in inst.actual_list.items():
-            if any([True for i,j in inst.actual_list.items() if 'BSNE' in i]):
-                network_check = 2
-            else:
-                network_check = 1
+            for i,j in inst.actual_list.items():
+                if any([True for i,j in inst.actual_list.items() if 'BSNE' in i]):
+                    network_check = 2
+                else:
+                    network_check = 1
 
-        while network_check!=0:
+            while network_check!=0:
 
-            if network_check==1:
-                print('no_pk; netdima in path; line or plot') if debug else None
-                df = switcher[tablename](*types['f'])
-                network_check=0
-                df = blank_fixer(df)
-                df = significant_digits_fix_pandas(df)
-                return df
+                if network_check==1:
+                    print('no_pk; netdima in path; line or plot') if debug else None
+                    df = switcher[tablename](*types['f'])
+                    network_check=0
+                    df = blank_fixer(df)
+                    df = significant_digits_fix_pandas(df)
+                    return df
 
-            elif network_check==2:
-                print('no_pk; netdima in path; line or plot') if debug else None
-                df = switcher[tablename](*types['a'])
-                network_check=0
-                df = blank_fixer(df)
-                df = significant_digits_fix_pandas(df)
-                return df
+                elif network_check==2:
+                    print('no_pk; netdima in path; line or plot') if debug else None
+                    df = switcher[tablename](*types['a'])
+                    network_check=0
+                    df = blank_fixer(df)
+                    df = significant_digits_fix_pandas(df)
+                    return df
 
-    elif tablename in b:
-        # no_pk + soilstab branch
-        print('no_pk; soilstab') if debug else None
-        df = switcher[tablename](*types['b'])
-        df = blank_fixer(df)
-        df = significant_digits_fix_pandas(df)
-        return df
+        elif tablename in b:
+            # no_pk + soilstab branch
+            print('no_pk; soilstab') if debug else None
+            df = switcher[tablename](*types['b'])
+            df = blank_fixer(df)
+            df = significant_digits_fix_pandas(df)
+            return df
 
-    elif tablename in c:
-        # no_pk + soilpits branch
-        print('no_pk; soilpits') if debug else None
-        df = switcher[tablename](*types['c'])
-        df = blank_fixer(df)
-        df = significant_digits_fix_pandas(df)
-        return df
+        elif tablename in c:
+            # no_pk + soilpits branch
+            print('no_pk; soilpits') if debug else None
+            df = switcher[tablename](*types['c'])
+            # df = blank_fixer(df)
+            # df = significant_digits_fix_pandas(df)
+            return df
 
-    elif tablename in d:
-        # no_pk + plantprod branch
-        print('no_pk; plantprod') if debug else None
-        df = switcher[tablename](*types['d'])
-        df = blank_fixer(df)
-        df = significant_digits_fix_pandas(df)
-        return df
+        elif tablename in d:
+            # no_pk + plantprod branch
+            print('no_pk; plantprod') if debug else None
+            df = switcher[tablename](*types['d'])
+            df = blank_fixer(df)
+            df = significant_digits_fix_pandas(df)
+            return df
 
-    else:
-        # lpi_pk, gap_pk, sperich_pk, plantden_pk, bsne_pk branch
-        if tablename in e:
-            print('bsne collection') if debug else None
-            retdf = switcher[tablename](types['e'])
-            retdf = blank_fixer(retdf)
-            retdf = significant_digits_fix_pandas(retdf)
-            retdf.openingSize = float_field(retdf, 'openingSize')
-            return retdf
         else:
-            print('hmmm?') if debug else None
-            df = switcher[tablename](types['e'])
-            arc = arcno()
-            iso = arc.isolateFields(df,tableswitch[tablename],"PrimaryKey").copy()
-            iso.drop_duplicates([tableswitch[tablename]],inplace=True)
+            # lpi_pk, gap_pk, sperich_pk, plantden_pk, bsne_pk branch
+            if tablename in e:
+                print('bsne collection') if debug else None
+                retdf = switcher[tablename](types['e'])
+                retdf = blank_fixer(retdf)
+                retdf = significant_digits_fix_pandas(retdf)
+                # if 'BSNE' in tablename:
+                #     retdf.openingSize = float_field(retdf, 'openingSize')
+                return retdf
+            else:
+                print('hmmm?') if debug else None
+                df = switcher[tablename](types['e'])
+                arc = arcno()
+                iso = arc.isolateFields(df,tableswitch[tablename],"PrimaryKey").copy()
+                iso.drop_duplicates([tableswitch[tablename]],inplace=True)
 
-            target_table = arcno.MakeTableView(tablename, dimapath)
-            retdf = pd.merge(target_table, iso, how="inner", on=tableswitch[tablename])
-            retdf = blank_fixer(retdf)
-            retdf = significant_digits_fix_pandas(retdf)
-            retdf.openingSize = float_field(retdf, 'openingSize')
-            return retdf
+                target_table = arcno.MakeTableView(tablename, dimapath)
+                retdf = pd.merge(target_table, iso, how="inner", on=tableswitch[tablename])
+                retdf = blank_fixer(retdf)
+                retdf = significant_digits_fix_pandas(retdf)
+                # if 'BSNE' in tablename:
+                #     retdf.openingSize = float_field(retdf, 'openingSize')
+                return retdf
+    else:
+
+        print(f'table not in {os.path.basename(dimapath)}')
+        pass
 
 
 def pg_send(table:str, path:str, csv=None, debug=None):
@@ -187,12 +194,19 @@ def pg_send(table:str, path:str, csv=None, debug=None):
             table_create(df, table, 'dima')
             ingesterv2.main_ingest(df, newtablename, d.str, 10000) if csv else csv_fieldcheck(df,path,table)
 
+
+def batch_looper(dimacontainer):
+    tablelist = None
+    while tablelist is None:
+        print('gathering tables within dimas..')
+        tablelist = table_collector(dimacontainer)
+    else:
+        print('creating csvs for each table..')
+        for table in tablelist:
+            looper(dimacontainer, table, csv=True)
+
+
 def looper(path2mdbs, tablename, csv=False):
-    """
-    creates fully concatenated table of multiple dimas in a single folder.
-    either returns dataframe or returns csv.
-    does not send to pg yet.
-    """
     containing_folder = path2mdbs
     contained_files = os.listdir(containing_folder)
     df_dictionary={}
@@ -200,16 +214,63 @@ def looper(path2mdbs, tablename, csv=False):
     count = 1
     basestring = 'file_'
     for i in contained_files:
-        if os.path.splitext(os.path.join(containing_folder,i))[1]=='.mdb':
+        if os.path.splitext(os.path.join(containing_folder,i))[1]=='.mdb' or os.path.splitext(os.path.join(containing_folder,i))[1]=='.accdb':
             countup = basestring+str(count)
             # df creation/manipulation starts here
+            print(i)
             df = main_translate(tablename,os.path.join(containing_folder,i))
-            df['DateLoadedInDB'] = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
-            df['DBKey'] = os.path.split(os.path.splitext(i)[0])[1].replace(" ","")
-            # df add to dictionary list
-            df_dictionary[countup] = df.copy()
+            if df is not None:
+                if 'DateLoadedInDB' in df.columns:
+                    df['DateLoadedInDB']=df['DateLoadedInDB'].astype('datetime64')
+                    df['DateLoadedInDB'] = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
+                else:
+                    df['DateLoadedInDB'] = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
+
+                df['DBKey'] = os.path.split(os.path.splitext(i)[0])[1].replace(" ","")
+                # df add to dictionary list
+                df_dictionary[countup] = df.copy()
+            else:
+                pass
             count+=1
     final_df = pd.concat([j for i,j in df_dictionary.items()])
     return final_df if csv==False else final_df.to_csv(os.path.join(containing_folder,tablename+'.csv'))
 
-            # modcheck+=1
+
+def table_check(tablename, path):
+    instance = arcno(path)
+    tablelist = [i for i,j in instance.actual_list.items()]
+    return True if tablename in tablelist else False
+
+def table_collector(path2mdbs):
+    containing_folder = path2mdbs
+    contained_files = os.listdir(containing_folder)
+    table_list = []
+    for mdb_path in contained_files:
+        if os.path.splitext(mdb_path)[1]=='.mdb' or os.path.splitext(mdb_path)[1]=='.accdb':
+            instance = arcno(os.path.join(containing_folder,mdb_path))
+            for tablename, size in instance.actual_list.items():
+                if tablename not in table_list:
+                    table_list.append(tablename)
+    return table_list
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# modcheck+=1
