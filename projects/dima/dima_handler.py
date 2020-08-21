@@ -196,11 +196,13 @@ def pg_send(table:str, path:str, csv=None, debug=None):
 
 
 def batch_looper(dimacontainer, pg=False):
+
     """
     creates an exhaustive list of tables across all dimas in a folder
     and then uses looper to gothrough the list of tables and create csv's for
     each.
     """
+    d = db('dima')
     tablelist = None
     while tablelist is None:
         print('gathering tables within dimas..')
@@ -219,23 +221,23 @@ def batch_looper(dimacontainer, pg=False):
                     newtablename = new_tablename(df)
                     if tablecheck(newtablename):
                         print('MWACK')
-                        ingesterv2.main_ingest(df, newtablename, d.str, 10000) if csv else csv_fieldcheck(df,path,table)
+                        ingesterv2.main_ingest(df, newtablename, d.str, 10000)
                     else:
                         table_create(df, newtablename, 'dima')
                         print('llegue a 2')
-                        ingesterv2.main_ingest(df, newtablename, d.str, 10000) if csv else csv_fieldcheck(df,path,table)
+                        ingesterv2.main_ingest(df, newtablename, d.str, 10000)
 
                 else:
                     print("NOT A HORFLUX TABLE")
                     newtablename = table
                     if tablecheck(table):
                         print("FOUND THE TABLE IN PG")
-                        ingesterv2.main_ingest(df, newtablename, d.str, 10000) if csv else csv_fieldcheck(df,path,table)
+                        ingesterv2.main_ingest(df, newtablename, d.str, 10000)
 
                     else:
                         print("DID NOT FIND TABLE IN PG, CREATING...")
                         table_create(df, table, 'dima')
-                        ingesterv2.main_ingest(df, newtablename, d.str, 10000) if csv else csv_fieldcheck(df,path,table)
+                        ingesterv2.main_ingest(df, newtablename, d.str, 10000)
 
 
 def looper(path2mdbs, tablename, csv=False):
@@ -271,7 +273,7 @@ def looper(path2mdbs, tablename, csv=False):
             else:
                 pass
             count+=1
-    final_df = pd.concat([j for i,j in df_dictionary.items()])
+    final_df = pd.concat([j for i,j in df_dictionary.items()], ignore_index=True).drop_duplicates()
 
     return final_df if csv==False else final_df.to_csv(os.path.join(containing_folder,tablename+'.csv'))
 

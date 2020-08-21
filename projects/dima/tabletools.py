@@ -76,11 +76,11 @@ def new_tablename(df:pd.DataFrame):
     return a new tablename string depending on what's present in that field.
     """
     if 'ItemType' in df.columns:
-        if (df.ItemType[0]=='M') or (df.ItemType[0]=='m'):
+        if (any(df.ItemType=='M')) or (any(df.ItemType=='m')):
             newtablename = 'tblHorizontalFlux'
             return newtablename
 
-        elif (df.ItemType[0]=='T') or (df.ItemType[0]=='t'):
+        elif (any(df.ItemType=='T')) or (any(df.ItemType=='t')):
             newtablename = 'tblDustDeposition'
             return newtablename
 
