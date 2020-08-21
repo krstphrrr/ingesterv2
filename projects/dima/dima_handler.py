@@ -20,8 +20,8 @@ def main_translate(tablename:str, dimapath:str, debug=None):
 
     This function will map the tablename to an appropriate tuple of arguments.
     first block of 'a' argument tuple will check if the dima has 'BSNE' tables
-    within the DIMA. It could still be a vegetation dima however, that will be checked
-    further along on the no_pk function.
+    within the DIMA. It could still be a vegetation dima however, that will be
+    checked further along on the no_pk function.
 
     Parameters
     ----------
@@ -36,22 +36,26 @@ def main_translate(tablename:str, dimapath:str, debug=None):
 
     """
 
-    a = ['tblPlots', 'tblLines', 'tblSpecies','tblSpeciesGeneric','tblSites','tblPlotNotes', 'tblSites']
-    b = ['tblSoilStabDetail', 'tblSoilStabHeader']
-    c = ['tblSoilPits','tblSoilPitHorizons']
-    d = ['tblPlantProdDetail', 'tblPlantProdHeader']
-    e = ['tblBSNE_Box', 'tblBSNE_Stack','tblBSNE_BoxCollection', 'tblBSNE_TrapCollection']
+    no_primary_key = ['tblPlots', 'tblLines', 'tblSpecies','tblSpeciesGeneric',\
+                      'tblSites','tblPlotNotes', 'tblSites']
+    soil_stab_primary_key = ['tblSoilStabDetail', 'tblSoilStabHeader']
+    soil_pit_primary_key = ['tblSoilPits','tblSoilPitHorizons']
+    plant_prod_primary_key = ['tblPlantProdDetail', 'tblPlantProdHeader']
+    bsne_primary_keys = ['tblBSNE_Box', 'tblBSNE_Stack','tblBSNE_BoxCollection',\
+                         'tblBSNE_TrapCollection']
 
-    types={
-        'a': (None, dimapath, tablename),
-        'b': ('soilstab',dimapath, None),
-        'c': ('soilpits',dimapath, None),
-        'd': ('plantprod',dimapath, None),
-        'e': dimapath,
+    switcher_arguments=
+        {
+        'no_pk': (None, dimapath, tablename),
+        'no_pk_soilstab': ('soilstab',dimapath, None),
+        'no_pk_soilpits': ('soilpits',dimapath, None),
+        'no_pk_plantprod': ('plantprod',dimapath, None),
+        'yes_pk': dimapath,
         'f': ('fake', dimapath, tablename)
-    }
+        }
+    # first check if tablename exists in the particular dima
     if table_check(tablename, dimapath):
-        if tablename in a:
+        if tablename in no_primary_key:
             # no_pk branch
             network_check = 0
             inst = arcno(dimapath)
@@ -66,7 +70,7 @@ def main_translate(tablename:str, dimapath:str, debug=None):
 
                 if network_check==1:
                     print('no_pk; netdima in path; line or plot') if debug else None
-                    df = switcher[tablename](*types['f'])
+                    df = switcher[tablename](*switcher_arguments['f'])
                     network_check=0
                     df = blank_fixer(df)
                     df = significant_digits_fix_pandas(df)
@@ -74,49 +78,48 @@ def main_translate(tablename:str, dimapath:str, debug=None):
 
                 elif network_check==2:
                     print('no_pk; netdima in path; line or plot') if debug else None
-                    df = switcher[tablename](*types['a'])
+                    df = switcher[tablename](*switcher_arguments['no_pk'])
                     network_check=0
                     df = blank_fixer(df)
                     df = significant_digits_fix_pandas(df)
                     return df
 
-        elif tablename in b:
+        elif tablename in soil_stab_primary_key:
             # no_pk + soilstab branch
             print('no_pk; soilstab') if debug else None
-            df = switcher[tablename](*types['b'])
+            df = switcher[tablename](*switcher_arguments['no_pk_soilstab'])
             df = blank_fixer(df)
             df = significant_digits_fix_pandas(df)
             return df
 
-        elif tablename in c:
+        elif tablename in soil_pit_primary_key:
             # no_pk + soilpits branch
             print('no_pk; soilpits') if debug else None
-            df = switcher[tablename](*types['c'])
-            # df = blank_fixer(df)
-            # df = significant_digits_fix_pandas(df)
+            df = switcher[tablename](*switcher_arguments['no_pk_soilpits'])
+            df = blank_fixer(df)
+            df = significant_digits_fix_pandas(df)
             return df
 
-        elif tablename in d:
+        elif tablename in plant_prod_primary_key:
             # no_pk + plantprod branch
             print('no_pk; plantprod') if debug else None
-            df = switcher[tablename](*types['d'])
+            df = switcher[tablename](*switcher_arguments['no_pk_plantprod'])
             df = blank_fixer(df)
             df = significant_digits_fix_pandas(df)
             return df
 
         else:
             # lpi_pk, gap_pk, sperich_pk, plantden_pk, bsne_pk branch
-            if tablename in e:
+            if tablename in bsne_primary_keys:
                 print('bsne collection') if debug else None
-                retdf = switcher[tablename](types['e'])
+                retdf = switcher[tablename](switcher_arguments['yes_pk'])
                 retdf = blank_fixer(retdf)
                 retdf = significant_digits_fix_pandas(retdf)
-                # if 'BSNE' in tablename:
-                #     retdf.openingSize = float_field(retdf, 'openingSize')
+                retdf = openingsize_fixer(retdf)
                 return retdf
             else:
                 print('hmmm?') if debug else None
-                df = switcher[tablename](types['e'])
+                df = switcher[tablename](switcher_arguments['yes_pk'])
                 arc = arcno()
                 iso = arc.isolateFields(df,tableswitch[tablename],"PrimaryKey").copy()
                 iso.drop_duplicates([tableswitch[tablename]],inplace=True)
@@ -125,8 +128,7 @@ def main_translate(tablename:str, dimapath:str, debug=None):
                 retdf = pd.merge(target_table, iso, how="inner", on=tableswitch[tablename])
                 retdf = blank_fixer(retdf)
                 retdf = significant_digits_fix_pandas(retdf)
-                # if 'BSNE' in tablename:
-                #     retdf.openingSize = float_field(retdf, 'openingSize')
+                retdf = openingsize_fixer(retdf)
                 return retdf
     else:
 

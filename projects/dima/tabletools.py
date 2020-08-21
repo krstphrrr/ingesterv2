@@ -215,3 +215,9 @@ def significant_digits_fix_pandas(df):
 def float_field(df, field):
     temp_series = df[field].astype('float64')
     return temp_series
+    
+def openingsize_fixer(df):
+    for i in df.columns:
+        if 'openingSize' in i:
+            df[i] = df[i].astype('float64')
+    return df
