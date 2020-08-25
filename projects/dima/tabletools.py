@@ -89,14 +89,7 @@ def table_create(df: pd.DataFrame, tablename: str, conn:str=None):
     pulls all fields from dataframe and constructs a postgres table schema;
     using that schema, create new table in postgres.
     """
-    type_translate = {
-        'int64':'int',
-        'Int64':'int',
-        "object":'text',
-        'datetime64[ns]':'timestamp',
-        'bool':'boolean',
-        'float64':'float(5)'
-    }
+
     table_fields = {}
 
     try:
@@ -215,9 +208,19 @@ def significant_digits_fix_pandas(df):
 def float_field(df, field):
     temp_series = df[field].astype('float64')
     return temp_series
-    
+
 def openingsize_fixer(df):
     for i in df.columns:
         if 'openingSize' in i:
             df[i] = df[i].astype('float64')
     return df
+
+
+type_translate = {
+    'int64':'int',
+    'Int64':'int',
+    "object":'text',
+    'datetime64[ns]':'timestamp',
+    'bool':'boolean',
+    'float64':'float(5)'
+}
