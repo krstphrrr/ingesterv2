@@ -4,7 +4,7 @@ from utils.arcnah import arcno
 import os
 from psycopg2 import sql
 import numpy as np
-
+import 
 
 def fix_fields(df : pd.DataFrame, keyword: str, debug=None):
     """ Checks for duplicate fields produced by primarykey joins
