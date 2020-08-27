@@ -1,8 +1,15 @@
-from projects.tall_tables.talltables_handler import model_handler, field_parse, ingesterv2
-from projects.tall_tables.models.gap import dataGap
-from projects.dima.dima_handler import pg_send
-from utils.arcnah import arcno
+from src.projects.tall_tables.talltables_handler import model_handler, field_parse, ingesterv2
+from src.projects.tall_tables.models.gap import dataGap
+from src.projects.dima.dima_handler import pg_send
+import tkinter as tk
 
+from tkinter import filedialog
+from src.utils.arcnah import arcno
+
+
+
+root = tk.Tk()
+root.withdraw()
 
 def main():
     proj = None
@@ -11,17 +18,21 @@ def main():
     tbl = None
     while proj is None and pth is None and fld is None and tbl is None:
         proj = input('please input project(tall, nri, met, or dima): ')
-        print('project set.')
-        pth = input('please input path: ')
-        print('path set.')
-        fld = input('please input dictionary with fields: ')
-        if 'dataGap' in fld:
-            fld = dataGap
-        print('field dictionary set.')
-        tbl = input('please input table name: ')
-        print('table name set.')
+        print('project set. Please input directory.')
+        file_path = filedialog.askdirectory()
+        print(f'path set to "{file_path}"')
+        # pth = input('please input path: ')
+
+
+
+        # fld = input('please input dictionary with fields: ')
+        # if 'dataGap' in fld:
+        #     fld = dataGap
+        # print('field dictionary set.')
+        # tbl = input('please input table name: ')
+        # print('table name set.')
     else:
-        a = request_handler(proj,pth,fld,tbl)
+        # a = request_handler(proj,pth,fld,tbl)
         print('ok')
 
 class request_handler:

@@ -1,6 +1,6 @@
-from utils.arcnah import arcno
+from src.utils.arcnah import arcno
 import pandas as pd
-from projects.dima.tabletools import fix_fields
+from src.projects.dima.tabletools import fix_fields
 # path = r"C:\Users\kbonefont\Desktop\DIMA 5.4_BlueMountains_2020-01-06.accdb"
 # lpi_pk(path)
 def lpi_pk(dimapath):

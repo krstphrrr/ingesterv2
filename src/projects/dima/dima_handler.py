@@ -1,18 +1,18 @@
-from utils.arcnah import arcno
+from src.utils.arcnah import arcno
 import os
 from os.path import normpath, split, splitext, join
-from utils.tools import db
+from src.utils.tools import db, config
 from sqlalchemy import create_engine
-from utils.tools import  config
+
 from datetime import datetime
 from psycopg2 import sql
 import pandas as pd
 
-from projects.dima.handler import switcher, tableswitch
-from projects.dima.tabletools import fix_fields, new_tablename, table_create, \
+from src.projects.dima.handler import switcher, tableswitch
+from src.projects.dima.tabletools import fix_fields, new_tablename, table_create, \
 tablecheck, csv_fieldcheck, blank_fixer, significant_digits_fix_pandas, \
 float_field
-from projects.tall_tables.talltables_handler import ingesterv2
+from src.projects.tall_tables.talltables_handler import ingesterv2
 
 
 def main_translate(tablename:str, dimapath:str, debug=None):
@@ -44,8 +44,7 @@ def main_translate(tablename:str, dimapath:str, debug=None):
     bsne_primary_keys = ['tblBSNE_Box', 'tblBSNE_Stack','tblBSNE_BoxCollection',\
                          'tblBSNE_TrapCollection']
 
-    switcher_arguments=
-        {
+    switcher_arguments= {
         'no_pk': (None, dimapath, tablename),
         'no_pk_soilstab': ('soilstab',dimapath, None),
         'no_pk_soilpits': ('soilpits',dimapath, None),

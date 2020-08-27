@@ -1,7 +1,6 @@
-from utils.arcnah import arcno
+from src.utils.arcnah import arcno
 import pandas as pd
-from projects.dima.tabletools import fix_fields
-from projects.dima.tables.lpipk import lpi_pk
+from src.projects.dima.tabletools import fix_fields
 
 def gap_pk(dimapath):
     """

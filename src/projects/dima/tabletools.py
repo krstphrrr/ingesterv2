@@ -1,10 +1,9 @@
 import pandas as pd
-from utils.tools import db
-from utils.arcnah import arcno
+from src.utils.tools import db
+from src.utils.arcnah import arcno
 import os
 from psycopg2 import sql
 import numpy as np
-
 
 def fix_fields(df : pd.DataFrame, keyword: str, debug=None):
     """ Checks for duplicate fields produced by primarykey joins
