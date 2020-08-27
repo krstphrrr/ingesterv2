@@ -1,6 +1,6 @@
 from src.utils.arcnah import arcno
 import pandas as pd
-from utils.tools import db
+from src.utils.tools import db
 from src.projects.dima.tables.bsnepk import bsne_pk
 from src.projects.dima.tables.lpipk import lpi_pk
 from src.projects.dima.tables.nopk import no_pk
