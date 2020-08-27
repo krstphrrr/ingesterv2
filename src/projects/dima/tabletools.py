@@ -4,10 +4,6 @@ from src.utils.arcnah import arcno
 import os
 from psycopg2 import sql
 import numpy as np
-<<<<<<< HEAD:src/projects/dima/tabletools.py
-=======
-import 
->>>>>>> 95a7459e44ae745366ee8336041a90d306aea922:projects/dima/tabletools.py
 
 def fix_fields(df : pd.DataFrame, keyword: str, debug=None):
     """ Checks for duplicate fields produced by primarykey joins
