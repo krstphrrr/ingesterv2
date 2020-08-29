@@ -1,10 +1,10 @@
-from src.projects.tall_tables.talltables_handler import model_handler, field_parse, ingesterv2
-from src.projects.tall_tables.models.gap import dataGap
-from src.projects.dima.dima_handler import pg_send
+from projects.tall_tables.talltables_handler import model_handler, field_parse, ingesterv2
+from projects.tall_tables.models.gap import dataGap
+from projects.dima.dima_handler import pg_send
 import tkinter as tk
 
 from tkinter import filedialog
-from src.utils.arcnah import arcno
+from utils.arcnah import arcno
 
 
 

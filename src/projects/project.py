@@ -1,9 +1,9 @@
 import pandas as pd
 import numpy as np
 from sqlalchemy import *
-from src.utils.tools import db
-from src.projects.tables.project_tables import fields_dict
-from src.projects.dima.tabletools import table_create, sql_command, tablecheck
+from utils.tools import db
+from projects.tables.project_tables import fields_dict
+from projects.dima.tabletools import table_create, sql_command, tablecheck
 
 
 # need to use an unified type_translate across code

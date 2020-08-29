@@ -1,6 +1,6 @@
-from src.utils.arcnah import arcno
+from utils.arcnah import arcno
 import pandas as pd
-from src.projects.dima.tabletools import fix_fields
+from projects.dima.tabletools import fix_fields
 
 def qual_pk(dimapath):
     """

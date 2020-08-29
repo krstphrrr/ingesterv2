@@ -6,7 +6,8 @@ pyodbc >= 4.0.0
 tqdm == 4.46.0
 urllib3 == 1.25.8
 
+fiona
+geopandas 
 geoalchemy == 0.7.2
 geoalchemy2 == 0.6.3
 Shapely == 1.7.0
-geopandas == 0.7.0

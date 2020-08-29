@@ -1,8 +1,8 @@
-from src.utils.arcnah import arcno
+from utils.arcnah import arcno
 import pandas as pd
 import numpy as np
-from src.projects.dima.tables.lpipk import lpi_pk
-from src.projects.dima.tables.bsnepk import bsne_pk
+from projects.dima.tables.lpipk import lpi_pk
+from projects.dima.tables.bsnepk import bsne_pk
 
 def no_pk(tablefam:str=None,dimapath:str=None,tablename:str= None):
     """

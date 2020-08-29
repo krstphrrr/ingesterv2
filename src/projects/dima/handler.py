@@ -1,13 +1,13 @@
-from src.utils.arcnah import arcno
+from utils.arcnah import arcno
 import pandas as pd
-from src.utils.tools import db
-from src.projects.dima.tables.bsnepk import bsne_pk
-from src.projects.dima.tables.lpipk import lpi_pk
-from src.projects.dima.tables.nopk import no_pk
-from src.projects.dima.tables.gappk import gap_pk
-from src.projects.dima.tables.sperichpk import sperich_pk
-from src.projects.dima.tables.plantdenpk import plantden_pk
-from src.projects.dima.tables.qualpk import qual_pk
+from utils.tools import db
+from projects.dima.tables.bsnepk import bsne_pk
+from projects.dima.tables.lpipk import lpi_pk
+from projects.dima.tables.nopk import no_pk
+from projects.dima.tables.gappk import gap_pk
+from projects.dima.tables.sperichpk import sperich_pk
+from projects.dima.tables.plantdenpk import plantden_pk
+from projects.dima.tables.qualpk import qual_pk
 
 switcher = {
     'tblPlots':no_pk,

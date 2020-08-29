@@ -2,7 +2,7 @@ import pandas as pd
 from os import listdir,getcwd, chdir
 from os.path import normpath, join
 # from methods.make_table import Table
-from src.utils.tools import Acc
+from utils.tools import Acc
 
 
 """
