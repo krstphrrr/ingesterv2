@@ -22,6 +22,9 @@ type_translate = {
 pulling db.str
 configparser to create connection string for sqlalchemy engine
 """
+def engine_conn_string(string):
+    d = db(string)
+    return f'postgresql://{d.params["user"]}:{d.params["password"]}@{d.params["host"]}:{d.params["port"]}/{d.params["dbname"]}'
 
 def send_proj(df):
     eng = create_engine(engine_conn_string("dima"))

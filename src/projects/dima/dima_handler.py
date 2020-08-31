@@ -11,7 +11,7 @@ import pandas as pd
 from projects.dima.handler import switcher, tableswitch
 from projects.dima.tabletools import fix_fields, new_tablename, table_create, \
 tablecheck, csv_fieldcheck, blank_fixer, significant_digits_fix_pandas, \
-float_field
+float_field, openingsize_fixer
 from projects.tall_tables.talltables_handler import ingesterv2
 
 
@@ -308,6 +308,30 @@ def table_collector(path2mdbs):
     return table_list
 
 
+def has_duplicate_pks(df,tablename):
+    try:
+        con = d.str
+        cur = con.cursor()
+        exists_query = f'''
+        select "PrimaryKey" from
+        postgres.public."{tablename}"
+        '''
+        cur.execute (exists_query)
+        df_pg_keys = list(set([i for i in cur.fetchall()]))
+
+        if 'PrimaryKey' in df.columns:
+            for i in df.PrimaryKey:
+                if i in df_pg_keys:
+                    return True
+                else:
+                    return False
+        else:
+            print('table has no primary key. aborting check')
+
+    except Exception as e:
+        print(e)
+        con = d.str
+        cur = con.cursor()
 
 
 
