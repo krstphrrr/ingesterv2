@@ -1,11 +1,12 @@
 import os, os.path
+# os.chdir(os.path.join(os.getcwd(),'src')) if os.path.basename(os.getcwd())!='src' else None
 import pandas as pd
 import numpy as np
 from sqlalchemy import *
 from utils.tools import db
 from projects.tables.project_tables import fields_dict
 from projects.dima.tabletools import table_create, sql_command, tablecheck
-# os.chdir(os.path.join(os.getcwd(),'src')) if os.path.basename(os.getcwd())!='src' else None
+
 
 
 
@@ -37,29 +38,19 @@ def template():
     df = pd.DataFrame(fields_dict)
     return df
 
-# temp = template()
-# temp
-# temp['projectKey'] = ''
-#
-# direc = r"C:\Users\kbonefont\Documents\GitHub\ingesterv2\dimas"
-# read_template(direc, temp)
-
-# for path in os.listdir(direc):
-#     if os.path.splitext(path)[1]==".xlsx":
-#         print(path)
-#         df = pd.read_excel(os.path.join(dir,path))
-#         data = [i for i in df.Value]
-#         maindf.loc[len(maindf),:] = data
-
 def read_template(dir, maindf):
     """ creates a new dataframe with the Value column values,
     appending it to a fed in
     """
+    maindf.drop(maindf.index,inplace=True)
     for path in os.listdir(dir):
         if os.path.splitext(path)[1]==".xlsx":
             df = pd.read_excel(os.path.join(dir,path))
             data = [i for i in df.Value]
+            # maindf.loc[len,:] = data
+    # return len(data), maindf.shape[1]
     maindf.loc[len(maindf),:] = data
+    return maindf
 
 
 def update_project(path_in_batch,projectkey):
@@ -74,6 +65,7 @@ def update_project(path_in_batch,projectkey):
 
     """
     tempdf = template()
+    eng = create_engine(engine_conn_string("dima"))
     # check if table exists
     if tablecheck("project", "dima"):
         if project_key_check(projectkey):
@@ -86,15 +78,10 @@ def update_project(path_in_batch,projectkey):
     # if no, create table and update pg
     else:
         table_create(tempdf,"project","dima")
-        read_template(path_in_batch, tempdf)
+        update = read_template(path_in_batch, tempdf)
         # tempdf = read_template(path_in_batch,tempdf)
-
-        tempdf['projectKey'] = projectkey
-
-
-        tempdf.to_sql(con=eng, name="project", if_exists="append", index=False)
-
-        pass
+        update['projectKey'] = projectkey
+        send_proj(update)
 
 
 def project_key_check(projectkey):
