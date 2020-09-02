@@ -1,21 +1,21 @@
+import os, os.path
 import pandas as pd
 import numpy as np
 from sqlalchemy import *
 from utils.tools import db
 from projects.tables.project_tables import fields_dict
 from projects.dima.tabletools import table_create, sql_command, tablecheck
+# os.chdir(os.path.join(os.getcwd(),'src')) if os.path.basename(os.getcwd())!='src' else None
+
 
 
 # need to use an unified type_translate across code
-type_translate = {
-    np.dtype('int64'):'int',
+type_translate = {np.dtype('int64'):'int',
     'Int64':'int',
     np.dtype("object"):'text',
     np.dtype('datetime64[ns]'):'timestamp',
     np.dtype('bool'):'boolean',
-    np.dtype('float64'):'float(5)',
-    np.dtype('')
-}
+    np.dtype('float64'):'float(5)',}
 
 
 """
@@ -37,16 +37,32 @@ def template():
     df = pd.DataFrame(fields_dict)
     return df
 
-def read_template(path, maindf):
+# temp = template()
+# temp
+# temp['projectKey'] = ''
+#
+# direc = r"C:\Users\kbonefont\Documents\GitHub\ingesterv2\dimas"
+# read_template(direc, temp)
+
+# for path in os.listdir(direc):
+#     if os.path.splitext(path)[1]==".xlsx":
+#         print(path)
+#         df = pd.read_excel(os.path.join(dir,path))
+#         data = [i for i in df.Value]
+#         maindf.loc[len(maindf),:] = data
+
+def read_template(dir, maindf):
     """ creates a new dataframe with the Value column values,
     appending it to a fed in
     """
-    df = pd.read_excel(path)
-    data = [i for i in df.Value]
+    for path in os.listdir(dir):
+        if os.path.splitext(path)[1]==".xlsx":
+            df = pd.read_excel(os.path.join(dir,path))
+            data = [i for i in df.Value]
     maindf.loc[len(maindf),:] = data
 
 
-def update_project(projectkey):
+def update_project(path_in_batch,projectkey):
     """ ingests a project metadata file if project key does not exist.
 
     - would be better if it would automatically pull projectkey from
@@ -63,14 +79,20 @@ def update_project(projectkey):
         if project_key_check(projectkey):
             print("projectkey exists, aborting ingest")
         else:
-            update = read_template(path,tempdf)
+            update = read_template(path_in_batch,tempdf)
+            update['projectKey'] = projectkey
             send_proj(update)
 
     # if no, create table and update pg
     else:
         table_create(tempdf,"project","dima")
-        update = read_template(path,tempdf)
-        update.to_sql(con=eng, name="project", if_exists="append", index=False)
+        read_template(path_in_batch, tempdf)
+        # tempdf = read_template(path_in_batch,tempdf)
+
+        tempdf['projectKey'] = projectkey
+
+
+        tempdf.to_sql(con=eng, name="project", if_exists="append", index=False)
 
         pass
 
@@ -84,7 +106,7 @@ def project_key_check(projectkey):
         select exists (
             select 1
             from project
-            where "curator_PersonName" = %s
+            where "projectKey" = %s
         )'''
         cur.execute (exists_query, (projectkey,))
         return cur.fetchone()[0]

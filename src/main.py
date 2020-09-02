@@ -1,8 +1,10 @@
 import os, os.path
-os.chdir(os.path.join(os.getcwd(),'src'))
+os.chdir(os.path.join(os.getcwd(),'src')) if os.path.basename(os.getcwd())!='src' else None
+
 from projects.tall_tables.talltables_handler import model_handler, field_parse, ingesterv2
 from projects.tall_tables.models.gap import dataGap
 from projects.dima.dima_handler import pg_send, batch_looper, has_duplicate_pks
+from projects.project import update_project
 
 
 from utils.arcnah import arcno
@@ -23,17 +25,6 @@ def main():
             elif 's' in batch_single:
                 print('selected single file dima')
 
-
-        # pth = input('please input path: ')
-
-
-
-        # fld = input('please input dictionary with fields: ')
-        # if 'dataGap' in fld:
-        #     fld = dataGap
-        # print('field dictionary set.')
-        # tbl = input('please input table name: ')
-        # print('table name set.')
     else:
         # a = request_handler(proj,pth,fld,tbl)
         contin=False
@@ -41,17 +32,21 @@ def main():
             if 'dima' in proj and 'b' in batch_single and contin==False:
                 print('current directory to batch ingest: ')
                 batch_path = os.path.normpath(os.path.join(os.path.dirname(os.getcwd()),"dimas"))
-                print(batch_path)
-                cont = input('continue? y or n')
+
+                cont = input('continue? y or n ')
                 if cont=='y':
-                    print(batch_path)
-                    # action if continue with batch processing
+                    # first update project key
+                    projkey = input('set project key: ')
+                    update_project(batch_path, proj)
+                    # then continue with batch processing
+                    batch_looper(batch_path)
+
                     """
                     1.function to cycle through each table of each dima and
                     and check if any of tables has primarykeys in postgres
                     returns true if all tables have new primary keys
                     false if ANY of the tables have duplicate primary keys on the db.
-                    
+
                         - maybe should be a class so it stores an object property with a list of
                         duplicate pk's per table
 
@@ -64,6 +59,8 @@ def main():
                 elif cont=='n':
                     print('action aborted')
                     continue
+                else:
+                    print('please select y or n')
 
             elif 'dima' in proj and 's' in batch_single:
                 print(f'select dima to ingest')

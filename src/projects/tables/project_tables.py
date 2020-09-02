@@ -12,4 +12,5 @@ fields_dict = {
 "addit_contact_email":pd.Series([],dtype='object'),
 "bibliographical_reference":pd.Series([],dtype='object'),
 "data_doi":pd.Series([],dtype='object'),
+"projectKey":pd.Series([],dtype='object'),
 }
