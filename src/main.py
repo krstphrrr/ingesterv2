@@ -30,37 +30,26 @@ def main():
         contin=False
         while contin ==False:
             if 'dima' in proj and 'b' in batch_single and contin==False:
-                print('current directory to batch ingest: ')
                 batch_path = os.path.normpath(os.path.join(os.path.dirname(os.getcwd()),"dimas"))
+                print(f"using path -> {batch_path}")
+                tocsv = input('postgres or csv? pg or csv ')
 
-                cont = input('continue? y or n ')
-                if cont=='y':
+                if tocsv=='pg':
                     # first update project key
                     projkey = input('set project key: ')
-                    update_project(batch_path, proj)
+                    update_project(batch_path, projkey)
                     # then continue with batch processing
-                    batch_looper(batch_path)
-
-                    """
-                    1.function to cycle through each table of each dima and
-                    and check if any of tables has primarykeys in postgres
-                    returns true if all tables have new primary keys
-                    false if ANY of the tables have duplicate primary keys on the db.
-
-                        - maybe should be a class so it stores an object property with a list of
-                        duplicate pk's per table
-
-                    2a. if no duplicate primary keys, ingest whole batch with batch_looper
-
-                    2b. if any duplicate key, ask if ingestion of individual tables is prefered
-
-                    """
+                    batch_looper(batch_path, pg=True)
                     contin=True
-                elif cont=='n':
-                    print('action aborted')
-                    continue
+                elif tocsv=='csv':
+                    # first update project key
+                    projkey = input('set project key: ')
+                    update_project(batch_path, projkey)
+                    # then continue with batch processing
+                    batch_looper(batch_path, pg=False)
                 else:
-                    print('please select y or n')
+                    print('please select pg or csv')
+                    continue
 
             elif 'dima' in proj and 's' in batch_single:
                 print(f'select dima to ingest')

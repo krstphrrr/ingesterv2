@@ -151,7 +151,6 @@ class type_lookup:
             for k in lengths:
                 self.length.update({i:k})
 
-
 def mdb_create(output):
     """ creates an access .mdb file at a user-defined directory.
 
