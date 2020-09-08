@@ -11,7 +11,7 @@ import pandas as pd
 from projects.dima.handler import switcher, tableswitch
 from projects.dima.tabletools import fix_fields, new_tablename, table_create, \
 tablecheck, csv_fieldcheck, blank_fixer, significant_digits_fix_pandas, \
-float_field, openingsize_fixer
+float_field, openingsize_fixer, datetime_type_assert
 from projects.tall_tables.talltables_handler import ingesterv2
 
 
@@ -333,6 +333,38 @@ def has_duplicate_pks(df,tablename):
         con = d.str
         cur = con.cursor()
 
+def single_pg_send(df, tablename):
+    """
+    uses: new_tablename, tablecheck, ingesterv2.main_ingest
+    table_create, datetime_type_assert
+    """
+    d = db('dima')
+    print("STARTING INGEST")
+    df = blank_fixer(df)
+    df = significant_digits_fix_pandas(df)
+    df = datetime_type_assert(df)
+    df = openingsize_fixer(df) if "openingSize" in df.columns else df
+    if 'ItemType' in df.columns:
+        newtablename = new_tablename(df)
+        if tablecheck(newtablename):
+            print(f'network table "{newtablename}" exists, ingesting..')
+            ingesterv2.main_ingest(df, newtablename, d.str, 10000)
+        else:
+            table_create(df, newtablename, 'dima')
+            print(f'created network table: {newtablename}')
+            ingesterv2.main_ingest(df, newtablename, d.str, 10000)
+
+    else:
+        print("not a network table")
+        newtablename = table
+        if tablecheck(table):
+            print("FOUND THE TABLE IN PG")
+            ingesterv2.main_ingest(df, newtablename, d.str, 10000)
+
+        else:
+            print("DID NOT FIND TABLE IN PG, CREATING...")
+            table_create(df, table, 'dima')
+            ingesterv2.main_ingest(df, newtablename, d.str, 10000)
 
 
 

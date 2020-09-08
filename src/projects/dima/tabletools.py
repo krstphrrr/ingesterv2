@@ -214,6 +214,11 @@ def openingsize_fixer(df):
             df[i] = df[i].astype('float64')
     return df
 
+def datetime_type_assert(df):
+    for i in df.columns:
+        if df.dtypes[i]=="datetime64[ns]" or "date" in i.lower():
+            df[i] = df[i].apply(lambda x: pd.NaT if x is None else x).astype("datetime64[ns]")
+    return df
 
 type_translate = {
     'int64':'int',
