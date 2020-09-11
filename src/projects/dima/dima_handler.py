@@ -199,6 +199,7 @@ def pg_send(table:str, path:str, csv=None, debug=None):
 def batch_looper(dimacontainer, pg=False):
 
     """
+    addition
     creates an exhaustive list of tables across all dimas in a folder
     and then uses looper to gothrough the list of tables and create csv's for
     each.
