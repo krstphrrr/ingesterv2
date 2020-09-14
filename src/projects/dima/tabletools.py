@@ -93,8 +93,11 @@ def table_create(df: pd.DataFrame, tablename: str, conn:str=None):
 
     try:
         for i in df.columns:
-            # print(df[i].dtype)
-            table_fields.update({f'{i}':f'{type_translate[df.dtypes[i].name]}'})
+            if tablename!='aero_runs':
+                table_fields.update({f'{i}':f'{type_translate[df.dtypes[i].name]}'})
+            else:
+                table_fields.update({f'{i}':f'{aero_translate[df.dtypes[i].name]}'})
+
 
         if table_fields:
             comm = sql_command(table_fields, tablename) if conn!='nri' else sql_command(table_fields, tablename, 'nritest')
@@ -227,4 +230,13 @@ type_translate = {
     'datetime64[ns]':'timestamp',
     'bool':'boolean',
     'float64':'float(5)'
+}
+
+aero_translate = {
+    'int64':'int',
+    'Int64':'int',
+    "object":'text',
+    'datetime64[ns]':'timestamp',
+    'bool':'boolean',
+    'float64':'float'
 }

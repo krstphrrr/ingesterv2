@@ -2,7 +2,10 @@ import os, os.path
 import time, datetime
 os.chdir(os.path.join(os.getcwd(),'src')) if os.path.basename(os.getcwd())!='src' else None
 import pandas as pd
+from utils.tools import db
 from projects.dima.tabletools import table_create, sql_command, tablecheck
+from projects.tall_tables.talltables_handler import ingesterv2
+from projects.dima.tabletools import table_create, tablecheck
 
 """
 X 1.read directory that holds outputs
@@ -16,6 +19,7 @@ X 2.5 Plotid
    update modelrun lookup table with appropriate id
 4.update model_run + model run loookup table on postgres
 """
+p = r"C:\Users\kbonefont\Desktop\aero_flux_output"
 
 def txt_read(path):
     df_dict = {}
@@ -28,7 +32,7 @@ def txt_read(path):
         #     created_time = os.path.getctime(file)
         #     parsed_ctime = time.ctime(created_time)
         #     date_ctime = datetime.datetime.strptime(parsed_ctime, "%a %b %d %H:%M:%S %Y")
-        #     print(date_ctime)
+        #     # print(date_ctime)
         #     complete = os.path.join(path,i)
         #     temp = pd.read_table(complete, sep="\t", low_memory=False)
         #     df_dict.update({f"df{count}":temp})
@@ -45,14 +49,28 @@ def txt_read(path):
         temp = pd.read_table(complete, sep="\t", low_memory=False)
         temp['PlotId'] = plotid
         df_dict.update({f"df{count}":temp})
+        print(f"{count} added")
         count+=1
     return pd.concat([d[1] for d in df_dict.items()],ignore_index=True)
 
-def model_run_updater():
+df = txt_read(p)
+df.PM1[0].astype(float)
+df.PM1.round(7)
+model_run_updater(df)
+def model_run_updater(df):
     """
+    1. creates a table in postgres with supplied dataframe
+    2. appends data to postgres table
+    """
+    d = db("dima")
+    if tablecheck('aero_runs'):
+        print('aero_runs exists, skipping table creation')
+        ingesterv2.main_ingest(df, "aero_runs", d.str,100000)
+    else:
+        print('creating aero_runs')
+        table_create(df, "aero_runs", "dima")
+        ingesterv2.main_ingest(df, "aero_runs", d.str,100000)
 
-    """
-    pass
 def model_run_create():
     pass
 

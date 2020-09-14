@@ -17,13 +17,14 @@ def main():
     dimadict = {i[0]:i[1] for i in  enumerate(os.listdir(os.path.join(os.path.dirname(os.getcwd()),"dimas"))) if '.mdb' in i[1]}
 
     while proj is None and pth is None and fld is None and tbl is None:
-        proj = input('please input project(tall, nri, met, or dima): ')
+        proj = input('please input project(tall, nri, met, aero, or dima): ')
         if "dima" in proj:
             batch_single = input('please select \'b\'(batch of dimas) or \'s\'(single dima): ')
             if 'b' in batch_single:
                 print('selected batch single')
             elif 's' in batch_single:
                 print('selected single file dima')
+
 
     else:
         # a = request_handler(proj,pth,fld,tbl)
@@ -53,7 +54,10 @@ def main():
 
             elif 'dima' in proj and 's' in batch_single:
                 print(f'select dima to ingest')
-            print('ok')
+            # print('ok')
+
+            elif 'aero' in proj:
+                aero_dir = os.path.normpath(os.path.join(os.path.dirname(os.getcwd()),"aero"))
             break
 
 class request_handler:
