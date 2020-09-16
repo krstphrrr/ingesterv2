@@ -53,10 +53,8 @@ def txt_read(path):
         count+=1
     return pd.concat([d[1] for d in df_dict.items()],ignore_index=True)
 
-df = txt_read(p)
-df.PM1[0].astype(float)
-df.PM1.round(7)
-model_run_updater(df)
+
+
 def model_run_updater(df):
     """
     1. creates a table in postgres with supplied dataframe

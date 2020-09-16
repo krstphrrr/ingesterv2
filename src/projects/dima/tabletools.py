@@ -100,7 +100,7 @@ def table_create(df: pd.DataFrame, tablename: str, conn:str=None):
 
 
         if table_fields:
-            comm = sql_command(table_fields, tablename) if conn!='nri' else sql_command(table_fields, tablename, 'nritest')
+            comm = sql_command(table_fields, tablename, conn) if conn!='nri' else sql_command(table_fields, tablename, 'nritest')
             d = db(f'{conn}')
             con = d.str
             cur = con.cursor()
@@ -119,9 +119,27 @@ def sql_command(typedict:{}, name:str, db:str=None):
     create a string for a psycopg2 cursor execute command to create a new table.
     it receives a dictionary with fields and fieldtypes, and builds the string
     using them.
+
     """
+    db_choice={
+    # dimas in postgres
+    "dima":"postgres",
+    # met data in gisdb
+    "met":"n_dats",
+    # tall tables
+    "gisdb": "gisdb",
+    # nri
+    "nri": "nritest"
+    }
+    schema_choice={
+    "dima":"public",
+    "met":"public",
+    "gisdb":"public",
+    "nri":"public"
+    }
     inner_list = [f"\"{k}\" {v}" for k,v in typedict.items()]
-    part_1 = f""" CREATE TABLE postgres.public.\"{name}\" (""" if db==None else f""" CREATE TABLE {db}.public.\"{name}\" ("""
+    part_1 = f""" CREATE TABLE {db_choice[db]}.{schema_choice[db]}.\"{name}\" \
+     (""" if db==None else f""" CREATE TABLE {db_choice[db]}.{schema_choice[db]}.\"{name}\" ("""
     try:
         for i,x in enumerate(inner_list):
             if i==len(inner_list)-1:
