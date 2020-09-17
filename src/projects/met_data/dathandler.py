@@ -109,3 +109,41 @@ class datReader:
                 if (self.df.columns[i]!=self.correct_cols[i])==True:
                     self.df.rename(columns={f"{self.df.columns[i]}":f"{self.correct_cols[i]}"}, inplace=True)
             return self.df
+
+
+def met_batcher(path):
+    df_dict = {}
+    folderlist = os.listdir(path)
+    count=1
+    d = db("met")
+    for i in folderlist:
+        local_path = pathfinder(p,i)
+        proj_key = i
+        ins = datReader(local_path)
+        tempdf = ins.getdf()
+        tempdf['ProjectKey'] = proj_key
+        # dat_updater(tempdf)
+        df_dict.update({count:tempdf}) if '2' not in proj_key else None
+        count+=1
+    prefix = pd.concat([i[1] for i in df_dict.items()])
+    finaldf = type_fix(prefix)
+    if tablecheck("met_data", "met"):
+        ingesterv2.main_ingest(finaldf,"met_data",d.str, 100000)
+    else:
+        table_create(finaldf, "met_data", "met")
+        ingesterv2.main_ingest(finaldf,"met_data",d.str, 100000)
+
+def type_fix(df):
+    for i in df.columns:
+        if (df[i].dtype == "object") and "ProjectKey" not in i:
+            df[i] = df[i].astype(float)
+    return df
+
+
+def pathfinder(basepath,tablename):
+    for folder in os.listdir(basepath):
+        dir_low = os.path.join(basepath, folder)
+        for item in os.listdir(dir_low):
+            if tablename in item:
+                final_path = os.path.normpath(os.path.join(dir_low,item))
+                return final_path
