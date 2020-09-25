@@ -21,8 +21,7 @@ class Acc:
             print(e)
 
 
-
-def config(filename='utils/database.ini', section='postgresql'):
+def config(filename='src/utils/database.ini', section='postgresql'):
     """
     Uses the configpaser module to read .ini and return a dictionary of
     credentials
@@ -41,7 +40,7 @@ def config(filename='utils/database.ini', section='postgresql'):
 
     return db
 
-def dimaconfig(filename='utils/database.ini', section='dima'):
+def dimaconfig(filename='src/utils/database.ini', section='dima'):
     """
     Same as config but reads another section.
     """

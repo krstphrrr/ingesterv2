@@ -2,10 +2,10 @@ import os, os.path
 import time, datetime
 os.chdir(os.path.join(os.getcwd(),'src')) if os.path.basename(os.getcwd())!='src' else None
 import pandas as pd
-from utils.tools import db
-from projects.dima.tabletools import table_create, sql_command, tablecheck
-from projects.tall_tables.talltables_handler import ingesterv2
-from projects.dima.tabletools import table_create, tablecheck
+from src.utils.tools import db
+from src.projects.dima.tabletools import table_create, sql_command, tablecheck
+from src.projects.tall_tables.talltables_handler import ingesterv2
+from src.projects.dima.tabletools import table_create, tablecheck
 
 """
 X 1.read directory that holds outputs

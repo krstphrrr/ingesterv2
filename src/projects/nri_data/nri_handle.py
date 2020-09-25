@@ -4,7 +4,7 @@ import os.path
 import pandas as pd
 import numpy as np
 
-from utils.tools import db
+from src.utils.tools import db
 from sqlalchemy import create_engine, DDL
 import sqlalchemy_access as sa_a
 from psycopg2 import sql
@@ -13,9 +13,9 @@ from datetime import date
 import urllib
 import pyodbc as pyo
 
-from projects.nri_data.nri_tools.helpers import header_fetch, type_lookup, dbkey_gen, ret_access, mdb_create, access_dictionary
-from projects.nri_data.nri_tools.table_preppers import concern, disturbance, pastureheights, soilhorizon, pintercept, practice, statenm, ecosite,point
-from projects.nri_data.nri_tools.paths import path1_2, path3, path4, path5, table_map
+from src.projects.nri_data.nri_tools.helpers import header_fetch, type_lookup, dbkey_gen, ret_access, mdb_create, access_dictionary
+from src.projects.nri_data.nri_tools.table_preppers import concern, disturbance, pastureheights, soilhorizon, pintercept, practice, statenm, ecosite,point
+from src.projects.nri_data.nri_tools.paths import path1_2, path3, path4, path5, table_map
 
 
 class df_build:

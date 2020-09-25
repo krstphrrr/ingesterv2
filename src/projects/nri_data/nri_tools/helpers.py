@@ -5,7 +5,7 @@ import numpy as np
 from datetime import date
 from sqlalchemy import create_engine, DDL
 from win32com.client import Dispatch
-from projects.nri_data.nri_tools.paths import path1_2
+from src.projects.nri_data.nri_tools.paths import path1_2
 
 class header_fetch:
     """ function that pulls the fields from a columns dump file
