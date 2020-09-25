@@ -74,11 +74,11 @@ class arcno():
         for i in self.tablelist:
             if all!=True:
                 # print('false')
-                if (self.MakeTableView(i,whichdima).shape[0]>1) and (i in self.__maintablelist):
+                if (self.MakeTableView(i,whichdima).shape[0]>=1) and (i in self.__maintablelist):
                     self.actual_list.update({i:f'rows: {self.MakeTableView(i,whichdima).shape[0]}'})
             else:
                 # print('true')
-                if self.MakeTableView(i,whichdima).shape[0]>1:
+                if self.MakeTableView(i,whichdima).shape[0]>=1:
                     self.actual_list.update({i:f'rows: {self.MakeTableView(i,whichdima).shape[0]}'})
 
     def clear(self,var):

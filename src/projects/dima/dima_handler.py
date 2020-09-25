@@ -297,12 +297,13 @@ def table_collector(path2mdbs):
     goes through the list of tables per dima and appends any table not previously
     seen into an internal list which is ultimately returned.
     """
-    containing_folder = path2mdbs
-    contained_files = os.listdir(containing_folder)
+    # containing_folder = path2mdbs
+    contained_files = contained_files = os.listdir(path2mdbs) if os.path.isdir(path2mdbs) else [path2mdbs]
     table_list = []
     for mdb_path in contained_files:
         if os.path.splitext(mdb_path)[1]=='.mdb' or os.path.splitext(mdb_path)[1]=='.accdb':
-            instance = arcno(os.path.join(containing_folder,mdb_path))
+            pth = os.path.join(path2mdbs,mdb_path) if len(contained_files)>1 else mdb_path
+            instance = arcno(pth)
             for tablename, size in instance.actual_list.items():
                 if tablename not in table_list:
                     table_list.append(tablename)
