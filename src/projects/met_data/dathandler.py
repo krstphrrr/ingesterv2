@@ -6,6 +6,7 @@ import csv
 from sqlalchemy import *
 import requests
 from contextlib import closing
+from src.utils.tools import db
 
 # from tqdm import tqdm
 class datReader:
@@ -57,7 +58,7 @@ class datReader:
                         split_line = each_line.split(",")
                         self.arrays.append([each_character.replace("\"","") for each_character in split_line])
 
-        elif (os.path.splitext(self.path)[1]==".csv"):
+        elif (os.path.splitext(self.path)[1]==".csv")  and ('https' in self.path):
             """
             if its a csv
             """
@@ -68,9 +69,15 @@ class datReader:
                     if index<=3:
                         self.arrays.append([each_character.replace("\"","") for each_character in each_line])
 
-        while len(self.arrays[0])<25:
-            temp_space = ''
-            self.arrays[0].append(temp_space)
+        elif (os.path.splitext(self.path)[1]=='.csv') and ('https' not in self.path):
+            with open(self.path, 'r') as reader:
+                all_lines = reader.readlines()
+                for each_line in all_lines[:4]:
+                    split_line = each_line.split(",")
+                    self.arrays.append([each_character.replace("\"","") for each_character in split_line])
+        # while len(self.arrays[0])<25:
+        #     temp_space = ''
+        #     self.arrays[0].append(temp_space)
 
         self.arrays = self.arrays[1]
         for n,i in enumerate(self.arrays):
@@ -78,7 +85,9 @@ class datReader:
                 self.arrays[n]=i.replace('%', 'perc')
 
         if os.path.splitext(self.path)[1]=='.dat':
-            self.df = pd.read_table(self.path, sep=",", skiprows=4, low_memory=False)
+            #REPORTBACK: line 11138(or line 11139 if not 0-index) is malformed in the currently posted DAT file for Pullman
+            self.df = pd.read_table(self.path, sep=",", skiprows=4, low_memory=False) if ('PullmanTable1' not in self.path) else pd.read_table(path, sep=",", skiprows=[0,1,2,3,11138], low_memory=False)
+
         elif os.path.splitext(self.path)[1]==".csv":
             self.df = pd.read_csv(self.path, skiprows=4, low_memory=False)
 
@@ -125,24 +134,110 @@ class datReader:
         #     for i in res:
         #         print(i)
         #         cols.append(i[0])
-        if 'JER' in self.path:
-            # print('jer in path')
-            # for i in self.df.columns:
-            #
-            #     if (i not in self.correct_cols) and (i not in cols):
-            #         self.correct_cols.append(i)
-            #         self._adding_column(i)
-            #     else:
-            #         print("skipped adding columns as they were already in postgres")
-            #         pass
-            return self.df
-        else:
-            # print(f'not jer, {self.path} instead')
-            for i in range(0,len(self.df.columns)):
-                if (self.df.columns[i]!=self.correct_cols[i])==True:
-                    self.df.rename(columns={f"{self.df.columns[i]}":f"{self.correct_cols[i]}"}, inplace=True)
-            return self.df
+        # if 'JER' in self.path:
+        #     # print('jer in path')
+        #     # for i in self.df.columns:
+        #     #
+        #     #     if (i not in self.correct_cols) and (i not in cols):
+        #     #         self.correct_cols.append(i)
+        #     #         self._adding_column(i)
+        #     #     else:
+        #     #         print("skipped adding columns as they were already in postgres")
+        #     #         pass
+        #     return self.df
+        # else:
+        #     # print(f'not jer, {self.path} instead')
+        #     for i in range(0,len(self.df.columns)):
+        #         if (self.df.columns[i]!=self.correct_cols[i])==True:
+                    # self.df.rename(columns={f"{self.df.columns[i]}":f"{self.correct_cols[i]}"}, inplace=True)
+        return self.df
 
+
+def col_name_fix(df):
+    for i in df.columns:
+
+        rep = ['AvgTemp_10M_DegC', 'AvgTemp_10m_DegC']
+        if i in rep:
+            df.rename(columns={f'{i}':'{0}'.format(i.replace(f"{i}",'AvgTemp_10M_DegC'))}, inplace=True)
+
+        rep = ['AvgTemp_4M_DegC','AvgTemp_4m_Deg']
+        if i in rep:
+            df.rename(columns={f'{i}':'{0}'.format(i.replace(f"{i}",'AvgTemp_4M_DegC'))}, inplace=True)
+
+        rep = ['AvgTemp_2M_DegC','AvgTemp_2m_Deg']
+        if i in rep:
+            df.rename(columns={f'{i}':'{0}'.format(i.replace(f"{i}",'AvgTemp_2M_DegC'))}, inplace=True)
+
+        rep = ['Total_Rain_mm','Rain_Tot_mm']
+        if i in rep:
+            df.rename(columns={f'{i}':'{0}'.format(i.replace(f"{i}",'Total_Rain_mm'))}, inplace=True)
+
+        rep = ['MaxWS6_10M_m_s', 'MaxWS_10m_m_s']
+        if i in rep:
+            df.rename(columns={f'{i}':'{0}'.format(i.replace(f"{i}",'MaxWS6_10M_m_s'))}, inplace=True)
+
+        rep = ['MaxWS5_5M_m_s','MaxWS_5m_m_s']
+        if i in rep:
+            df.rename(columns={f'{i}':'{0}'.format(i.replace(f"{i}",'MaxWS5_5M_m_s'))}, inplace=True)
+
+        rep = ['MaxWS4_25M_m_s','MaxWS_25m_m_s']
+        if i in rep:
+            df.rename(columns={f'{i}':'{0}'.format(i.replace(f"{i}",'MaxWS4_25M_m_s'))}, inplace=True)
+
+        rep = ['MaxWS3_15M_m_s','MaxWS_15m_m_s']
+        if i in rep:
+            df.rename(columns={f'{i}':'{0}'.format(i.replace(f"{i}",'MaxWS3_15M_m_s'))}, inplace=True)
+
+        rep = ['MaxWS2_1M_m_s','MaxWS_1m_m_s']
+        if i in rep:
+            df.rename(columns={f'{i}':'{0}'.format(i.replace(f"{i}",'MaxWS2_1M_m_s'))}, inplace=True)
+
+        rep = ['MaxWS1_05M_m_s','MaxWS_05m_m_s']
+        if i in rep:
+            df.rename(columns={f'{i}':'{0}'.format(i.replace(f"{i}",'MaxWS1_05M_m_s'))}, inplace=True)
+
+        rep = ['StdDevWS2_1M_m_s','StDevWS_2M_m_s']
+        if i in rep:
+            df.rename(columns={f'{i}':'{0}'.format(i.replace(f"{i}",'StdDevWS2_1M_m_s'))}, inplace=True)
+
+        rep = ['AvgWS6_10M_m_s','AvgWS_10m_m_s']
+        if i in rep:
+            df.rename(columns={f'{i}':'{0}'.format(i.replace(f"{i}",'AvgWS6_10M_m_s'))}, inplace=True)
+
+        rep = ['AvgWS5_5M_m_s','AvgWS_5m_m_s']
+        if i in rep:
+            df.rename(columns={f'{i}':'{0}'.format(i.replace(f"{i}",'AvgWS5_5M_m_s'))}, inplace=True)
+
+        rep = ['AvgWS4_25M_m_s','AvgWS_25m_m_s']
+        if i in rep:
+            df.rename(columns={f'{i}':'{0}'.format(i.replace(f"{i}",'AvgWS4_25M_m_s'))}, inplace=True)
+
+        rep = ['AvgWS3_15M_m_s','AvgWS_15m_m_s']
+        if i in rep:
+            df.rename(columns={f'{i}':'{0}'.format(i.replace(f"{i}",'AvgWS3_15M_m_s'))}, inplace=True)
+
+        rep = ['AvgWS_1m__m_s','AvgWS2_1M_m_s']
+        if i in rep:
+            df.rename(columns={f'{i}':'{0}'.format(i.replace(f"{i}",'AvgWS2_1M_m_s'))}, inplace=True)
+
+        rep = ['AvgWS1_05M_m_s','AvgWS_05m_m_s','AvgWS1_05m_m_s']
+        if i in rep:
+            df.rename(columns={f'{i}':'{0}'.format(i.replace(f"{i}",'AvgWS1_05M_m_s'))}, inplace=True)
+
+        rep = ['Switch','Switch12V']
+        if i in rep:
+            df.rename(columns={f'{i}':'{0}'.format(i.replace(f"{i}",'Switch12V'))}, inplace=True)
+
+        rep = ['Sensit_Tot','Sensit']
+        if i in rep:
+            df.rename(columns={f'{i}':'{0}'.format(i.replace(f"{i}",'Sensit_Tot'))}, inplace=True)
+    return df
+
+def second_round(df):
+    for i in df.columns:
+        if "/" in i:
+            df.rename(columns={f'{i}':'{0}'.format(i.replace("/","_"))}, inplace=True)
+    return df
 
 def met_batcher(path):
     df_dict = {}
@@ -150,30 +245,48 @@ def met_batcher(path):
     count=1
     d = db("met")
     for i in folderlist:
-        local_path = pathfinder(p,i)
-        proj_key = i
-        ins = datReader(local_path)
-        tempdf = ins.getdf()
-        tempdf['ProjectKey'] = proj_key
-        # dat_updater(tempdf)
-        df_dict.update({count:tempdf}) if '2' not in proj_key else None
-        count+=1
-    prefix = pd.concat([i[1] for i in df_dict.items()])
-    finaldf = type_fix(prefix)
-    if tablecheck("met_data", "met"):
-        ingesterv2.main_ingest(finaldf,"met_data",d.str, 100000)
-    else:
-        table_create(finaldf, "met_data", "met")
-        ingesterv2.main_ingest(finaldf,"met_data",d.str, 100000)
+        print(i)
+        for j in os.listdir(os.path.join(path,i)):
+            print(os.path.join(path,i,j))
+            if os.path.splitext(os.path.join(path,i,j))[1]=='.csv':
+                local_path = os.path.join(path,i,j)
+                proj_key = i
+                ins = datReader(local_path)
+                tempdf = ins.getdf()
+                tempdf['ProjectKey'] = proj_key
+                tempdf = second_round(tempdf)
+                tempdf = col_name_fix(tempdf)
+                # dat_updater(tempdf)
+                # tempdf = tempdf.loc[pd.isnull(tempdf.TIMESTAMP)!=True] if any(pd.isnull(tempdf.TIMESTAMP.unique())) else tempdf
+
+                df_dict.update({f'df{count}':tempdf}) if '2' not in proj_key else None
+                count+=1
+    return df_dict
+    # prefix = pd.concat([i[1] for i in df_dict.items()])
+    # prefix.TIMESTAMP = prefix.TIMESTAMP.astype("datetime64")
+    # finaldf = type_fix(prefix)
+    # return finaldf
+
+    # if tablecheck("met_data", "met"):
+    #     ingesterv2.main_ingest(finaldf,"met_data",d.str, 100000)
+    # else:
+    #     table_create(finaldf, "met_data", "met")
+    #     ingesterv2.main_ingest(finaldf,"met_data",d.str, 100000)
 
 def type_fix(df):
     for i in df.columns:
-        if (df[i].dtype == "object") and "ProjectKey" not in i:
+        if (df[i].dtype == "object") and ("ProjectKey" not in i and "TIMESTAMP" not in i):
             df[i] = df[i].astype(float)
     return df
 
+def second_round(df):
+    for i in df.columns:
+        if "/" in i:
+            df.rename(columns={f'{i}':'{0}'.format(i.replace("/","_"))}, inplace=True)
+    return df
 
-def pathfinder(basepath,tablename):
+
+def pathfinder(basepath,tablename,dat):
     for folder in os.listdir(basepath):
         dir_low = os.path.join(basepath, folder)
         for item in os.listdir(dir_low):
