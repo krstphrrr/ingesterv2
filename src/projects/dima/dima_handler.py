@@ -121,10 +121,11 @@ def main_translate(tablename:str, dimapath:str, debug=None):
                 df = switcher[tablename](switcher_arguments['yes_pk'])
                 arc = arcno()
                 iso = arc.isolateFields(df,tableswitch[tablename],"PrimaryKey").copy()
-                iso.drop_duplicates([tableswitch[tablename]],inplace=True)
+                iso.drop_duplicates([tableswitch[tablename],"PrimaryKey"],inplace=True)
 
                 target_table = arcno.MakeTableView(tablename, dimapath)
                 retdf = pd.merge(target_table, iso, how="inner", on=tableswitch[tablename])
+                retdf.drop_duplicates([tableswitch[tablename],"PrimaryKey"],ignore_index=True, inplace=True) if "Header" in tablename else retdf.drop_duplicates(ignore_index=True, inplace=True) 
                 retdf = blank_fixer(retdf)
                 retdf = significant_digits_fix_pandas(retdf)
                 retdf = openingsize_fixer(retdf)

@@ -1,8 +1,7 @@
 from src.utils.arcnah import arcno
 import pandas as pd
 from src.projects.dima.tabletools import fix_fields
-# path = r"C:\Users\kbonefont\Desktop\DIMA 5.4_BlueMountains_2020-01-06.accdb"
-# lpi_pk(path)
+
 def lpi_pk(dimapath):
     """
     returns a dataframe with tblplots, tbllines, tbllpiheader and tblLPIDetail
