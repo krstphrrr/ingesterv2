@@ -226,11 +226,41 @@ def col_name_fix(df):
 
         rep = ['Switch','Switch12V']
         if i in rep:
-            df.rename(columns={f'{i}':'{0}'.format(i.replace(f"{i}",'Switch12V'))}, inplace=True)
+            df.rename(columns={f'{i}':'{0}'.format(i.replace(f"{i}",'Switch'))}, inplace=True)
 
         rep = ['Sensit_Tot','Sensit']
         if i in rep:
             df.rename(columns={f'{i}':'{0}'.format(i.replace(f"{i}",'Sensit_Tot'))}, inplace=True)
+    return df
+
+def new_instrumentation(df):
+    for i in df.columns:
+        if 'SWUpper_Avg' not in i:
+            df['SWUpper_Avg'] = np.nan
+
+        if 'SWLower_Avg' not in i:
+            df['SWLower_Avg'] = np.nan
+
+        if 'LWUpperCo_Avg' not in i:
+            df['LWUpperCo_Avg'] = np.nan
+
+        if 'LWLowerCo_Avg' not in i:
+            df['LWLowerCo_Avg'] = np.nan
+
+        if 'CNR4TK_Avg' not in i:
+            df['CNR4TK_Avg'] = np.nan
+
+        if 'RsNet_Avg' not in i:
+            df['RsNet_Avg'] = np.nan
+
+        if 'RlNet_Avg' not in i:
+            df['RlNet_Avg'] = np.nan
+
+        if 'Albedo_Avg' not in i:
+            df['Albedo_Avg'] = np.nan
+
+        if 'Rn_Avg' not in i:
+            df['Rn_Avg'] = np.nan
     return df
 
 def second_round(df):
@@ -253,19 +283,21 @@ def met_batcher(path):
                 proj_key = i
                 ins = datReader(local_path)
                 tempdf = ins.getdf()
-                tempdf['ProjectKey'] = proj_key
+
                 tempdf = second_round(tempdf)
                 tempdf = col_name_fix(tempdf)
+                tempdf = new_instrumentation(tempdf)
+                tempdf['ProjectKey'] = proj_key
                 # dat_updater(tempdf)
                 # tempdf = tempdf.loc[pd.isnull(tempdf.TIMESTAMP)!=True] if any(pd.isnull(tempdf.TIMESTAMP.unique())) else tempdf
 
                 df_dict.update({f'df{count}':tempdf}) if '2' not in proj_key else None
                 count+=1
-    return df_dict
-    # prefix = pd.concat([i[1] for i in df_dict.items()])
-    # prefix.TIMESTAMP = prefix.TIMESTAMP.astype("datetime64")
-    # finaldf = type_fix(prefix)
-    # return finaldf
+    # return df_dict
+    prefix = pd.concat([i[1] for i in df_dict.items()])
+    prefix.TIMESTAMP = prefix.TIMESTAMP.astype("datetime64")
+    finaldf = type_fix(prefix)
+    return finaldf
 
     # if tablecheck("met_data", "met"):
     #     ingesterv2.main_ingest(finaldf,"met_data",d.str, 100000)

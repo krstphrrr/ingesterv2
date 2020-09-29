@@ -125,7 +125,7 @@ def sql_command(typedict:{}, name:str, db:str=None):
     # dimas in postgres
     "dima":"postgres",
     # met data in gisdb
-    "met":"n_dats",
+    "met":"met_data",
     # tall tables
     "gisdb": "gisdb",
     # nri
