@@ -125,7 +125,11 @@ def main_translate(tablename:str, dimapath:str, debug=None):
 
                 target_table = arcno.MakeTableView(tablename, dimapath)
                 retdf = pd.merge(target_table, iso, how="inner", on=tableswitch[tablename])
-                retdf.drop_duplicates([tableswitch[tablename],"PrimaryKey"],ignore_index=True, inplace=True) if "Header" in tablename else retdf.drop_duplicates(ignore_index=True, inplace=True) 
+                if 'Header' in tablename:
+                    retdf.drop_duplicates(["PrimaryKey", "RecKey"],ignore_index=True, inplace=True)
+                    retdf = retdf.loc[retdf.FormDate==retdf.PrimaryKey.apply(lambda x: x[-10:]).astype("datetime64")]
+                else:
+                    retdf.drop_duplicates(ignore_index=True, inplace=True)
                 retdf = blank_fixer(retdf)
                 retdf = significant_digits_fix_pandas(retdf)
                 retdf = openingsize_fixer(retdf)
