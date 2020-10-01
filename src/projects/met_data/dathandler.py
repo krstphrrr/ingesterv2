@@ -155,6 +155,17 @@ class datReader:
 
 def col_name_fix(df):
     for i in df.columns:
+        rep = ['TMSTAMP']
+        if i in rep:
+            df.rename(columns={f'{i}':'{0}'.format(i.replace(f"{i}",'TIMESTAMP'))}, inplace=True)
+
+        rep = ['RECNBR']
+        if i in rep:
+            df.rename(columns={f'{i}':'{0}'.format(i.replace(f"{i}",'RECORD'))}, inplace=True)
+
+        rep = ['CNR1TK_Avg']
+        if i in rep:
+            df.rename(columns={f'{i}':'{0}'.format(i.replace(f"{i}",'CNR4TK_Avg'))}, inplace=True)
 
         rep = ['AvgTemp_10M_DegC', 'AvgTemp_10m_DegC']
         if i in rep:
@@ -231,6 +242,10 @@ def col_name_fix(df):
         rep = ['Sensit_Tot','Sensit']
         if i in rep:
             df.rename(columns={f'{i}':'{0}'.format(i.replace(f"{i}",'Sensit_Tot'))}, inplace=True)
+
+
+
+
     return df
 
 def new_instrumentation(df):
@@ -261,6 +276,49 @@ def new_instrumentation(df):
 
         if 'Rn_Avg' not in i:
             df['Rn_Avg'] = np.nan
+
+        #new as of sept 30 (most recent ingest)
+        if 'Sampling_time_2m' not in i:
+            df['Sampling_time_2m'] = np.nan
+
+        if 'PM1_2m_Avg' not in i:
+            df['PM1_2m_Avg'] = np.nan
+
+        if 'PM2_5_2m_Avg' not in i:
+            df['PM2_5_2m_Avg'] = np.nan
+
+        if 'PM2_5_2m_Avg' not in i:
+            df['PM2_5_2m_Avg'] = np.nan
+
+        if 'PM4_2m_Avg' not in i:
+            df['PM4_2m_Avg'] = np.nan
+
+        if 'PM10_2m_Avg' not in i:
+            df['PM10_2m_Avg'] = np.nan
+
+        if 'TtlMeas_2m_Avg' not in i:
+            df['TtlMeas_2m_Avg'] = np.nan
+
+        if 'Sampling_time_4m' not in i:
+            df['Sampling_time_4m'] = np.nan
+
+        if 'PM1_4m_Avg' not in i:
+            df['PM1_4m_Avg'] = np.nan
+
+        if 'PM2_5_4m_Avg' not in i:
+            df['PM2_5_4m_Avg'] = np.nan
+
+        if 'PM2_5_2m_Avg' not in i:
+            df['PM2_5_2m_Avg'] = np.nan
+
+        if 'PM4_4m_Avg' not in i:
+            df['PM4_4m_Avg'] = np.nan
+
+        if 'PM10_4m_Avg' not in i:
+            df['PM10_4m_Avg'] = np.nan
+
+        if 'TtlMeas_4m_Avg' not in i:
+            df['TtlMeas_4m_Avg'] = np.nan
     return df
 
 def second_round(df):
@@ -268,17 +326,22 @@ def second_round(df):
         if "/" in i:
             df.rename(columns={f'{i}':'{0}'.format(i.replace("/","_"))}, inplace=True)
     return df
-
+import time
 def met_batcher(path):
     df_dict = {}
     folderlist = os.listdir(path)
     count=1
     d = db("met")
+    start= time.time()
     for i in folderlist:
-        print(i)
+        # print(i)
         for j in os.listdir(os.path.join(path,i)):
-            print(os.path.join(path,i,j))
+            # print(os.path.join(path,i,j))
             if os.path.splitext(os.path.join(path,i,j))[1]=='.csv':
+                print(j)
+
+
+                print(elapsed)
                 local_path = os.path.join(path,i,j)
                 proj_key = i
                 ins = datReader(local_path)
@@ -291,13 +354,20 @@ def met_batcher(path):
                 # dat_updater(tempdf)
                 # tempdf = tempdf.loc[pd.isnull(tempdf.TIMESTAMP)!=True] if any(pd.isnull(tempdf.TIMESTAMP.unique())) else tempdf
 
-                df_dict.update({f'df{count}':tempdf}) if '2' not in proj_key else None
+                df_dict.update({f'df{count}':tempdf})
+                now = time.time()
+                elapsed = now - start
+                print(f'time elapsed for {j} dataset: {elapsed}')
                 count+=1
+
     # return df_dict
     prefix = pd.concat([i[1] for i in df_dict.items()])
     prefix.TIMESTAMP = prefix.TIMESTAMP.astype("datetime64")
-    finaldf = type_fix(prefix)
-    return finaldf
+    # finaldf = type_fix(prefix)
+    finalnow = time.time()
+    finalelapsed = finalnow - start
+    print(f'final elapsed time: {finalelapsed}')
+    return prefix
 
     # if tablecheck("met_data", "met"):
     #     ingesterv2.main_ingest(finaldf,"met_data",d.str, 100000)
@@ -307,7 +377,7 @@ def met_batcher(path):
 
 def type_fix(df):
     for i in df.columns:
-        if (df[i].dtype == "object") and ("ProjectKey" not in i and "TIMESTAMP" not in i):
+        if (df[i].dtype == "object") and ("ProjectKey" not in i) and ("TIMESTAMP" not in i):
             df[i] = df[i].astype(float)
     return df
 
