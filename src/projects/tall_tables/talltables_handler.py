@@ -309,29 +309,33 @@ class ingesterv2:
     def main_ingest( df: pd.DataFrame, table:str,
                     connection: psycopg2.extensions.connection,
                     chunk_size:int = 10000):
-                """needs a table first"""
-                print(connection)
-                cursor = connection.cursor()
-                df = df.copy()
+        """needs a table first"""
+        print(connection)
 
-                escaped = {'\\': '\\\\', '\n': r'\n', '\r': r'\r', '\t': r'\t',}
-                for col in df.columns:
-                    if df.dtypes[col] == 'object':
-                        for v, e in escaped.items():
-                            df[col] = df[col].apply(lambda x: x.replace(v, '') if (x is not None) and (isinstance(x,str)) else x)
-                try:
-                    for i in tqdm(range(0, df.shape[0], chunk_size)):
-                        f = StringIO()
-                        chunk = df.iloc[i:(i + chunk_size)]
+        df = df.copy()
 
-                        chunk.to_csv(f, index=False, header=False, sep='\t', na_rep='\\N', quoting=None)
-                        f.seek(0)
-                        cursor.copy_from(f, f'"{table}"', columns=[f'"{i}"' for i in df.columns])
-                        connection.commit()
-                except psycopg2.Error as e:
-                    print(e)
-                    connection.rollback()
-                cursor.close()
+        escaped = {'\\': '\\\\', '\n': r'\n', '\r': r'\r', '\t': r'\t',}
+        for col in df.columns:
+            if df.dtypes[col] == 'object':
+                for v, e in escaped.items():
+                    df[col] = df[col].apply(lambda x: x.replace(v, '') if (x is not None) and (isinstance(x,str)) else x)
+        try:
+            conn = connection
+            cursor = conn.cursor()
+            for i in tqdm(range(0, df.shape[0], chunk_size)):
+                f = StringIO()
+                chunk = df.iloc[i:(i + chunk_size)]
+
+                chunk.to_csv(f, index=False, header=False, sep='\t', na_rep='\\N', quoting=None)
+                f.seek(0)
+                cursor.copy_from(f, f'"{table}"', columns=[f'"{i}"' for i in df.columns])
+                connection.commit()
+        except psycopg2.Error as e:
+            print(e)
+            conn = connection
+            cursor = conn.cursor()
+            conn.rollback()
+        cursor.close()
 
     @staticmethod
     def composite_pk(self,*field,con,maintable):

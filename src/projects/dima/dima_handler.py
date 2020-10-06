@@ -316,6 +316,7 @@ def table_collector(path2mdbs):
 
 
 def has_duplicate_pks(df,tablename):
+    d = db("dima")
     try:
         con = d.str
         cur = con.cursor()
@@ -363,14 +364,14 @@ def single_pg_send(df, tablename):
 
     else:
         print("not a network table")
-        newtablename = table
-        if tablecheck(table):
+        newtablename = tablename
+        if tablecheck(tablename):
             print("FOUND THE TABLE IN PG")
             ingesterv2.main_ingest(df, newtablename, d.str, 10000)
 
         else:
             print("DID NOT FIND TABLE IN PG, CREATING...")
-            table_create(df, table, 'dima')
+            table_create(df, tablename, 'dima')
             ingesterv2.main_ingest(df, newtablename, d.str, 10000)
 
 

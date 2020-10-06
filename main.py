@@ -1,27 +1,31 @@
 import os, os.path
-os.chdir(os.path.join(os.getcwd(),'src')) if os.path.basename(os.getcwd())!='src' else None
+# print(os.getcwd())
+# os.chdir("/usr/src")
+from src.projects.tall_tables.talltables_handler import model_handler, field_parse, ingesterv2
+from src.projects.tall_tables.models.gap import dataGap
+from src.projects.dima.dima_handler import pg_send, batch_looper, has_duplicate_pks
+from src.projects.project import update_project
 
-from projects.tall_tables.talltables_handler import model_handler, field_parse, ingesterv2
-from projects.tall_tables.models.gap import dataGap
-from projects.dima.dima_handler import pg_send, batch_looper, has_duplicate_pks
-from projects.project import update_project
 
-
-from utils.arcnah import arcno
+from src.utils.arcnah import arcno
 
 def main():
     proj = None
     pth = None
     fld = None
     tbl = None
-    dimadict = {i[0]:i[1] for i in  enumerate(os.listdir(os.path.join(os.path.dirname(os.getcwd()),"dimas"))) if '.mdb' in i[1]}
+    
+    dimadict = {i[0]:i[1] for i in  enumerate(os.listdir(os.path.join(os.getcwd(),"dimas"))) if '.mdb' in i[1]}
 
     while proj is None and pth is None and fld is None and tbl is None:
         proj = input('please input project(tall, nri, met, aero, or dima): ')
         if "dima" in proj:
             batch_single = input('please select \'b\'(batch of dimas) or \'s\'(single dima): ')
             if 'b' in batch_single:
-                print('selected batch single')
+                pass
+                # print('selected path: ', batch)
+                # batch_looper()
+
             elif 's' in batch_single:
                 print('selected single file dima')
 
@@ -31,8 +35,8 @@ def main():
         contin=False
         while contin ==False:
             if 'dima' in proj and 'b' in batch_single and contin==False:
-                batch_path = os.path.normpath(os.path.join(os.path.dirname(os.getcwd()),"dimas"))
-                print(f"using path -> {batch_path}")
+                batch_path = os.path.normpath(os.path.join(os.getcwd(),"dimas"))
+                print(f"using batch path -> {batch_path}")
                 tocsv = input('postgres or csv? pg or csv ')
 
                 if tocsv=='pg':

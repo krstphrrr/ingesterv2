@@ -327,6 +327,12 @@ def second_round(df):
             df.rename(columns={f'{i}':'{0}'.format(i.replace("/","_"))}, inplace=True)
     return df
 import time
+# now = time.time()
+#
+# later = time.time()
+#
+# round(later-now,2)
+# round(time.time(), 2)
 def met_batcher(path):
     df_dict = {}
     folderlist = os.listdir(path)
@@ -337,11 +343,9 @@ def met_batcher(path):
         # print(i)
         for j in os.listdir(os.path.join(path,i)):
             # print(os.path.join(path,i,j))
-            if os.path.splitext(os.path.join(path,i,j))[1]=='.csv':
+            if os.path.splitext(os.path.join(path,i,j))[1]=='.dat' and ('Bellevue' not in path):
                 print(j)
-
-
-                print(elapsed)
+                startlocal = time.time()
                 local_path = os.path.join(path,i,j)
                 proj_key = i
                 ins = datReader(local_path)
@@ -356,8 +360,8 @@ def met_batcher(path):
 
                 df_dict.update({f'df{count}':tempdf})
                 now = time.time()
-                elapsed = now - start
-                print(f'time elapsed for {j} dataset: {elapsed}')
+                elapsed = round(now - startlocal, 2)
+                print(f'time elapsed for {j} dataset: {elapsed}s')
                 count+=1
 
     # return df_dict

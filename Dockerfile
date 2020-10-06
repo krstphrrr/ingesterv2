@@ -9,9 +9,12 @@ RUN apt-get install python python3-pip \
 
 WORKDIR /usr/src
 
-COPY /src .
-COPY /dimas .
+COPY / .
+# RUN mkdir dimas
+COPY /dimas /dimas
 COPY requirements.txt .
 
 RUN pip3 install --no-cache-dir -r requirements.txt
+
+CMD ["python3", "main.py"]
 # winpty docker container run -it -v //C/Users/://external ingester
