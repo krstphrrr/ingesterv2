@@ -19,7 +19,7 @@ def main():
     while proj is None and pth is None and fld is None and tbl is None:
         proj = "dima"
         if "dima" in proj:
-            batch_single = input('please select \'b\'(batch of dimas) or \'s\'(single dima): ')
+            batch_single = "b"
             if 'b' in batch_single:
                 print('selected path: ')
                 # batch_looper()
@@ -35,11 +35,11 @@ def main():
             if 'dima' in proj and 'b' in batch_single and contin==False:
                 batch_path = os.path.normpath(os.path.join(os.getcwd(),"dimas"))
                 print(f"using batch path -> {batch_path}")
-                tocsv = input('postgres or csv? pg or csv ')
+                tocsv = "pg"
 
                 if tocsv=='pg':
                     # first update project key
-                    projkey = input('set project key: ')
+                    projkey = "test_run"
                     update_project(batch_path, projkey)
                     # then continue with batch processing
                     batch_looper(batch_path, pg=True)
