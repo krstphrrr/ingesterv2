@@ -17,7 +17,7 @@ def main():
     dimadict = {i[0]:i[1] for i in  enumerate(os.listdir(os.path.join(os.getcwd(),"dimas"))) if '.mdb' in i[1]}
 
     while proj is None and pth is None and fld is None and tbl is None:
-        proj = input('please input project(tall, nri, met, aero, or dima): ')
+        proj = "dima"
         if "dima" in proj:
             batch_single = input('please select \'b\'(batch of dimas) or \'s\'(single dima): ')
             if 'b' in batch_single:
