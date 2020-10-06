@@ -40,14 +40,14 @@ def main():
                 if tocsv=='pg':
                     # first update project key
                     projkey = "test_run"
-                    update_project(batch_path, projkey)
+                    # update_project(batch_path, projkey)
                     # then continue with batch processing
                     batch_looper(batch_path, pg=True)
                     contin=True
                 elif tocsv=='csv':
                     # first update project key
-                    projkey = input('set project key: ')
-                    update_project(batch_path, projkey)
+                    # projkey = input('set project key: ')
+                    # update_project(batch_path, projkey)
                     # then continue with batch processing
                     batch_looper(batch_path, pg=False)
                 else:
