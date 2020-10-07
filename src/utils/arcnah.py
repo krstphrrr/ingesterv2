@@ -3,6 +3,7 @@ from os import listdir,getcwd, chdir
 from os.path import normpath, join
 # from methods.make_table import Table
 from src.utils.tools import Acc
+import pyodbc
 
 
 """
@@ -66,7 +67,10 @@ class arcno():
         self.whichdima = whichdima
         self.tablelist=[]
         if self.whichdima is not None:
-            cursor = Acc(self.whichdima).con.cursor()
+            conn = Acc(self.whichdima).con
+            conn.setdecoding(pyodbc.SQL_CHAR, encoding='utf-8')
+            conn.setdecoding(pyodbc.SQL_WCHAR, encoding='utf-8')
+            cursor = conn.cursor()
             for t in cursor.tables():
                 if t.table_name.startswith('tbl'):
                     self.tablelist.append(t.table_name)

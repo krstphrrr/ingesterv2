@@ -10,9 +10,11 @@ class Acc:
     def __init__(self, whichdima):
         self.whichdima=whichdima
         MDB = self.whichdima
-        DRV = '{Microsoft Access Driver (*.mdb, *.accdb)}'
-        mdb_string = r"DRIVER={};DBQ={};".format(DRV,MDB)
-        self.con = pyodbc.connect(mdb_string)
+        # DRV = '{Microsoft Access Driver (*.mdb, *.accdb)}'
+        DRV = '/out/lib/libmdbsql.so'
+        mdb_string = r"DRIVER={};CHARSET=UTF8;DBQ={};".format(DRV,MDB)
+        # print(mdb_string)
+        self.con = pyodbc.connect(mdb_string, autocommit=False)
 
     def db(self):
         try:
