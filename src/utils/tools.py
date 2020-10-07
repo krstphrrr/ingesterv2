@@ -11,7 +11,7 @@ class Acc:
         self.whichdima=whichdima
         MDB = self.whichdima
         # DRV = '{Microsoft Access Driver (*.mdb, *.accdb)}'
-        DRV = '/out/lib/libmdbsql.so'
+        DRV = '/out/lib/libmdbodbc.so'
         mdb_string = r"DRIVER={};CHARSET=UTF8;DBQ={};".format(DRV,MDB)
         # print(mdb_string)
         self.con = pyodbc.connect(mdb_string, autocommit=False)
