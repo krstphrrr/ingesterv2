@@ -4,6 +4,47 @@ from os import chdir, getcwd
 from os.path import abspath, join
 from configparser import ConfigParser
 from psycopg2.pool import SimpleConnectionPool
+# p = r"C:\Users\kbonefont\Documents\GitHub\ingesterv2\dimas\test.mdb"
+# Acc(p)
+import jaydebeapi
+import platform
+
+ucanaccess_jars = [
+r"/usr/src/UCanAccess-5.0.0-bin/ucanaccess-5.0.0.jar",
+r"/usr/src/UCanAccess-5.0.0-bin/lib/commons-lang3-3.8.1.jar",
+r"/usr/src/UCanAccess-5.0.0-bin/lib/commons-logging-1.2.jar",
+r"/usr/src/UCanAccess-5.0.0-bin/lib/hsqldb-2.5.0.jar",
+r"/usr/src/UCanAccess-5.0.0-bin/lib/jackcess-3.0.1.jar"]
+
+classpath = ":".join(ucanaccess_jars)
+
+drv_str1 = r"net.ucanaccess.jdbc.UcanaccessDriver"
+
+def jdbc_path(path):
+    return f'jdbc:ucanaccess://"{path}";newDatabaseVersion=V2010'
+
+def jaycon(path):
+    con = jaydebeapi.connect(drv_str1, jdbc_path(path), ["",""],classpath)
+    return con
+
+class Acc2:
+    con=None
+    def __init__(self, whichdima):
+        self.whichdima=whichdima
+        MDB = self.whichdima
+        drv_str1 = "net.ucanaccess.jdbc.UcanaccessDriver"
+        DRV = '{/out/lib/libmdbodbc.so}' if platform.system()=='Linux' else '{Microsoft Access Driver (*.mdb, *.accdb)}'
+        mdb_string = f'jdbc:ucanaccess://{MDB};newDatabaseVersion=V2010'
+        # print(mdb_string)
+        self.con = jaydebeapi.connect(drv_str1, mdb_string,["",""],classpath)
+        # self.con.setdecoding(pyodbc.SQL_CHAR, encoding='utf-8')
+        # self.con.setdecoding(pyodbc.SQL_WCHAR, encoding='utf-8')
+
+    def db(self):
+        try:
+            return self.con
+        except Exception as e:
+            print(e)
 
 class Acc:
     con=None
@@ -11,10 +52,12 @@ class Acc:
         self.whichdima=whichdima
         MDB = self.whichdima
         # DRV = '{Microsoft Access Driver (*.mdb, *.accdb)}'
-        DRV = '/out/lib/libmdbodbc.so'
-        mdb_string = r"DRIVER={};CHARSET=UTF8;DBQ={};".format(DRV,MDB)
+        DRV = '{/out/lib/libmdbodbc.so}' if platform.system()=='Linux' else '{Microsoft Access Driver (*.mdb, *.accdb)}'
+        mdb_string = f"DRIVER={DRV};DBQ=\"{MDB}\";" if platform.system()=='Linux' else f"DRIVER={DRV};DBQ={MDB};"
         # print(mdb_string)
-        self.con = pyodbc.connect(mdb_string, autocommit=False)
+        self.con = pyodbc.connect(mdb_string)
+        # self.con.setdecoding(pyodbc.SQL_CHAR, encoding='utf-8')
+        # self.con.setdecoding(pyodbc.SQL_WCHAR, encoding='utf-8')
 
     def db(self):
         try:
@@ -75,3 +118,59 @@ class db:
             self.params = config(section=f'{keyword}')
             self.str_1 = SimpleConnectionPool(minconn=1,maxconn=10,**self.params)
             self.str = self.str_1.getconn()
+maintablelist = [
+      'tblPlots',
+      'tblLines',
+      'tblLPIDetail',
+      'tblLPIHeader',
+      'tblGapDetail',
+      'tblGapHeader',
+      'tblQualHeader',
+      'tblQualDetail',
+      'tblSoilStabHeader',
+      'tblSoilStabDetail',
+      'tblSoilPitHorizons',
+      'tblSoilPits',
+      'tblSpecRichHeader',
+      'tblSpecRichDetail',
+      'tblPlantProdHeader',
+      'tblPlantProdDetail',
+      'tblPlotNotes',
+      'tblPlantDenHeader',
+      'tblPlantDenDetail',
+      'tblSpecies',
+      'tblSpeciesGeneric',
+      'tblSites',
+      'tblBSNE_Box',
+      'tblBSNE_BoxCollection',
+      'tblBSNE_Stack',
+      'tblBSNE_TrapCollection'
+      ]
+correct = {
+        'TBLPLOTS':'tblPlots',
+        'TBLLINES':'tblLines',
+        'TBLLPIDETAIL':'tblLPIDetail',
+        'TBLLPIHEADER':'tblLPIHeader',
+        'TBLGAPDETAIL':'tblGapDetail',
+        'TBLGAPHEADER':'tblGapHeader',
+        'TBLQUALHEADER':'tblQualHeader',
+        'TBLQUALDETAIL':'tblQualDetail',
+        'TBLSOILSTABHEADER':'tblSoilStabHeader',
+        'TBLSOILSTABDETAIL':'tblSoilStabDetail',
+        'TBLSOILPITHORIZONS':'tblSoilPitHorizons',
+        'TBLSOILPITS':'tblSoilPits',
+        'TBLSPECRICHHEADER':'tblSpecRichHeader',
+        'TBLSPECRICHDETAIL':'tblSpecRichDetail',
+        'TBLPLANTPRODHEADER':'tblPlantProdHeader',
+        'TBLPLANTPRODDETAIL':'tblPlantProdDetail',
+        'TBLPLOTNOTES':'tblPlotNotes',
+        'TBLPLANTDENHEADER':'tblPlantDenDetail',
+        'TBLPLANTDENDETAIL':'tblPlantDenDetail',
+        'TBLSPECIES':'tblSpecies',
+        'TBLSPECIESGENERIC':'tblSpeciesGeneric',
+        'TBLSITES':'tblSites',
+        'TBLBSNE_BOX':'tblBSNE_Box',
+        'TBLBSNE_BOXCOLLECTION':'tblBSNE_BoxCollection',
+        'TBLBSNE_STACK':'tblBSNE_Stack',
+        'TBLBSNE_TRAPCOLLECTION':'tblBSNE_TrapCollection'
+        }

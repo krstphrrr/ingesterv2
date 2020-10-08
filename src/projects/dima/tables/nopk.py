@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 from src.projects.dima.tables.lpipk import lpi_pk
 from src.projects.dima.tables.bsnepk import bsne_pk
-
+import platform
 def no_pk(tablefam:str=None,dimapath:str=None,tablename:str= None):
     """
 
@@ -20,6 +20,8 @@ def no_pk(tablefam:str=None,dimapath:str=None,tablename:str= None):
             header = arcno.MakeTableView(fam['plantprod'][1],dimapath)
             detail = arcno.MakeTableView(fam['plantprod'][0],dimapath)
             head_det = pd.merge(header,detail,how="inner", on="RecKey")
+            head_det.FormDate = pd.to_datetime(head_det.FormDate) if platform.system()=='Linux' else head_det.FormDate
+
             head_det = arc.CalculateField(head_det,"PrimaryKey","PlotKey","FormDate")
             return head_det
 
@@ -28,6 +30,7 @@ def no_pk(tablefam:str=None,dimapath:str=None,tablename:str= None):
             header = arcno.MakeTableView(fam['soilstab'][1],dimapath)
             detail = arcno.MakeTableView(fam['soilstab'][0],dimapath)
             head_det = pd.merge(header,detail,how="inner", on="RecKey")
+            head_det.FormDate = pd.to_datetime(head_det.FormDate) if platform.system()=='Linux' else head_det.FormDate
             head_det = arc.CalculateField(head_det,"PrimaryKey","PlotKey","FormDate")
             return head_det
 
@@ -101,6 +104,10 @@ def no_pk(tablefam:str=None,dimapath:str=None,tablename:str= None):
         print(e)
 
 def date_column_chooser(df,iso):
+    df.FormDate = pd.to_datetime(df.FormDate) if platform.system()=='Linux' else df.FormDate
+    iso.FormDate = pd.to_datetime(iso.FormDate) if platform.system()=='Linux' else iso.FormDate
+    df.FormDate2 = pd.to_datetime(df.FormDate2) if platform.system()=='Linux' else df.FormDate2
+    iso.EstablishDate = pd.to_datetime(iso.EstablishDate) if platform.system()=='Linux' else iso.EstablishDate
     df_establish = pd.merge(df, iso, how="left", left_on="FormDate2", right_on="EstablishDate").drop_duplicates('HorizonKey')
     df_formdate = pd.merge(df, iso, how="left", left_on="FormDate2", right_on="FormDate").drop_duplicates('HorizonKey')
     if np.nan not in [i for i in df_formdate.PrimaryKey]:

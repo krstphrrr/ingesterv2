@@ -127,7 +127,7 @@ def main_translate(tablename:str, dimapath:str, debug=None):
                 retdf = pd.merge(target_table, iso, how="inner", on=tableswitch[tablename])
                 if 'Header' in tablename:
                     retdf.drop_duplicates(["PrimaryKey", "RecKey"],ignore_index=True, inplace=True)
-                    retdf = retdf.loc[retdf.FormDate==retdf.PrimaryKey.apply(lambda x: x[-10:]).astype("datetime64")]
+                    retdf = retdf.loc[retdf.FormDate.astype("datetime64")==retdf.PrimaryKey.apply(lambda x: x[-10:]).astype("datetime64")].copy()
                 else:
                     retdf.drop_duplicates(ignore_index=True, inplace=True)
                 retdf = blank_fixer(retdf)
@@ -251,7 +251,7 @@ def looper(path2mdbs, tablename, csv=False):
     """
     goes through all the files(.mdb or .accdb extensions) inside a folder,
     create a dataframe of the chosen table using the 'main_translate' function,
-    adds the dataframe into a dictionary,
+    adds the dataframe into a dictionary,a
     finally appends all the dataframes
     and returns the entire appended dataframe
     """
@@ -303,7 +303,7 @@ def table_collector(path2mdbs):
     seen into an internal list which is ultimately returned.
     """
     # containing_folder = path2mdbs
-    contained_files = contained_files = os.listdir(path2mdbs) if os.path.isdir(path2mdbs) else [path2mdbs]
+    contained_files = os.listdir(path2mdbs) if os.path.isdir(path2mdbs) else [path2mdbs]
     table_list = []
     for mdb_path in contained_files:
         if os.path.splitext(mdb_path)[1]=='.mdb' or os.path.splitext(mdb_path)[1]=='.accdb':

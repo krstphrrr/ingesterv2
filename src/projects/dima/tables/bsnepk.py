@@ -1,6 +1,8 @@
 from src.utils.arcnah import arcno
 import pandas as pd
 from src.projects.dima.tabletools import fix_fields
+import platform
+
 
 def bsne_pk(dimapath):
     """
@@ -17,11 +19,16 @@ def bsne_pk(dimapath):
     if ddt.shape[0]>0:
         ddt = arcno.MakeTableView("tblBSNE_TrapCollection",dimapath)
 
-        stack = arc.MakeTableView("tblBSNE_Stack", dimapath)
+        stack = arcno.MakeTableView("tblBSNE_Stack", dimapath)
 
         # df = arc.AddJoin(stack, ddt, "StackID", "StackID")
         df = pd.merge(stack,ddt, how="inner", on="StackID")
+        # df.collectDate = pd.to_datetime(df.collectDate) if platform.system()=='Linux' else df.collectDate
+        if "collectDate" in df.columns:
+            df.collectDate = pd.to_datetime(df.collectDate)
+
         df2 = arc.CalculateField(df,"PrimaryKey","PlotKey","collectDate")
+
         df2tmp = fix_fields(df2,"Notes")
         df2tmp2 = fix_fields(df2tmp,"DateModified")
         df2tmp3 = fix_fields(df2tmp2,"DateEstablished")
@@ -35,7 +42,11 @@ def bsne_pk(dimapath):
 
         # dfx = pd.merge(stack, box[cols_dif1], left_index=True, right_index=True, how="outer")
         df = pd.merge(box,stack, how="inner", on="StackID")
+
+        # df.collectDate = pd.to_datetime(df.collectDate) if platform.system()=='Linux' else df.collectDate
         df2 = pd.merge(df,boxcol, how="inner", on="BoxID")
+        df2.collectDate = pd.to_datetime(df2.collectDate) if platform.system()=='Linux' else df2.collectDate
+
         # fix
         df2 = arc.CalculateField(df2,"PrimaryKey","PlotKey","collectDate")
         df2tmp = fix_fields(df2,"Notes")

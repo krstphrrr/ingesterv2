@@ -1,7 +1,7 @@
 from src.utils.arcnah import arcno
 import pandas as pd
 from src.projects.dima.tabletools import fix_fields
-
+import platform
 def plantden_pk(dimapath):
     """
     returns a dataframe with tblplots, tbllines, tblplantdenheader and tblplantdenDetail
@@ -18,6 +18,8 @@ def plantden_pk(dimapath):
     plahead_detail = pd.merge(pla_header,pla_detail, how="inner" ,on='RecKey')
 
     plot_line_det = pd.merge(plot_line, plahead_detail,how="inner", on='LineKey')
+    plot_line_det.FormDate = pd.to_datetime(plot_line_det.FormDate) if platform.system()=='Linux' else plot_line_det.FormDate
+
 
     plot_pk = arc.CalculateField(plot_line_det, "PrimaryKey", "PlotKey", "FormDate")
 

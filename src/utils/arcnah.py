@@ -2,10 +2,11 @@ import pandas as pd
 from os import listdir,getcwd, chdir
 from os.path import normpath, join
 # from methods.make_table import Table
-from src.utils.tools import Acc
+from src.utils.tools import Acc, Acc2
 import pyodbc
-
-
+# import locale
+# locale.setlocale(category=locale.LC_ALL,locale="C.UTF-8")
+import platform
 """
  replacing ap's gdb methods with pandas alternatives
  - if ap creates a temporary view in gdb, arcno creates dataframe within its
@@ -15,7 +16,6 @@ import pyodbc
  - if ap counts rows of temp view filtered with select, arcno counts rows of
    dataframe filtered through if statement dependent on a methods argument
 """
-
 
 class arcno():
     __maintablelist = [
@@ -46,6 +46,34 @@ class arcno():
       'tblBSNE_Stack',
       'tblBSNE_TrapCollection'
       ]
+    correct = {
+        'TBLPLOTS':'tblPlots',
+        'TBLLINES':'tblLines',
+        'TBLLPIDETAIL':'tblLPIDetail',
+        'TBLLPIHEADER':'tblLPIHeader',
+        'TBLGAPDETAIL':'tblGapDetail',
+        'TBLGAPHEADER':'tblGapHeader',
+        'TBLQUALHEADER':'tblQualHeader',
+        'TBLQUALDETAIL':'tblQualDetail',
+        'TBLSOILSTABHEADER':'tblSoilStabHeader',
+        'TBLSOILSTABDETAIL':'tblSoilStabDetail',
+        'TBLSOILPITHORIZONS':'tblSoilPitHorizons',
+        'TBLSOILPITS':'tblSoilPits',
+        'TBLSPECRICHHEADER':'tblSpecRichHeader',
+        'TBLSPECRICHDETAIL':'tblSpecRichDetail',
+        'TBLPLANTPRODHEADER':'tblPlantProdHeader',
+        'TBLPLANTPRODDETAIL':'tblPlantProdDetail',
+        'TBLPLOTNOTES':'tblPlotNotes',
+        'TBLPLANTDENHEADER':'tblPlantDenDetail',
+        'TBLPLANTDENDETAIL':'tblPlantDenDetail',
+        'TBLSPECIES':'tblSpecies',
+        'TBLSPECIESGENERIC':'tblSpeciesGeneric',
+        'TBLSITES':'tblSites',
+        'TBLBSNE_BOX':'tblBSNE_Box',
+        'TBLBSNE_BOXCOLLECTION':'tblBSNE_BoxCollection',
+        'TBLBSNE_STACK':'tblBSNE_Stack',
+        'TBLBSNE_TRAPCOLLECTION':'tblBSNE_TrapCollection'
+        }
 
     __newtables = [
        'tblHorizontalFlux',
@@ -67,13 +95,27 @@ class arcno():
         self.whichdima = whichdima
         self.tablelist=[]
         if self.whichdima is not None:
-            conn = Acc(self.whichdima).con
-            conn.setdecoding(pyodbc.SQL_CHAR, encoding='utf-8')
-            conn.setdecoding(pyodbc.SQL_WCHAR, encoding='utf-8')
-            cursor = conn.cursor()
-            for t in cursor.tables():
-                if t.table_name.startswith('tbl'):
-                    self.tablelist.append(t.table_name)
+            conn = Acc(f"{self.whichdima}").con if platform.system()=='Windows' else Acc2(f"{self.whichdima}").con
+            # conn.setdecoding(pyodbc.SQL_CHAR, encoding="cp1252")
+            # conn.setdecoding(pyodbc.SQL_WCHAR, encoding="cp1252")
+            conn.setencoding(encoding='utf-16le') if platform.system()=='Windows' else None
+            # conn.setdecoding(pyodbc.SQL_WMETADATA, encoding='utf-8')
+            # conn.setdecoding(pyodbc.SQL_FLOAT, encoding='utf-8')
+            # conn.setdecoding(pyodbc.SQL_DOUBLE, encoding='utf-8')
+            if platform.system()=='Windows':
+                cursor = conn.cursor()
+                for t in cursor.tables():
+                    if t.table_name.startswith('tbl'):
+                        self.tablelist.append(t.table_name)
+            else:
+                cursor = conn.cursor()
+                qry = r"SELECT table_name FROM information_schema.tables WHERE table_name LIKE 'TBL%'"
+                cursor.execute(qry)
+                trick = [i[0] for i in cursor.fetchall()] 
+                self.tablelist = [self.correct[i] for i in trick if i in self.correct.keys()]  
+                
+                
+                
         self.actual_list = {}
         for i in self.tablelist:
             if all!=True:
@@ -244,8 +286,11 @@ class Table:
     def __init__(self,in_table=None, path=None):
         self.path = path
         self.in_table = in_table
-        con = Acc(self.path).con
-        query = f'SELECT * FROM "{self.in_table}"'
+        con = Acc(self.path).con if platform.system()=='Windows' else Acc2(f"{self.path}").con
+        
+        con.setencoding(encoding='utf-16le') if platform.system()=='Windows' else None
+ 
+        query = f'SELECT * FROM "{self.in_table}"' if platform.system()=='Windows' else f'SELECT * FROM {self.in_table}'
         self.temp = pd.read_sql(query,con)
 
     def temp(self):

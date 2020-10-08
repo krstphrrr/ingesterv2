@@ -1,7 +1,7 @@
 from src.utils.arcnah import arcno
 import pandas as pd
 from src.projects.dima.tabletools import fix_fields
-
+import platform
 def gap_pk(dimapath):
     """
     returns a dataframe with tblplots, tbllines, tblgapheader and tblgapDetail
@@ -20,7 +20,7 @@ def gap_pk(dimapath):
     # fixing dup fields
     # tmp1 = fix_fields(plot_line_det, 'DateModified')
     # tmp2 = fix_fields(tmp1, 'ElevationType')
-
+    plot_line_det.FormDate = pd.to_datetime(plot_line_det.FormDate) if platform.system()=='Linux' else plot_line_det.FormDate
     plot_pk = arc.CalculateField(plot_line_det, "PrimaryKey", "PlotKey", "FormDate")
 
     return plot_pk
