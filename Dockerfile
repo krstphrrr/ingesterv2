@@ -21,16 +21,16 @@ COPY / .
 COPY /dimas /dimas
 
 # RUN apt-get install -y mdbtools
-RUN apt-get install git -y
-RUN apt-get install libtool automake autoconf glib2.0 -y
-RUN apt-get install bison flex -y
-RUN git clone https://github.com/mdbtools/mdbtools.git
+# RUN apt-get install git -y
+# RUN apt-get install libtool automake autoconf glib2.0 -y
+# RUN apt-get install bison flex -y
+# RUN git clone https://github.com/mdbtools/mdbtools.git
 
-RUN cd mdbtools\
-  && autoreconf -i -f\
-  && ./configure --prefix=/out --disable-man --with-unixodbc=/usr\
-  && make\
-  && make install
+#RUN cd mdbtools\
+#  && autoreconf -i -f\
+#  && ./configure --prefix=/out --disable-man --with-unixodbc=/usr\
+#  && make\
+#  && make install
 RUN apt-get install default-jre -y
 # RUN ldconfig
 
