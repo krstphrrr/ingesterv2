@@ -38,11 +38,11 @@ RUN apt-get install default-jre -y
 #     locale-gen
 # ENV LANG en_US.UTF-8
 # ENV LANGUAGE en_US:en
-# ENV LC_ALL en_US.UTF-8   
+# ENV LC_ALL en_US.UTF-8
 
 # COPY mdbtools-drv.ini /etc/odbcinst.ini
 # RUN pip3 install --no-cache-dir -r requirements.txt
 
-CMD ["python3", "main.py"]
+# CMD ["python3", "main.py"]
 
 # winpty docker container run -it -v //C/Users/://external ingester
