@@ -201,7 +201,7 @@ def pg_send(table:str, path:str, csv=None, debug=None):
             ingesterv2.main_ingest(df, newtablename, d.str, 10000) if csv else csv_fieldcheck(df,path,table)
 
 
-def batch_looper(dimacontainer, pg=False):
+def batch_looper(dimacontainer, projkey=None, pg=False):
 
     """
     addition
@@ -222,7 +222,7 @@ def batch_looper(dimacontainer, pg=False):
                 looper(dimacontainer, table, csv=True)
 
             else:
-                df = looper(dimacontainer,table,csv=False)
+                df = looper(dimacontainer,table,csv=False) if 'tblPlots' not in table else looper(dimacontainer,table, projkey,csv=False) 
                 print(df.shape, "looper dataframe check # 2")
                 if 'ItemType' in df.columns:
                     # if one of the non-vegetation bsne tables, use 'new_tablename' ,
@@ -250,7 +250,7 @@ def batch_looper(dimacontainer, pg=False):
                         ingesterv2.main_ingest(df, newtablename, d.str, 10000)
 
 
-def looper(path2mdbs, tablename, csv=False):
+def looper(path2mdbs, tablename, projk=None, csv=False):
     """
     goes through all the files(.mdb or .accdb extensions) inside a folder,
     create a dataframe of the chosen table using the 'main_translate' function,
@@ -284,6 +284,8 @@ def looper(path2mdbs, tablename, csv=False):
                 pass
             count+=1
     final_df = pd.concat([j for i,j in df_dictionary.items()], ignore_index=True).drop_duplicates()
+    if (tablename == 'tblPlots') and (projk is not None) :
+        final_df["ProjectKey"] = projk
 
     return final_df if csv==False else final_df.to_csv(os.path.join(containing_folder,tablename+'.csv'))
 

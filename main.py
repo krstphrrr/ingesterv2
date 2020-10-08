@@ -1,4 +1,4 @@
-import os, os.path
+import os, os.path, sys
 # print(os.getcwd())
 # os.chdir("/usr/src")
 from src.projects.tall_tables.talltables_handler import model_handler, field_parse, ingesterv2
@@ -39,10 +39,18 @@ def main():
 
                 if tocsv=='pg':
                     # first update project key
-                    projkey = "test_run"
+                    print("Please enter 'ProjectKey' for ingestion batch: ")
+                    projkey = sys.stdin.readline()
+                    # projkey = "test_run"
                     # update_project(batch_path, projkey)
                     # then continue with batch processing
-                    batch_looper(batch_path, pg=True)
+                    # print(f"your project key is: {projkey}")
+                    if projkey is not None:
+                        batch_looper(batch_path, projkey, pg=True)
+                        update_project(batch_path, projkey)
+                    else:
+                        print("Please input a 'ProjectKey' for this ingestion")
+                        continue
                     contin=True
                 elif tocsv=='csv':
                     # first update project key

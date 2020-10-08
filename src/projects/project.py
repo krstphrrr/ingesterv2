@@ -6,11 +6,8 @@ from sqlalchemy import *
 from src.utils.tools import db
 from src.projects.tables.project_tables import fields_dict
 from src.projects.dima.tabletools import table_create, sql_command, tablecheck
+from src.utils.arcnah import arcno
 
-
-
-
-# need to use an unified type_translate across code
 type_translate = {np.dtype('int64'):'int',
     'Int64':'int',
     np.dtype("object"):'text',
@@ -29,7 +26,7 @@ def engine_conn_string(string):
 
 def send_proj(df):
     eng = create_engine(engine_conn_string("dima"))
-    df.to_sql(con=eng, name="project", if_exists="append", index=False)
+    df.to_sql(con=eng, name="Projects", if_exists="append", index=False)
 
 def template():
     """ creating an empty dataframe with a specific
@@ -39,16 +36,21 @@ def template():
     return df
 
 def read_template(dir, maindf):
-    """ creates a new dataframe with the Value column values,
-    appending it to a fed in
+    """ creates a new dataframe with the data on the metadata excel file,
+    appending it to an empty dataframe be uploaded to the projects table in pg.
     """
+    maindfcopy = maindf.copy()
     maindf.drop(maindf.index,inplace=True)
     for path in os.listdir(dir):
         if os.path.splitext(path)[1]==".xlsx":
             df = pd.read_excel(os.path.join(dir,path))
+
             data = [i for i in df.Value]
-            # maindf.loc[len,:] = data
-    # return len(data), maindf.shape[1]
+
+        elif os.path.splitext(path)[1]!=".xlsx":
+            pass
+        else:
+            print("No metadata '.xlsx'(excel) file found within directory. Please provide project metadata file.")
     maindf.loc[len(maindf),:] = data
     return maindf
 
@@ -59,15 +61,18 @@ def update_project(path_in_batch,projectkey):
     - would be better if it would automatically pull projectkey from
     the excel file is handling to check
     - projectkey is made up of what?
+    - creates datafrmae from excel metadata table
+    - adds projectkey field
+    - ingests/updates project table in pg
 
     1. check if table exists, if not create it
     2. check if project key exists, if not update it
 
     """
     tempdf = template()
-    eng = create_engine(engine_conn_string("dima"))
+
     # check if table exists
-    if tablecheck("project", "dima"):
+    if tablecheck("Projects", "dima"):
         if project_key_check(projectkey):
             print("projectkey exists, aborting ingest")
         else:
@@ -77,7 +82,7 @@ def update_project(path_in_batch,projectkey):
 
     # if no, create table and update pg
     else:
-        table_create(tempdf,"project","dima")
+        table_create(tempdf,"Projects","dima")
         update = read_template(path_in_batch, tempdf)
         # tempdf = read_template(path_in_batch,tempdf)
         update['projectKey'] = projectkey
@@ -92,7 +97,7 @@ def project_key_check(projectkey):
         exists_query = '''
         select exists (
             select 1
-            from project
+            from Projects
             where "projectKey" = %s
         )'''
         cur.execute (exists_query, (projectkey,))
