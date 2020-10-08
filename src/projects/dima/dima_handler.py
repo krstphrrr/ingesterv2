@@ -310,7 +310,7 @@ def table_collector(path2mdbs):
     table_list = []
     for mdb_path in contained_files:
         if os.path.splitext(mdb_path)[1]=='.mdb' or os.path.splitext(mdb_path)[1]=='.accdb':
-            pth = os.path.join(path2mdbs,mdb_path) if len(contained_files)>1 else mdb_path
+            pth = os.path.join(path2mdbs,mdb_path) if len(contained_files)>1 else os.path.join(path2mdbs,mdb_path)
             instance = arcno(pth)
             for tablename, size in instance.actual_list.items():
                 if tablename not in table_list:

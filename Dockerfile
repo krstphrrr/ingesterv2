@@ -43,6 +43,6 @@ RUN apt-get install default-jre -y
 # COPY mdbtools-drv.ini /etc/odbcinst.ini
 # RUN pip3 install --no-cache-dir -r requirements.txt
 
-# CMD ["python3", "main.py"]
+CMD ["python3", "main.py"]
 
 # winpty docker container run -it -v //C/Users/://external ingester
