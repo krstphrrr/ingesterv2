@@ -214,13 +214,16 @@ def batch_looper(dimacontainer, pg=False):
     while tablelist is None:
         print('gathering tables within dimas..')
         tablelist = table_collector(dimacontainer)
+        print(tablelist, "tablelist check # 1")
     else:
         print('creating csvs for each table..')
         for table in tablelist:
             if pg!=True:
                 looper(dimacontainer, table, csv=True)
+
             else:
                 df = looper(dimacontainer,table,csv=False)
+                print(df.shape, "looper dataframe check # 2")
                 if 'ItemType' in df.columns:
                     # if one of the non-vegetation bsne tables, use 'new_tablename' ,
                     # function to produce a new tablename: 'tblHorizontalFlux' or
