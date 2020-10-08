@@ -104,10 +104,21 @@ def no_pk(tablefam:str=None,dimapath:str=None,tablename:str= None):
         print(e)
 
 def date_column_chooser(df,iso):
-    df.FormDate = pd.to_datetime(df.FormDate) if platform.system()=='Linux' else df.FormDate
-    iso.FormDate = pd.to_datetime(iso.FormDate) if platform.system()=='Linux' else iso.FormDate
-    df.FormDate2 = pd.to_datetime(df.FormDate2) if platform.system()=='Linux' else df.FormDate2
-    iso.EstablishDate = pd.to_datetime(iso.EstablishDate) if platform.system()=='Linux' else iso.EstablishDate
+    
+    if "FormDate" in df.columns:
+        df.FormDate = pd.to_datetime(df.FormDate)
+    if "FormDate2" in df.columns:
+        df.FormDate2 = pd.to_datetime(df.FormDate2)
+    if "FormDate" in iso.columns:
+        iso.FormDate = pd.to_datetime(iso.FormDate)
+    if "EstablishDate" in iso.columns:
+        iso.EstablishDate = pd.to_datetime(iso.EstablishDate)
+
+    # df.FormDate = pd.to_datetime(df.FormDate) if platform.system()=='Linux' else df.FormDate
+    # iso.FormDate = pd.to_datetime(iso.FormDate) if platform.system()=='Linux' else iso.FormDate
+    # df.FormDate2 = pd.to_datetime(df.FormDate2) if platform.system()=='Linux' else df.FormDate2
+    # iso.EstablishDate = pd.to_datetime(iso.EstablishDate) if platform.system()=='Linux' else iso.EstablishDate
+
     df_establish = pd.merge(df, iso, how="left", left_on="FormDate2", right_on="EstablishDate").drop_duplicates('HorizonKey')
     df_formdate = pd.merge(df, iso, how="left", left_on="FormDate2", right_on="FormDate").drop_duplicates('HorizonKey')
     if np.nan not in [i for i in df_formdate.PrimaryKey]:
