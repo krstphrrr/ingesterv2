@@ -40,7 +40,7 @@ def main():
                 if tocsv=='pg':
                     # first update project key
                     dima_list = all_dimas()
-                    print(dimas)
+                    print("list of dimas currently : ")
                     for i in dima_list:
                         print(i)
                     print("Please enter 'ProjectKey' for ingestion batch: ")
