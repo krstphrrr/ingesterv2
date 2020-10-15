@@ -43,6 +43,7 @@ def main():
                     print("list of dimas currently in the database: ")
                     for i in dima_list:
                         print(i)
+                    print(dima_list)
                     print("Please enter 'ProjectKey' for ingestion batch: ")
                     projkey = sys.stdin.readline()
                     # projkey = "test_run"
