@@ -201,7 +201,7 @@ def pg_send(table:str, path:str, csv=None, debug=None):
             ingesterv2.main_ingest(df, newtablename, d.str, 10000) if csv else csv_fieldcheck(df,path,table)
 
 
-def batch_looper(dimacontainer, projkey=None, pg=False):
+def batch_looper(dimacontainer, projkey=None, dev=False, pg=False):
 
     """
     addition

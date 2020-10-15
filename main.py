@@ -4,7 +4,7 @@ import os, os.path, sys
 from src.projects.tall_tables.talltables_handler import model_handler, field_parse, ingesterv2
 from src.projects.tall_tables.models.gap import dataGap
 from src.projects.dima.dima_handler import pg_send, batch_looper, has_duplicate_pks
-from src.projects.project import update_project
+from src.projects.project import update_project, all_dimas
 
 
 from src.utils.arcnah import arcno
@@ -39,6 +39,10 @@ def main():
 
                 if tocsv=='pg':
                     # first update project key
+                    dima_list = all_dimas()
+                    print(dimas)
+                    for i in dima_list:
+                        print(i)
                     print("Please enter 'ProjectKey' for ingestion batch: ")
                     projkey = sys.stdin.readline()
                     # projkey = "test_run"

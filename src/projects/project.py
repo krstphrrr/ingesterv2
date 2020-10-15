@@ -127,3 +127,60 @@ def add_projectkey_to_pg():
         print(e)
         con = d.str
         cur = con.cursor()
+
+
+
+def gettables():
+    d = db("dima")
+    sql = '''
+        SELECT table_name
+        FROM information_schema.tables
+        WHERE (
+        table_schema = 'public'
+        )
+        ORDER BY table_name;
+
+    '''
+    try:
+        con = d.str
+        cur = con.cursor()
+        cur.execute(sql)
+        lst = cur.fetchall()
+        return [i[0] for i in lst]
+
+    except Exception as e:
+        print(e)
+        con = d.str
+        cur = con.cursor()
+
+def getdbkeys(key):
+    d = db("dima")
+    sql = f'''
+        SELECT
+        DISTINCT "DBKey"
+        FROM "{key}";
+
+    '''
+    try:
+        con = d.str
+        cur = con.cursor()
+        cur.execute(sql)
+        lst = cur.fetchall()
+        return [i[0] for i in lst]
+
+    except Exception as e:
+        print(e)
+        con = d.str
+        cur = con.cursor()
+
+
+def all_dimas():
+    unique_dbkey = []
+    tablelist = gettables()
+    for table in tablelist:
+        if 'Projects' not in table:
+            dbkeys=getdbkeys(table)
+            for i in dbkeys:
+                if i not in unique_dbkey:
+                    unique_dbkey.append(i)
+    return unique_dbkey
