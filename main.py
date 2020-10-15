@@ -22,7 +22,7 @@ def main():
             batch_single = "b"
             if 'b' in batch_single:
                 print('selected path: ')
-                # batch_looper()
+
 
             elif 's' in batch_single:
                 print('selected single file dima')
@@ -40,7 +40,7 @@ def main():
                 if tocsv=='pg':
                     # first update project key
                     dima_list = all_dimas()
-                    print("list of dimas currently : ")
+                    print("list of dimas currently in the database: ")
                     for i in dima_list:
                         print(i)
                     print("Please enter 'ProjectKey' for ingestion batch: ")
