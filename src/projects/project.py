@@ -83,6 +83,7 @@ def update_project(path_in_batch,projectkey):
     # if no, create table and update pg
     else:
         table_create(tempdf,"Projects","dima")
+        add_projectkey_to_pg()
         update = read_template(path_in_batch, tempdf)
         # tempdf = read_template(path_in_batch,tempdf)
         update['projectKey'] = projectkey
@@ -91,6 +92,7 @@ def update_project(path_in_batch,projectkey):
 
 def project_key_check(projectkey):
     d = db("dima")
+
     try:
         con = d.str
         cur = con.cursor()
@@ -102,6 +104,24 @@ def project_key_check(projectkey):
         )'''
         cur.execute (exists_query, (projectkey,))
         return cur.fetchone()[0]
+
+    except Exception as e:
+        print(e)
+        con = d.str
+        cur = con.cursor()
+
+
+def add_projectkey_to_pg():
+    d = db("dima")
+    add_query = '''
+        ALTER TABLE IF EXISTS "Projects"
+        ADD COLUMN "projectKey" TEXT;
+        '''
+    try:
+        con = d.str
+        cur = con.cursor()
+        cur.execute(add_query)
+        con.commit()
 
     except Exception as e:
         print(e)
