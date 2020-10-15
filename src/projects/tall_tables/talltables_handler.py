@@ -338,15 +338,16 @@ class ingesterv2:
         cursor.close()
 
     @staticmethod
-    def composite_pk(self,*field,con,maintable):
+    def composite_pk(*field,con,maintable):
         """ Creates composite primary keys in postgres for a given table
         """
         conn = con
         cur = conn.cursor()
         key_str = "{}_PrimaryKey_fkey".format(str(maintable))
-        fields = [f'"{i}"' for i in field]
+        fields = [f'{i}' for i in field]
         fields_str = ', '.join(fields)
         fields_str2 = f'{fields_str}'
+
 
 
         try:
@@ -368,7 +369,7 @@ class ingesterv2:
             cur = conn.cursor()
 
     @staticmethod
-    def drop_rows(self, con, maintable, field, result):
+    def drop_rows(con, maintable, field, result):
         """ removing rows that fit a specific value from a given table
 
         - need to implement graceful closing of pg session
@@ -390,6 +391,7 @@ class ingesterv2:
             print(e)
             conn = con
             cur = conn.cursor()
+
 
 
 def protocol_typecast( protocol_choice : str, type : str):
