@@ -209,7 +209,11 @@ def batch_looper(dimacontainer, projkey=None, dev=False, pg=False):
     and then uses looper to gothrough the list of tables and create csv's for
     each.
     """
-    d = db('dima')
+    if dev==False:
+        d = db('dima')
+    else:
+        d=db("dimadev")
+        
     tablelist = None
     while tablelist is None:
         print('gathering tables within dimas..')
@@ -222,7 +226,7 @@ def batch_looper(dimacontainer, projkey=None, dev=False, pg=False):
                 looper(dimacontainer, table, csv=True)
 
             else:
-                df = looper(dimacontainer,table,csv=False) if 'tblPlots' not in table else looper(dimacontainer,table, projkey,csv=False) 
+                df = looper(dimacontainer,table,csv=False) if 'tblPlots' not in table else looper(dimacontainer,table, projkey,csv=False)
                 print(df.shape, "looper dataframe check # 2")
                 if 'ItemType' in df.columns:
                     # if one of the non-vegetation bsne tables, use 'new_tablename' ,

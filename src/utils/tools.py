@@ -102,12 +102,8 @@ def dimaconfig(filename='src/utils/database.ini', section='dima'):
         section, filename))
     return db
 
-class db:
-    # params = None
-    # # # str = connect(**params)
-    # # str_1 = None
-    # str = None
 
+class db:
 
     def __init__(self, keyword = None):
         if keyword == None:
@@ -118,6 +114,53 @@ class db:
             self.params = config(section=f'{keyword}')
             self.str_1 = SimpleConnectionPool(minconn=1,maxconn=10,**self.params)
             self.str = self.str_1.getconn()
+            if "dimadev" in keyword:
+                dbname = self.params['dbname']
+                sql = f'ALTER database "postgres" SET search_path to "dimadev"'
+                sql2 = "SHOW search_path"
+
+                try:
+                    con = self.str
+                    cur = con.cursor()
+                    cur.execute(sql)
+                    con.commit()
+
+
+                except Exception as e:
+                    print(e)
+                    con = self.str
+                    cur = con.cursor()
+            else:
+                usr = self.params['user']
+                sql_revert = f'ALTER database "postgres" SET search_path to "public"'
+                sql2 = "SHOW search_path"
+                try:
+                    con = self.str
+                    cur = con.cursor()
+                    cur.execute(sql_revert)
+                    con.commit()
+
+                except Exception as e:
+                    print(e)
+                    con = self.str
+                    cur = con.cursor()
+
+def searchpath_test(keyword):
+    d = db(keyword)
+    try:
+        con = d.str
+        cur = con.cursor()
+        sql = 'show search_path'
+        cur.execute(sql)
+        print(cur.fetchone())
+    except Exception as e:
+        print(e)
+        con = d.str
+        cur = con.cursor()
+
+
+# searchpath_test("dima")
+
 maintablelist = [
       'tblPlots',
       'tblLines',

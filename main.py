@@ -51,7 +51,9 @@ def main():
                     # then continue with batch processing
                     # print(f"your project key is: {projkey}")
                     if projkey is not None:
-                        batch_looper(batch_path, projkey, pg=True)
+                        print("ingest to development database? true or false")
+                        dev_or_not = sys.stdin.readline()
+                        batch_looper(batch_path, projkey, pg=True) if 'false' in dev_or_not else batch_looper(batch_path, projkey,dev=True, pg=True)
                         update_project(batch_path, projkey)
                     else:
                         print("Please input a 'ProjectKey' for this ingestion")
