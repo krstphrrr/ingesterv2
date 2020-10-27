@@ -212,8 +212,8 @@ def batch_looper(dimacontainer, projkey=None, dev=False, pg=False):
     if dev==False:
         d = db('dima')
     else:
-        d=db("dimadev")
-        
+        d = db("dimadev")
+
     tablelist = None
     while tablelist is None:
         print('gathering tables within dimas..')
