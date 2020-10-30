@@ -104,49 +104,29 @@ def dimaconfig(filename='src/utils/database.ini', section='dima'):
 
 
 class db:
-
     def __init__(self, keyword = None):
         if keyword == None:
             self.params = config()
             self.str_1 = SimpleConnectionPool(minconn=1,maxconn=10,**self.params)
             self.str = self.str_1.getconn()
         else:
-            self.params = config(section=f'{keyword}')
-            self.str_1 = SimpleConnectionPool(minconn=1,maxconn=10,**self.params)
-            self.str = self.str_1.getconn()
             if "dimadev" in keyword:
-                dbname = self.params['dbname']
-                sql = f'ALTER database "postgres" SET search_path to "dimadev"'
-                sql2 = "SHOW search_path"
-
-                try:
-                    con = self.str
-                    cur = con.cursor()
-                    cur.execute(sql)
-                    con.commit()
+                self.params = config(section=f'{keyword}')
+                self.params['options'] = "-c search_path=dimadev"
+                self.str_1 = SimpleConnectionPool(minconn=1,maxconn=10,**self.params)
+                self.str = self.str_1.getconn()
 
 
-                except Exception as e:
-                    print(e)
-                    con = self.str
-                    cur = con.cursor()
             else:
-                usr = self.params['user']
-                sql_revert = f'ALTER database "postgres" SET search_path to "public"'
-                sql2 = "SHOW search_path"
-                try:
-                    con = self.str
-                    cur = con.cursor()
-                    cur.execute(sql_revert)
-                    con.commit()
+                self.params = config(section=f'{keyword}')
+                self.params['options'] = "-c search_path=public"
+                self.str_1 = SimpleConnectionPool(minconn=1,maxconn=10,**self.params)
+                self.str = self.str_1.getconn()
 
-                except Exception as e:
-                    print(e)
-                    con = self.str
-                    cur = con.cursor()
 
 def searchpath_test(keyword):
     d = db(keyword)
+
     try:
         con = d.str
         cur = con.cursor()

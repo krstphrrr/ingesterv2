@@ -129,13 +129,15 @@ def sql_command(typedict:{}, name:str, db:str=None):
     # tall tables
     "gisdb": "gisdb",
     # nri
-    "nri": "nritest"
+    "nri": "nritest",
+    "dimadev":"postgres"
     }
     schema_choice={
     "dima":"public",
     "met":"public",
     "gisdb":"public",
-    "nri":"public"
+    "nri":"public",
+    "dimadev":"dimadev"
     }
     inner_list = [f"\"{k}\" {v}" for k,v in typedict.items()]
     part_1 = f""" CREATE TABLE {db_choice[db]}.{schema_choice[db]}.\"{name}\" \
@@ -158,11 +160,12 @@ def tablecheck(tablename, conn="dima"):
     schema, else returns false
 
     """
+    tableschema = "dimadev" if conn=="dimadev" else "public"
     try:
         d = db(f'{conn}')
         con = d.str
         cur = con.cursor()
-        cur.execute("select exists(select * from information_schema.tables where table_name=%s)", (f'{tablename}',))
+        cur.execute("select exists(select * from information_schema.tables where table_name=%s and table_schema=%s)", (f'{tablename}',f'{tableschema}',))
         if cur.fetchone()[0]:
             return True
         else:
@@ -170,7 +173,7 @@ def tablecheck(tablename, conn="dima"):
 
     except Exception as e:
         print(e)
-        d = db('conn')
+        d = db(f'{conn}')
         con = d.str
         cur = con.cursor()
 

@@ -211,8 +211,10 @@ def batch_looper(dimacontainer, projkey=None, dev=False, pg=False):
     """
     if dev==False:
         d = db('dima')
+        keyword = "dima"
     else:
         d = db("dimadev")
+        keyword = "dimadev"
 
     tablelist = None
     while tablelist is None:
@@ -233,24 +235,24 @@ def batch_looper(dimacontainer, projkey=None, dev=False, pg=False):
                     # function to produce a new tablename: 'tblHorizontalFlux' or
                     # 'tblDustDeposition'
                     newtablename = new_tablename(df)
-                    if tablecheck(newtablename):
+                    if tablecheck(newtablename, keyword):
                         print('MWACK')
                         ingesterv2.main_ingest(df, newtablename, d.str, 10000)
                     else:
-                        table_create(df, newtablename, 'dima')
+                        table_create(df, newtablename, keyword)
                         print('llegue a 2')
                         ingesterv2.main_ingest(df, newtablename, d.str, 10000)
 
                 else:
                     print("NOT A HORFLUX TABLE")
                     newtablename = table
-                    if tablecheck(table):
+                    if tablecheck(table, keyword):
                         print("FOUND THE TABLE IN PG")
                         ingesterv2.main_ingest(df, newtablename, d.str, 10000)
 
                     else:
                         print("DID NOT FIND TABLE IN PG, CREATING...")
-                        table_create(df, table, 'dima')
+                        table_create(df, table, keyword)
                         ingesterv2.main_ingest(df, newtablename, d.str, 10000)
 
 
