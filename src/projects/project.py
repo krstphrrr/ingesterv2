@@ -130,17 +130,16 @@ def add_projectkey_to_pg():
 
 
 
-def gettables():
-    d = db("dima")
-    sql = '''
-        SELECT table_name
+def gettables(conn=None):
+    keyword = "dimadev" if conn=="dimadev" else "public"
+    d = db("dimadev") if conn=="dimadev" else db("dima")
+
+    sql = f"""SELECT table_name
         FROM information_schema.tables
         WHERE (
-        table_schema = 'public'
+        table_schema = '{keyword}'
         )
-        ORDER BY table_name;
-
-    '''
+        ORDER BY table_name;"""
     try:
         con = d.str
         cur = con.cursor()
@@ -153,12 +152,14 @@ def gettables():
         con = d.str
         cur = con.cursor()
 
-def getdbkeys(key):
-    d = db("dima")
+def getdbkeys(key ,conn=None):
+    keyword = "dimadev" if conn=="dimadev" else "public"
+    d = db("dimadev") if conn=="dimadev" else db("dima")
+
     sql = f'''
         SELECT
         DISTINCT "DBKey"
-        FROM "{key}";
+        FROM "{keyword}"."{key}";
 
     '''
     try:
@@ -174,12 +175,13 @@ def getdbkeys(key):
         cur = con.cursor()
 
 
-def all_dimas():
+def all_dimas(conn=None):
+    keyword = "dimadev" if conn=="dimadev" else "public"
     unique_dbkey = []
-    tablelist = gettables()
+    tablelist = gettables(keyword)
     for table in tablelist:
         if 'Projects' not in table:
-            dbkeys=getdbkeys(table)
+            dbkeys=getdbkeys(table, keyword)
             for i in dbkeys:
                 if i not in unique_dbkey:
                     unique_dbkey.append(i)
