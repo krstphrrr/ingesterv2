@@ -90,6 +90,7 @@ def table_create(df: pd.DataFrame, tablename: str, conn:str=None):
     """
 
     table_fields = {}
+    
 
     try:
         for i in df.columns:

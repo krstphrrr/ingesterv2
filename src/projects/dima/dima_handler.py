@@ -292,6 +292,10 @@ def looper(path2mdbs, tablename, projk=None, csv=False):
     final_df = pd.concat([j for i,j in df_dictionary.items()], ignore_index=True).drop_duplicates()
     if (tablename == 'tblPlots') and (projk is not None) :
         final_df["ProjectKey"] = projk
+    if "tblLines" in tablename:
+        for i in finaldf.columns:
+            if "PrimaryKey" in i:
+                finaldf[i] = finaldf[i].astype("object")
 
     return final_df if csv==False else final_df.to_csv(os.path.join(containing_folder,tablename+'.csv'))
 
