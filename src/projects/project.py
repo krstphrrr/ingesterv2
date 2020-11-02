@@ -99,7 +99,7 @@ def project_key_check(projectkey):
         exists_query = '''
         select exists (
             select 1
-            from Projects
+            from "Projects"
             where "projectKey" = %s
         )'''
         cur.execute (exists_query, (projectkey,))

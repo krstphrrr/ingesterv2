@@ -1,11 +1,13 @@
 import os, os.path
 import time, datetime
-os.chdir(os.path.join(os.getcwd(),'src')) if os.path.basename(os.getcwd())!='src' else None
+# os.chdir(os.path.join(os.getcwd(),'src')) if os.path.basename(os.getcwd())!='src' else None
 import pandas as pd
+import numpy as np
 from src.utils.tools import db
 from src.projects.dima.tabletools import table_create, sql_command, tablecheck
 from src.projects.tall_tables.talltables_handler import ingesterv2
 from src.projects.dima.tabletools import table_create, tablecheck
+
 
 """
 X 1.read directory that holds outputs
@@ -49,7 +51,7 @@ def txt_read(path):
         temp = pd.read_table(complete, sep="\t", low_memory=False)
         temp['PlotId'] = plotid
         df_dict.update({f"df{count}":temp})
-        print(f"{count} added")
+        # print(f"{count} added")
         count+=1
     return pd.concat([d[1] for d in df_dict.items()],ignore_index=True)
 
@@ -60,13 +62,13 @@ def model_run_updater(df):
     1. creates a table in postgres with supplied dataframe
     2. appends data to postgres table
     """
-    d = db("dima")
+    d = db("aero")
     if tablecheck('aero_runs'):
         print('aero_runs exists, skipping table creation')
         ingesterv2.main_ingest(df, "aero_runs", d.str,100000)
     else:
         print('creating aero_runs')
-        table_create(df, "aero_runs", "dima")
+        table_create(df, "aero_runs", "aero")
         ingesterv2.main_ingest(df, "aero_runs", d.str,100000)
 
 def model_run_create():
