@@ -255,7 +255,12 @@ def batch_looper(dimacontainer, projkey=None, dev=False, pg=False):
                         table_create(df, table, keyword)
                         ingesterv2.main_ingest(df, newtablename, d.str, 10000)
 
-
+# p = r"C:\Users\kbonefont\Documents\GitHub\ingesterv2\dimas"
+# df = looper(p,"tblLines",csv=False)
+# table_create(df, "tblLines", "dimadev")
+# len(df)
+# df2 = looper(p,"tblHorizontalFlux",csv=False)
+# len(df2)
 def looper(path2mdbs, tablename, projk=None, csv=False):
     """
     goes through all the files(.mdb or .accdb extensions) inside a folder,
@@ -286,18 +291,24 @@ def looper(path2mdbs, tablename, projk=None, csv=False):
                 df['DBKey'] = os.path.split(os.path.splitext(i)[0])[1].replace(" ","")
                 # df add to dictionary list
                 df_dictionary[countup] = df.copy()
+
             else:
                 pass
             count+=1
-    final_df = pd.concat([j for i,j in df_dictionary.items()], ignore_index=True).drop_duplicates()
-    if (tablename == 'tblPlots') and (projk is not None) :
-        final_df["ProjectKey"] = projk
-    if "tblLines" in tablename:
-        for i in final_df.columns:
-            if "PrimaryKey" in i:
-                final_df[i] = final_df[i].astype("object")
+    # return df_dictionary
+    if len(df_dictionary)>0:
+        final_df = pd.concat([j for i,j in df_dictionary.items()], ignore_index=True).drop_duplicates()
+        if (tablename == 'tblPlots') and (projk is not None) :
+            final_df["ProjectKey"] = projk
+        if "tblLines" in tablename:
+            for i in final_df.columns:
+                if "PrimaryKey" in i:
+                    final_df[i] = final_df[i].astype("object")
 
-    return final_df if csv==False else final_df.to_csv(os.path.join(containing_folder,tablename+'.csv'))
+        return final_df if csv==False else final_df.to_csv(os.path.join(containing_folder,tablename+'.csv'))
+    else:
+        print(f"table '{tablename}' not found within this dima batch")
+
 
 
 def table_check(tablename, path):
