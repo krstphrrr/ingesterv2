@@ -90,7 +90,7 @@ def table_create(df: pd.DataFrame, tablename: str, conn:str=None):
     """
 
     table_fields = {}
-    
+
 
     try:
         for i in df.columns:
@@ -131,14 +131,16 @@ def sql_command(typedict:{}, name:str, db:str=None):
     "gisdb": "gisdb",
     # nri
     "nri": "nritest",
-    "dimadev":"postgres"
+    "dimadev":"postgres",
+    "aero":"aero_data",
     }
     schema_choice={
     "dima":"public",
     "met":"public",
     "gisdb":"public",
     "nri":"public",
-    "dimadev":"dimadev"
+    "dimadev":"dimadev",
+    "aero":"public"
     }
     inner_list = [f"\"{k}\" {v}" for k,v in typedict.items()]
     part_1 = f""" CREATE TABLE {db_choice[db]}.{schema_choice[db]}.\"{name}\" \

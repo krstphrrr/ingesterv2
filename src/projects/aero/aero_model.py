@@ -12,8 +12,8 @@ from src.projects.aero.aero_table import fields_dict
 # engine_conn_string("aero")
 # df = template()
 # p = r"C:\Users\kbonefont\Desktop\aero_flux_2"
-# read_template(p, df)
-
+# tmp = read_template(p, df)
+# modelrunkey_extract(tmp)
 def engine_conn_string(string):
     d = db(string)
     return f'postgresql://{d.params["user"]}:{d.params["password"]}@{d.params["host"]}:{d.params["port"]}/{d.params["dbname"]}'
@@ -69,6 +69,8 @@ def update_model(path_in_batch,modelrunkey):
     if tablecheck("ModelRuns", "aero"):
         if modelrun_key_check(modelrunkey):
             print(f"modelrunkey exists, aborting 'ModelRuns' update with ModelRunKey = {modelrunkey}.")
+            print("continuing without update..")
+            pass
         else:
             update = read_template(path_in_batch,tempdf)
             # update['ModelRunKey'] = modelrunkey
@@ -125,7 +127,9 @@ def add_modelrunkey_to_pg():
         cur = con.cursor()
 
 
-
+def modelrunkey_extract(df):
+    if "ModelRunKey" in df.columns:
+        return df.ModelRunKey[0]
 
 
 #
