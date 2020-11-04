@@ -6,6 +6,7 @@ from src.utils.tools import Acc, Acc2
 import pyodbc
 # import locale
 # locale.setlocale(category=locale.LC_ALL,locale="C.UTF-8")
+
 import platform
 """
  replacing ap's gdb methods with pandas alternatives
@@ -111,11 +112,11 @@ class arcno():
                 cursor = conn.cursor()
                 qry = r"SELECT table_name FROM information_schema.tables WHERE table_name LIKE 'TBL%'"
                 cursor.execute(qry)
-                trick = [i[0] for i in cursor.fetchall()] 
-                self.tablelist = [self.correct[i] for i in trick if i in self.correct.keys()]  
-                
-                
-                
+                trick = [i[0] for i in cursor.fetchall()]
+                self.tablelist = [self.correct[i] for i in trick if i in self.correct.keys()]
+
+
+
         self.actual_list = {}
         for i in self.tablelist:
             if all!=True:
@@ -146,6 +147,7 @@ class arcno():
         ex.
         arc = arcno()
         arc.MakeTableView('table_name', 'dima_path')
+        
         """
         # self.in_table = in_table
         # self.whichdima = whichdima
@@ -287,9 +289,9 @@ class Table:
         self.path = path
         self.in_table = in_table
         con = Acc(self.path).con if platform.system()=='Windows' else Acc2(f"{self.path}").con
-        
+
         con.setencoding(encoding='utf-16le') if platform.system()=='Windows' else None
- 
+
         query = f'SELECT * FROM "{self.in_table}"' if platform.system()=='Windows' else f'SELECT * FROM {self.in_table}'
         self.temp = pd.read_sql(query,con)
 

@@ -55,7 +55,7 @@ def read_template(dir, maindf):
     return maindf
 
 
-def update_project(path_in_batch,projectkey):
+def update_project(path_in_batch,projectkey, database=None):
     """ ingests a project metadata file if project key does not exist.
 
     - would be better if it would automatically pull projectkey from
@@ -82,7 +82,7 @@ def update_project(path_in_batch,projectkey):
 
     # if no, create table and update pg
     else:
-        table_create(tempdf,"Projects","dima")
+        table_create(tempdf,"Projects",database)
         add_projectkey_to_pg()
         update = read_template(path_in_batch, tempdf)
         # tempdf = read_template(path_in_batch,tempdf)

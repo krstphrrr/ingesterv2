@@ -14,7 +14,7 @@ def main():
     pth = None
     fld = None
     tbl = None
-    dimadict = {i[0]:i[1] for i in  enumerate(os.listdir(os.path.join(os.getcwd(),"dimas"))) if '.mdb' in i[1]}
+    dimadict = {i[0]:i[1] for i in enumerate(os.listdir(os.path.join(os.getcwd(),"dimas"))) if '.mdb' in i[1]}
 
     while proj is None and pth is None and fld is None and tbl is None:
         proj = "dima"
@@ -55,7 +55,7 @@ def main():
                         print("ingest to development database? true or false")
                         dev_or_not = sys.stdin.readline()
                         batch_looper(batch_path, projkey,dev=False, pg=True) if 'false' in dev_or_not else batch_looper(batch_path, projkey,dev=True, pg=True)
-                        update_project(batch_path, projkey)
+                        update_project(batch_path, projkey, "dimadev") if "true" in dev_or_not else update_project(batch_path, projkey, "dima") 
                     else:
                         print("Please input a 'ProjectKey' for this ingestion")
                         continue
