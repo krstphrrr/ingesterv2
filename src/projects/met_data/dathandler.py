@@ -333,7 +333,12 @@ import time
 #
 # round(later-now,2)
 # round(time.time(), 2)
-def met_batcher(path):
+def met_batcher(path, whichdata=None):
+    type = {
+    "historic":".csv",
+
+    "current":".dat"
+    }
     df_dict = {}
     folderlist = os.listdir(path)
     count=1
@@ -342,27 +347,48 @@ def met_batcher(path):
     for i in folderlist:
         # print(i)
         for j in os.listdir(os.path.join(path,i)):
-            # print(os.path.join(path,i,j))
-            if os.path.splitext(os.path.join(path,i,j))[1]=='.dat' and ('Bellevue' not in path):
-                print(j)
-                startlocal = time.time()
-                local_path = os.path.join(path,i,j)
-                proj_key = i
-                ins = datReader(local_path)
-                tempdf = ins.getdf()
+            if "historic" in whichdata:
+                if os.path.splitext(os.path.join(path,i,j))[1]==type[whichdata]:
+                    print(j)
+                    startlocal = time.time()
+                    local_path = os.path.join(path,i,j)
+                    proj_key = i
+                    ins = datReader(local_path)
+                    tempdf = ins.getdf()
 
-                tempdf = second_round(tempdf)
-                tempdf = col_name_fix(tempdf)
-                tempdf = new_instrumentation(tempdf)
-                tempdf['ProjectKey'] = proj_key
-                # dat_updater(tempdf)
-                # tempdf = tempdf.loc[pd.isnull(tempdf.TIMESTAMP)!=True] if any(pd.isnull(tempdf.TIMESTAMP.unique())) else tempdf
+                    tempdf = second_round(tempdf)
+                    tempdf = col_name_fix(tempdf)
+                    tempdf = new_instrumentation(tempdf)
+                    tempdf['ProjectKey'] = proj_key
+                    # dat_updater(tempdf)
+                    # tempdf = tempdf.loc[pd.isnull(tempdf.TIMESTAMP)!=True] if any(pd.isnull(tempdf.TIMESTAMP.unique())) else tempdf
 
-                df_dict.update({f'df{count}':tempdf})
-                now = time.time()
-                elapsed = round(now - startlocal, 2)
-                print(f'time elapsed for {j} dataset: {elapsed}s')
-                count+=1
+                    df_dict.update({f'df{count}':tempdf})
+                    now = time.time()
+                    elapsed = round(now - startlocal, 2)
+                    print(f'time elapsed for {j} dataset: {elapsed}s')
+                    count+=1
+            elif "current" in whichdata:
+                if os.path.splitext(os.path.join(path,i,j))[1]==type[whichdata] and ('Bellevue' not in path):
+                    print(j)
+                    startlocal = time.time()
+                    local_path = os.path.join(path,i,j)
+                    proj_key = i
+                    ins = datReader(local_path)
+                    tempdf = ins.getdf()
+
+                    tempdf = second_round(tempdf)
+                    tempdf = col_name_fix(tempdf)
+                    tempdf = new_instrumentation(tempdf)
+                    tempdf['ProjectKey'] = proj_key
+                    # dat_updater(tempdf)
+                    # tempdf = tempdf.loc[pd.isnull(tempdf.TIMESTAMP)!=True] if any(pd.isnull(tempdf.TIMESTAMP.unique())) else tempdf
+
+                    df_dict.update({f'df{count}':tempdf})
+                    now = time.time()
+                    elapsed = round(now - startlocal, 2)
+                    print(f'time elapsed for {j} dataset: {elapsed}s')
+                    count+=1
 
     # return df_dict
     prefix = pd.concat([i[1] for i in df_dict.items()])
