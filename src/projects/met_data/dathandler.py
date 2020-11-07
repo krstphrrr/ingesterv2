@@ -243,9 +243,6 @@ def col_name_fix(df):
         if i in rep:
             df.rename(columns={f'{i}':'{0}'.format(i.replace(f"{i}",'Sensit_Tot'))}, inplace=True)
 
-
-
-
     return df
 
 def new_instrumentation(df):
@@ -319,6 +316,9 @@ def new_instrumentation(df):
 
         if 'TtlMeas_4m_Avg' not in i:
             df['TtlMeas_4m_Avg'] = np.nan
+
+        if 'BattV_Min' in i:
+            df.drop(['BattV_Min'], axis=1)
     return df
 
 def second_round(df):
@@ -327,6 +327,12 @@ def second_round(df):
             df.rename(columns={f'{i}':'{0}'.format(i.replace("/","_"))}, inplace=True)
     return df
 import time
+
+def remove_emptytimestamps(dataframe):
+    if "TIMESTAMP" in dataframe.columns:
+        dataframe = dataframe.loc[~pd.isnull(dataframe.TIMESTAMP)==True].copy()
+        dataframe = dataframe.reset_index(drop=True)
+    return dataframe
 # now = time.time()
 #
 # later = time.time()
@@ -359,6 +365,9 @@ def met_batcher(path, whichdata=None):
                     tempdf = second_round(tempdf)
                     tempdf = col_name_fix(tempdf)
                     tempdf = new_instrumentation(tempdf)
+                    tempdf = remove_emptytimestamps(tempdf)
+                    tempdf = type_fix(tempdf)
+
                     tempdf['ProjectKey'] = proj_key
                     # dat_updater(tempdf)
                     # tempdf = tempdf.loc[pd.isnull(tempdf.TIMESTAMP)!=True] if any(pd.isnull(tempdf.TIMESTAMP.unique())) else tempdf
@@ -380,7 +389,9 @@ def met_batcher(path, whichdata=None):
                     tempdf = second_round(tempdf)
                     tempdf = col_name_fix(tempdf)
                     tempdf = new_instrumentation(tempdf)
+                    tempdf = remove_emptytimestamps(tempdf)
                     tempdf['ProjectKey'] = proj_key
+
                     # dat_updater(tempdf)
                     # tempdf = tempdf.loc[pd.isnull(tempdf.TIMESTAMP)!=True] if any(pd.isnull(tempdf.TIMESTAMP.unique())) else tempdf
 
@@ -392,6 +403,7 @@ def met_batcher(path, whichdata=None):
 
     # return df_dict
     prefix = pd.concat([i[1] for i in df_dict.items()])
+    prefix = type_fix(prefix)
     prefix.TIMESTAMP = prefix.TIMESTAMP.astype("datetime64")
     # finaldf = type_fix(prefix)
     finalnow = time.time()
@@ -406,9 +418,20 @@ def met_batcher(path, whichdata=None):
     #     ingesterv2.main_ingest(finaldf,"met_data",d.str, 100000)
 
 def type_fix(df):
+    df = df.copy()
     for i in df.columns:
         if (df[i].dtype == "object") and ("ProjectKey" not in i) and ("TIMESTAMP" not in i):
             df[i] = df[i].astype(float)
+        if "RECORD" in i:
+            df.RECORD = df.RECORD.astype("int64")
+    return df
+
+def typefix_2(df):
+    skip = ["TIMESTAMP", "ProjectKey"]
+    df = df.copy()
+    for i in df.columns:
+        if i not in skip:
+            df[i] = df[i].astype('float64')
     return df
 
 def second_round(df):

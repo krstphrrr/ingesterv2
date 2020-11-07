@@ -127,7 +127,7 @@ def main_translate(tablename:str, dimapath:str, debug=None):
                 retdf = pd.merge(target_table, iso, how="inner", on=tableswitch[tablename])
                 if 'Header' in tablename:
                     retdf.drop_duplicates(["PrimaryKey", "RecKey"],ignore_index=True, inplace=True)
-                    retdf = retdf.loc[retdf.FormDate.astype("datetime64")==retdf.PrimaryKey.apply(lambda x: x[-10:]).astype("datetime64")].copy()
+                    retdf = retdf.loc[retdf.FormDate.astype("datetime64[ns]")==retdf.PrimaryKey.apply(lambda x: x[-10:]).astype("datetime64[ns]")].copy()
                 else:
                     retdf.drop_duplicates(ignore_index=True, inplace=True)
                 retdf = blank_fixer(retdf)
