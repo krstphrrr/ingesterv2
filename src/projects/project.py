@@ -77,7 +77,7 @@ def update_project(path_in_batch,projectkey, database=None):
             print("projectkey exists, aborting ingest")
         else:
             update = read_template(path_in_batch,tempdf)
-            update['projectKey'] = projectkey
+            update['project_key'] = projectkey
             send_proj(update)
 
     # if no, create table and update pg
@@ -86,7 +86,7 @@ def update_project(path_in_batch,projectkey, database=None):
         add_projectkey_to_pg()
         update = read_template(path_in_batch, tempdf)
         # tempdf = read_template(path_in_batch,tempdf)
-        update['projectKey'] = projectkey
+        update['project_key'] = projectkey
         send_proj(update)
 
 
@@ -100,7 +100,7 @@ def project_key_check(projectkey):
         select exists (
             select 1
             from "Projects"
-            where "projectKey" = %s
+            where "project_key" = %s
         )'''
         cur.execute (exists_query, (projectkey,))
         return cur.fetchone()[0]
@@ -115,7 +115,7 @@ def add_projectkey_to_pg():
     d = db("dima")
     add_query = '''
         ALTER TABLE IF EXISTS "Projects"
-        ADD COLUMN "projectKey" TEXT;
+        ADD COLUMN "project_key" TEXT;
         '''
     try:
         con = d.str

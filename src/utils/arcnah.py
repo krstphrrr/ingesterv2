@@ -4,10 +4,8 @@ from os.path import normpath, join
 # from methods.make_table import Table
 from src.utils.tools import Acc, Acc2
 import pyodbc
-# import locale
-# locale.setlocale(category=locale.LC_ALL,locale="C.UTF-8")
-
 import platform
+
 """
  replacing ap's gdb methods with pandas alternatives
  - if ap creates a temporary view in gdb, arcno creates dataframe within its
@@ -147,7 +145,7 @@ class arcno():
         ex.
         arc = arcno()
         arc.MakeTableView('table_name', 'dima_path')
-        
+
         """
         # self.in_table = in_table
         # self.whichdima = whichdima
