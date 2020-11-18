@@ -85,6 +85,8 @@ def new_tablename(df:pd.DataFrame):
             newtablename = 'tblDustDeposition'
             return newtablename
 
+
+
 def table_create(df: pd.DataFrame, tablename: str, conn:str=None):
     """
     pulls all fields from dataframe and constructs a postgres table schema;
@@ -142,7 +144,8 @@ possible_tables = {
     "tblPlots":"tblPlots",
     "tblLines":"tblLines",
     "tblSpecies":"tblSpecies",
-    "tblSpeciesGeneric":"tblSpeciesGeneric"
+    "tblSpeciesGeneric":"tblSpeciesGeneric",
+    "tblSites":"tblSites",
 }
 
 
