@@ -146,6 +146,7 @@ possible_tables = {
     "tblSpecies":"tblSpecies",
     "tblSpeciesGeneric":"tblSpeciesGeneric",
     "tblSites":"tblSites",
+    "Projects":"Projects"
 }
 
 

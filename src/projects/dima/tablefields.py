@@ -712,6 +712,22 @@ tablefields= {
     },
     "tblSoilStabHeader":{
     },
+    "Projects":{
+        'curator_PersonName':"text",
+        'curator_organization':"text",
+        'curator_email':"text",
+        'author_PersonName':"text",
+        'author_email':"text",
+        'author_orcid_id':"text",
+        'addit_contact_person':"text",
+        'addit_contact_email':"text",
+        'bibliographical_reference':"text",
+        'data_doi':"text",
+        'project_key':"text",
+        'project_name':"text",
+        'project_description':"text",
+        'project_website':"text"
+    }
 
 
 }

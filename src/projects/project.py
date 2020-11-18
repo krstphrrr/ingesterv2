@@ -8,6 +8,7 @@ from src.projects.tables.project_tables import fields_dict
 from src.projects.dima.tabletools import table_create, sql_command, tablecheck
 from src.utils.arcnah import arcno
 
+
 type_translate = {np.dtype('int64'):'int',
     'Int64':'int',
     np.dtype("object"):'text',
@@ -24,8 +25,15 @@ def engine_conn_string(string):
     d = db(string)
     return f'postgresql://{d.params["user"]}:{d.params["password"]}@{d.params["host"]}:{d.params["port"]}/{d.params["dbname"]}'
 
-def send_proj(df):
-    eng = create_engine(engine_conn_string("dima"))
+engine_conn_string("dimadev")
+
+def send_proj(df, conn):
+    schema={
+    "dimadev":"dimadev",
+    "dima":"Public"
+    }
+    eng = create_engine(engine_conn_string(conn),
+            connect_args={'options': '-csearch_path={}'.format(schema[conn])})
     df.to_sql(con=eng, name="Projects", if_exists="append", index=False)
 
 def template():
@@ -72,26 +80,28 @@ def update_project(path_in_batch,projectkey, database=None):
     tempdf = template()
 
     # check if table exists
-    if tablecheck("Projects", "dima"):
-        if project_key_check(projectkey):
-            print("projectkey exists, aborting ingest")
+    if tablecheck("Projects", database):
+        # print("the table exists")
+        if project_key_check(projectkey, database):
+            print("projectkey exists, aborting update to 'Projects' table")
         else:
             update = read_template(path_in_batch,tempdf)
             update['project_key'] = projectkey
-            send_proj(update)
+            send_proj(update, database)
 
     # if no, create table and update pg
     else:
+        # print("the table does not exist")
         table_create(tempdf,"Projects",database)
-        add_projectkey_to_pg()
+        add_projectkey_to_pg(database)
         update = read_template(path_in_batch, tempdf)
-        # tempdf = read_template(path_in_batch,tempdf)
         update['project_key'] = projectkey
-        send_proj(update)
+
+        send_proj(update, database)
 
 
-def project_key_check(projectkey):
-    d = db("dima")
+def project_key_check(projectkey, database):
+    d = db(database)
 
     try:
         con = d.str
@@ -111,22 +121,54 @@ def project_key_check(projectkey):
         cur = con.cursor()
 
 
-def add_projectkey_to_pg():
-    d = db("dima")
-    add_query = '''
-        ALTER TABLE IF EXISTS "Projects"
-        ADD COLUMN "project_key" TEXT;
-        '''
+def projkeyfield_existence(database):
+    d = db(database)
+    schema={
+    "dimadev":"dimadev",
+    "dima":"Public"
+    }
     try:
         con = d.str
         cur = con.cursor()
-        cur.execute(add_query)
-        con.commit()
+        exists_query = '''
+        select exists (
+            select 1
+            from information_schema.columns
+
+            where table_schema = %s
+            AND table_name = 'Projects'
+            AND column_name = 'project_key'
+        )'''
+        cur.execute (exists_query, (schema[database],))
+        return cur.fetchone()[0]
 
     except Exception as e:
         print(e)
         con = d.str
         cur = con.cursor()
+
+
+
+
+def add_projectkey_to_pg(database):
+    d = db(database)
+    add_query = '''
+        ALTER TABLE IF EXISTS "Projects"
+        ADD COLUMN "project_key" TEXT;
+        '''
+    if projkeyfield_existence(database):
+        pass
+    else:
+        try:
+            con = d.str
+            cur = con.cursor()
+            cur.execute(add_query)
+            con.commit()
+
+        except Exception as e:
+            print(e)
+            con = d.str
+            cur = con.cursor()
 
 
 
