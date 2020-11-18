@@ -4,6 +4,8 @@ from src.utils.arcnah import arcno
 import os
 from psycopg2 import sql
 import numpy as np
+from src.projects.dima.tablefields import tablefields
+
 
 def fix_fields(df : pd.DataFrame, keyword: str, debug=None):
     """ Checks for duplicate fields produced by primarykey joins
@@ -95,7 +97,11 @@ def table_create(df: pd.DataFrame, tablename: str, conn:str=None):
     try:
         for i in df.columns:
             if tablename!='aero_runs':
-                table_fields.update({f'{i}':f'{type_translate[df.dtypes[i].name]}'})
+                if ("dima" in conn) or ("dimadev" in conn):
+                    table_fields.update({f'{i}':f'{tablefields[possible_tables[tablename]][i]}'})
+                else:
+                    table_fields.update({f'{i}':f'{type_translate[df.dtypes[i].name]}'})
+                # table_fields.update({f'{i}':f'{tablefields[possible_tables[tablename]][i]}'})
             else:
                 table_fields.update({f'{i}':f'{aero_translate[df.dtypes[i].name]}'})
 
@@ -114,6 +120,32 @@ def table_create(df: pd.DataFrame, tablename: str, conn:str=None):
         d = db(f'{conn}')
         con = d.str
         cur = con.cursor()
+
+def table_fields(df, tablename):
+    table_fields = {}
+    for i in df.columns:
+        # table_fields.update({f'{i}':f'{type_translate[df.dtypes[i].name]}'})
+        table_fields.update({f'{i}':f'{tablefields[possible_tables[tablename]][i]}'})
+    return table_fields
+
+
+possible_tables = {
+    "tblBSNE_TrapCollection":"tblDustDeposition",
+    "tblBSNE_Box":"tblHorizontalFlux",
+    "tblHorizontalFlux":"tblHorizontalFlux",
+    "tblDustDeposition":"tblDustDeposition",
+    "tblGapDetail":"tblGapDetail",
+    "tblGapHeader":"tblGapHeader",
+    "tblLPIDetail":"tblLPIDetail",
+    "tblLPIHeader":"tblLPIHeader",
+    "tblLines":"tblLines",
+    "tblPlots":"tblPlots",
+    "tblLines":"tblLines",
+    "tblSpecies":"tblSpecies",
+    "tblSpeciesGeneric":"tblSpeciesGeneric"
+}
+
+
 
 def sql_command(typedict:{}, name:str, db:str=None):
     """
@@ -245,6 +277,15 @@ def datetime_type_assert(df):
     for i in df.columns:
         if df.dtypes[i]=="datetime64[ns]" or "date" in i.lower():
             df[i] = df[i].apply(lambda x: pd.NaT if x is None else x).astype("datetime64[ns]")
+    return df
+
+def dateloadedcheck(df):
+    df = df.copy()
+    for i in df.columns:
+        if "DateLoadedInDB" in i:
+            df.DateLoadedInDB = df.DateLoadedInDB.astype("datetime64[ns]")
+        else:
+            pass
     return df
 
 type_translate = {

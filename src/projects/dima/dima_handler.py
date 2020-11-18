@@ -11,7 +11,7 @@ import pandas as pd
 from src.projects.dima.handler import switcher, tableswitch
 from src.projects.dima.tabletools import fix_fields, new_tablename, table_create, \
 tablecheck, csv_fieldcheck, blank_fixer, significant_digits_fix_pandas, \
-float_field, openingsize_fixer, datetime_type_assert
+float_field, openingsize_fixer, datetime_type_assert, dateloadedcheck
 from src.projects.tall_tables.talltables_handler import ingesterv2
 
 
@@ -237,10 +237,12 @@ def batch_looper(dimacontainer, projkey=None, dev=False, pg=False):
                     newtablename = new_tablename(df)
                     if tablecheck(newtablename, keyword):
                         print('MWACK')
+                        df = dateloadedcheck(df)
                         ingesterv2.main_ingest(df, newtablename, d.str, 10000)
                     else:
                         table_create(df, newtablename, keyword)
                         print('llegue a 2')
+                        df = dateloadedcheck(df)
                         ingesterv2.main_ingest(df, newtablename, d.str, 10000)
 
                 else:
@@ -248,11 +250,13 @@ def batch_looper(dimacontainer, projkey=None, dev=False, pg=False):
                     newtablename = table
                     if tablecheck(table, keyword):
                         print("FOUND THE TABLE IN PG")
+                        df = dateloadedcheck(df)
                         ingesterv2.main_ingest(df, newtablename, d.str, 10000)
 
                     else:
                         print("DID NOT FIND TABLE IN PG, CREATING...")
                         table_create(df, table, keyword)
+                        df = dateloadedcheck(df)
                         ingesterv2.main_ingest(df, newtablename, d.str, 10000)
 
 # p = r"C:\Users\kbonefont\Documents\GitHub\ingesterv2\dimas"
@@ -298,6 +302,8 @@ def looper(path2mdbs, tablename, projk=None, csv=False):
     # return df_dictionary
     if len(df_dictionary)>0:
         final_df = pd.concat([j for i,j in df_dictionary.items()], ignore_index=True).drop_duplicates()
+        final_df = dateloadedcheck(final_df)
+
         if (tablename == 'tblPlots') and (projk is not None) :
             final_df["ProjectKey"] = projk
         if "tblLines" in tablename:

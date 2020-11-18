@@ -3,7 +3,6 @@ import pandas as pd
 from src.projects.dima.tabletools import fix_fields
 import platform
 
-
 def bsne_pk(dimapath):
     """
     returns a dataframe with tblplots, tblBSNE_Box, tblBSNE_Stack and
