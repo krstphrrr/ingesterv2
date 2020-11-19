@@ -13,7 +13,8 @@ def no_pk(tablefam:str=None,dimapath:str=None,tablename:str= None):
     fam = {
         'plantprod':['tblPlantProdDetail','tblPlantProdHeader'],
         'soilstab':['tblSoilStabDetail','tblSoilStabHeader'],
-        'soilpit':['tblSoilPits', 'tblSoilPitHorizons']
+        'soilpit':['tblSoilPits', 'tblSoilPitHorizons'],
+        'plantden':['tblPlantDenDetail','tblPlantDenHeader'],
         }
     try:
         if tablefam is not None and ('plantprod' in tablefam):
@@ -62,6 +63,23 @@ def no_pk(tablefam:str=None,dimapath:str=None,tablename:str= None):
             elif tablename=="tblSoilPitHorizons":
                 iso = arc.isolateFields(premerge,'HorizonKey', 'PrimaryKey').drop_duplicates().copy()
                 merge = pd.merge(horizons,iso,how="inner",on="HorizonKey")
+                return merge
+
+        elif tablefam is not None and ('plantden' in tablefam):
+            dendet = arcno.MakeTableView(fam['plantden'][0], dimapath)
+            denhead = arcno.MakeTableView(fam['plantden'][1], dimapath)
+            plantden = pd.merge(denhead,dendet, how="inner", on="RecKey")
+            allpks = lpi_pk(dimapath)
+            pks = allpks.loc[:,["PrimaryKey", "EstablishDate", "FormDate", "RecKey","LineKey"]].copy()
+            iso = arc.isolateFields(pks,'LineKey','PrimaryKey').copy()
+            premerge = pd.merge(plantden,iso,how="inner", on="LineKey").drop_duplicates().copy()
+            if tablename=="tblPlantDenHeader":
+                iso =  arc.isolateFields(premerge,'LineKey','PrimaryKey').copy()
+                merge = pd.merge(denhead,iso, how="inner", on="LineKey")
+                return merge
+            elif tablename=="tblPlantDenDetail":
+                iso =  arc.isolateFields(premerge,'RecKey','PrimaryKey').copy()
+                merge = pd.merge(dendet,iso, how="inner", on="RecKey")
                 return merge
 
         else:
