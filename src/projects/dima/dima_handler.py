@@ -41,14 +41,16 @@ def main_translate(tablename:str, dimapath:str, debug=None):
     soil_stab_primary_key = ['tblSoilStabDetail', 'tblSoilStabHeader']
     soil_pit_primary_key = ['tblSoilPits','tblSoilPitHorizons']
     plant_prod_primary_key = ['tblPlantProdDetail', 'tblPlantProdHeader']
+    plant_den_primary_key = ['tblPlantDenDetail', 'tblPlantDenHeader']
     bsne_primary_keys = ['tblBSNE_Box', 'tblBSNE_Stack','tblBSNE_BoxCollection',\
                          'tblBSNE_TrapCollection']
 
     switcher_arguments= {
         'no_pk': (None, dimapath, tablename),
-        'no_pk_soilstab': ('soilstab',dimapath, None),
-        'no_pk_soilpits': ('soilpits',dimapath, None),
-        'no_pk_plantprod': ('plantprod',dimapath, None),
+        'no_pk_soilstab': ('soilstab',dimapath, tablename),
+        'no_pk_soilpits': ('soilpits',dimapath, tablename),
+        'no_pk_plantprod': ('plantprod',dimapath, tablename),
+        'no_pk_plantden': ('plantden',dimapath,tablename),
         'yes_pk': dimapath,
         'f': ('fake', dimapath, tablename)
         }
@@ -103,6 +105,14 @@ def main_translate(tablename:str, dimapath:str, debug=None):
             # no_pk + plantprod branch
             print('no_pk; plantprod') if debug else None
             df = switcher[tablename](*switcher_arguments['no_pk_plantprod'])
+            df = blank_fixer(df)
+            df = significant_digits_fix_pandas(df)
+            return df
+
+        elif tablename in plant_den_primary_key:
+            # no_pk + plantprod branch
+            print('no_pk; plantden') if debug else None
+            df = switcher[tablename](*switcher_arguments['no_pk_plantden'])
             df = blank_fixer(df)
             df = significant_digits_fix_pandas(df)
             return df
