@@ -5,10 +5,6 @@ from src.projects.dima.tables.lpipk import lpi_pk
 from src.projects.dima.tables.bsnepk import bsne_pk
 import platform
 
-dimapath = r"C:\Users\kbonefont\Documents\GitHub\ingesterv2\dimas\CalibrationDIMA_Chocolate1.accdb"
-no_pk("soilstab", p, "tblSoilStabDetail")
-
-
 def no_pk(tablefam:str=None,dimapath:str=None,tablename:str= None):
     """
 
@@ -50,22 +46,23 @@ def no_pk(tablefam:str=None,dimapath:str=None,tablename:str= None):
 
 
         elif tablefam is not None and ('soilpit' in tablefam):
-            print("soilpit")
+            # print("soilpit")
             pits = arcno.MakeTableView(fam['soilpit'][0], dimapath)
             horizons = arcno.MakeTableView(fam['soilpit'][1], dimapath)
             merge = pd.merge(pits, horizons, how="inner", on="SoilKey")
 
             allpks = lpi_pk(dimapath)
-            iso = allpks.loc[:,["PrimaryKey", "EstablishDate", "FormDate", "DateModified"]].copy()
-            merge['FormDate2'] = pd.to_datetime(merge.DateRecorded.apply(lambda x: pd.Timestamp(x).date()))
-
-            mergepk = date_column_chooser(merge,iso) if "tetonAIM" not in dimapath else pd.merge(merge, iso, how="left", left_on="FormDate2", right_on="FormDate").drop_duplicates('HorizonKey')
-            if "DateModified2" in mergepk.columns:
-                mergepk.drop(['EstablishDate',"FormDate",'FormDate2',"DateModified2"], axis=1, inplace=True)
-            else:
-                mergepk.drop(['EstablishDate',"FormDate",'FormDate2'], axis=1, inplace=True)
-
-            return mergepk
+            pks = allpks.loc[:,["PrimaryKey", "EstablishDate", "FormDate", "DateModified", "PlotKey"]].copy()
+            iso = arc.isolateFields(pks,'PlotKey','PrimaryKey').copy()
+            premerge = pd.merge(pits_horizons,iso,how="inner", on="PlotKey").drop_duplicates().copy()
+            if tablename=="tblSoilPits":
+                iso = arc.isolateFields(premerge, 'PlotKey', 'PrimaryKey').drop_duplicates().copy()
+                merge = pd.merge(pits,iso,how="inner",on="PlotKey")
+                return merge
+            elif tablename=="tblSoilPitHorizons":
+                iso = arc.isolateFields(premerge,'HorizonKey', 'PrimaryKey').drop_duplicates().copy()
+                merge = pd.merge(horizons,iso,how="inner",on="HorizonKey")
+                return merge
 
         else:
             no_pk_df = arcno.MakeTableView(tablename, dimapath)
