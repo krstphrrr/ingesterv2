@@ -4,6 +4,11 @@ import numpy as np
 from src.projects.dima.tables.lpipk import lpi_pk
 from src.projects.dima.tables.bsnepk import bsne_pk
 import platform
+
+dimapath = r"C:\Users\kbonefont\Documents\GitHub\ingesterv2\dimas\CalibrationDIMA_Chocolate1.accdb"
+no_pk("soilstab", p, "tblSoilStabDetail")
+
+
 def no_pk(tablefam:str=None,dimapath:str=None,tablename:str= None):
     """
 
@@ -32,7 +37,17 @@ def no_pk(tablefam:str=None,dimapath:str=None,tablename:str= None):
             head_det = pd.merge(header,detail,how="inner", on="RecKey")
             head_det.FormDate = pd.to_datetime(head_det.FormDate) if platform.system()=='Linux' else head_det.FormDate
             head_det = arc.CalculateField(head_det,"PrimaryKey","PlotKey","FormDate")
-            return head_det
+            if tablename=="tblSoilStabHeader":
+
+                iso = arc.isolateFields(head_det,'PlotKey','PrimaryKey').copy()
+                merge = pd.merge(header, iso, how="inner", on="PlotKey").drop_duplicates()
+                return merge
+            elif tablename=="tblSoilStabDetail":
+
+                iso = arc.isolateFields(head_det,'RecKey','PrimaryKey').copy()
+                merge = pd.merge(detail, iso, how="inner", on="RecKey").drop_duplicates(subset=["BoxNum"])
+                return merge
+
 
         elif tablefam is not None and ('soilpit' in tablefam):
             print("soilpit")
@@ -104,7 +119,7 @@ def no_pk(tablefam:str=None,dimapath:str=None,tablename:str= None):
         print(e)
 
 def date_column_chooser(df,iso):
-    
+
     if "FormDate" in df.columns:
         df.FormDate = pd.to_datetime(df.FormDate)
     if "FormDate2" in df.columns:
