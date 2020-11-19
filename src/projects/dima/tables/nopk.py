@@ -51,7 +51,7 @@ def no_pk(tablefam:str=None,dimapath:str=None,tablename:str= None):
             # print("soilpit")
             pits = arcno.MakeTableView(fam['soilpit'][0], dimapath)
             horizons = arcno.MakeTableView(fam['soilpit'][1], dimapath)
-            merge = pd.merge(pits, horizons, how="inner", on="SoilKey")
+            pits_horizons = pd.merge(pits, horizons, how="inner", on="SoilKey")
 
             if 'tblLPIDetail' in ins.actual_list:
                 allpks = lpi_pk(dimapath)
