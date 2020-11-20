@@ -142,11 +142,18 @@ possible_tables = {
     "tblLPIHeader":"tblLPIHeader",
     "tblLines":"tblLines",
     "tblPlots":"tblPlots",
-    "tblLines":"tblLines",
     "tblSpecies":"tblSpecies",
     "tblSpeciesGeneric":"tblSpeciesGeneric",
     "tblSites":"tblSites",
-    "Projects":"Projects"
+    "Projects":"Projects",
+    "tblSoilPits":"tblSoilPits",
+    "tblSoilPitHorizons":"tblSoilPitHorizons",
+    "tblSoilStabDetail":"tblSoilStabDetail",
+    "tblSoilStabHeader":"tblSoilStabHeader",
+    "tblPlantDenDetail":"tblPlantDenDetail",
+    "tblPlantDenHeader":"tblPlantDenHeader",
+    "tblPlantProdDetail":"tblPlantProdDetail",
+    "tblPlantProdHeader":"tblPlantProdHeader",
 }
 
 

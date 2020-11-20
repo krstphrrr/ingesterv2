@@ -24,9 +24,16 @@ def no_pk(tablefam:str=None,dimapath:str=None,tablename:str= None):
             detail = arcno.MakeTableView(fam['plantprod'][0],dimapath)
             head_det = pd.merge(header,detail,how="inner", on="RecKey")
             head_det.FormDate = pd.to_datetime(head_det.FormDate) if platform.system()=='Linux' else head_det.FormDate
-
             head_det = arc.CalculateField(head_det,"PrimaryKey","PlotKey","FormDate")
-            return head_det
+
+            if tablename=="tblPlantProdHeader":
+                iso =  arc.isolateFields(head_det,'PlotKey','PrimaryKey').copy()
+                merge = pd.merge(header,iso, how="inner", on="PlotKey")
+                return merge
+            elif tablename=="tblPlantProdDetail":
+                iso =  arc.isolateFields(head_det,'RecKey','PrimaryKey').copy()
+                merge = pd.merge(detail,iso, how="inner", on="RecKey")
+                return merge
 
 
         elif tablefam is not None and ('soilstab' in tablefam):
@@ -51,6 +58,7 @@ def no_pk(tablefam:str=None,dimapath:str=None,tablename:str= None):
             # print("soilpit")
             pits = arcno.MakeTableView(fam['soilpit'][0], dimapath)
             horizons = arcno.MakeTableView(fam['soilpit'][1], dimapath)
+
             pits_horizons = pd.merge(pits, horizons, how="inner", on="SoilKey")
 
             if 'tblLPIDetail' in ins.actual_list:
@@ -78,49 +86,14 @@ def no_pk(tablefam:str=None,dimapath:str=None,tablename:str= None):
             denhead = arcno.MakeTableView(fam['plantden'][1], dimapath)
             plantden = pd.merge(denhead,dendet, how="inner", on="RecKey")
 
-            if 'tblLPIDetail' in ins.actual_list:
-                allpks = lpi_pk(dimapath)
-            elif 'tblGapDetail' in ins.actual_list:
-                allpks = gap_pk(dimapath)
-            else:
-                print("a difficult one! no source of easy source of PK's in this dima!")
-                # where to pull them from will depend on which table needs em, and
-                # what that table has in terms of fields (plotkey, reckey, linekey etc.)
-            pks = allpks.loc[:,["PrimaryKey", "EstablishDate", "FormDate", "RecKey","LineKey"]].copy()
-            iso = arc.isolateFields(pks,'LineKey','PrimaryKey').copy()
-            premerge = pd.merge(plantden,iso,how="inner", on="LineKey").drop_duplicates().copy()
+            plantden = arc.CalculateField(plantden,"PrimaryKey","LineKey","FormDate")
             if tablename=="tblPlantDenHeader":
-                iso =  arc.isolateFields(premerge,'LineKey','PrimaryKey').copy()
+                iso =  arc.isolateFields(plantden,'LineKey','PrimaryKey').copy()
                 merge = pd.merge(denhead,iso, how="inner", on="LineKey")
                 return merge
             elif tablename=="tblPlantDenDetail":
-                iso =  arc.isolateFields(premerge,'RecKey','PrimaryKey').copy()
+                iso =  arc.isolateFields(plantden,'RecKey','PrimaryKey').copy()
                 merge = pd.merge(dendet,iso, how="inner", on="RecKey")
-                return merge
-
-        elif tablefam is not None and ('plantprod' in tablefam):
-            prodhead  = arcno.MakeTableView(fam['plantprod'][1], dimapath)
-            proddet = arcno.MakeTableView(fam['plantprod'][0], dimapath)
-            plantprod = pd.merge(prodhead,proddet, how="inner", on="RecKey")
-
-            if 'tblLPIDetail' in ins.actual_list:
-                allpks = lpi_pk(dimapath)
-            elif 'tblGapDetail' in ins.actual_list:
-                allpks = gap_pk(dimapath)
-            else:
-                print("a difficult one! no source of easy source of PK's in this dima!")
-                # where to pull them from will depend on which table needs em, and
-                # what that table has in terms of fields (plotkey, reckey, linekey etc.)
-            pks = allpks.loc[:,["PrimaryKey", "EstablishDate", "FormDate","PlotKey"]].copy()
-            iso = arc.isolateFields(pks,'PlotKey','PrimaryKey').copy()
-            premerge = pd.merge(plantprod,iso,how="inner", on="PlotKey").drop_duplicates().copy()
-            if tablename=="tblPlantProdHeader":
-                iso =  arc.isolateFields(premerge,'PlotKey','PrimaryKey').copy()
-                merge = pd.merge(prodhead,iso, how="inner", on="PlotKey")
-                return merge
-            elif tablename=="tblPlantProdDetail":
-                iso =  arc.isolateFields(premerge,'RecKey','PrimaryKey').copy()
-                merge = pd.merge(proddet,iso, how="inner", on="RecKey")
                 return merge
 
         else:
