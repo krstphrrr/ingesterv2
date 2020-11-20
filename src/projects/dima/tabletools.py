@@ -154,6 +154,9 @@ possible_tables = {
     "tblPlantDenHeader":"tblPlantDenHeader",
     "tblPlantProdDetail":"tblPlantProdDetail",
     "tblPlantProdHeader":"tblPlantProdHeader",
+    "tblSpecRichHeader":"tblSpecRichHeader",
+    "tblSpecRichDetail":"tblSpecRichDetail",
+    "tblPlotNotes":"tblPlotNotes"
 }
 
 

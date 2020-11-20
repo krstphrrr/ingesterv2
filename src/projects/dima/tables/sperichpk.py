@@ -2,7 +2,8 @@ from src.utils.arcnah import arcno
 import pandas as pd
 from src.projects.dima.tabletools import fix_fields
 import platform
-def sperich_pk(dimapath):
+
+def sperich_pk(dimapath, tablename):
     """
     returns a dataframe with tblplots, tbllines, tblsperichheader and tblsperichDetail
     joined. PrimaryKey field is made using formdate and plotkey
@@ -17,11 +18,13 @@ def sperich_pk(dimapath):
     plot_line = pd.merge(plots, lines, how="inner", on="PlotKey")
     spehead_detail = pd.merge(spe_header, spe_detail, how="inner", on="RecKey")
     plot_line_det = pd.merge(plot_line, spehead_detail, how="inner", on="LineKey")
-    # tmp1 = fix_fields(plot_line_det,"DateModified")
-    # tmp2 = fix_fields(tmp1,"ElevationType")
-    # tmp3 = fix_fields(tmp2, "SpeciesList")
     plot_line_det.FormDate = pd.to_datetime(plot_line_det.FormDate) if platform.system()=='Linux' else plot_line_det.FormDate
-
     plot_pk = arc.CalculateField(plot_line_det, "PrimaryKey", "PlotKey", "FormDate")
-
-    return plot_pk
+    if tablename=="tblSpecRichHeader":
+        iso = arc.isolateFields(plot_pk, "LineKey","PrimaryKey")
+        merge = pd.merge(spe_header,iso, how="inner", on="LineKey")
+        return merge
+    elif tablename=="tblSpecRichDetail":
+        iso = arc.isolateFields(plot_pk, "RecKey","PrimaryKey")
+        merge = pd.merge(spe_detail,iso, how="inner", on="RecKey")
+        return merge

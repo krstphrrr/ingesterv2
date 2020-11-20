@@ -43,6 +43,7 @@ def main_translate(tablename:str, dimapath:str, debug=None):
     plant_den_primary_key = ['tblPlantDenDetail', 'tblPlantDenHeader']
     bsne_primary_keys = ['tblBSNE_Box', 'tblBSNE_Stack','tblBSNE_BoxCollection',\
                          'tblBSNE_TrapCollection']
+    sperich_primary_keys = ["tblSpecRichHeader", "tblSpecRichDetail"]
 
     switcher_arguments= {
         'no_pk': (None, dimapath, tablename),
@@ -51,6 +52,7 @@ def main_translate(tablename:str, dimapath:str, debug=None):
         'no_pk_plantprod': ('plantprod',dimapath, tablename),
         'no_pk_plantden': ('plantden',dimapath,tablename),
         'yes_pk': dimapath,
+        'spe_rich_pk':(dimapath,tablename),
         'f': ('fake', dimapath, tablename)
         }
     # first check if tablename exists in the particular dima
@@ -116,6 +118,12 @@ def main_translate(tablename:str, dimapath:str, debug=None):
             df = significant_digits_fix_pandas(df)
             return df
 
+        elif tablename in sperich_primary_keys:
+            retdf = switcher[tablename](*switcher_arguments['spe_rich_pk'])
+            retdf = blank_fixer(retdf)
+            retdf = significant_digits_fix_pandas(retdf)
+            return retdf
+
         else:
             # lpi_pk, gap_pk, sperich_pk, plantden_pk, bsne_pk branch
             if tablename in bsne_primary_keys:
@@ -125,6 +133,7 @@ def main_translate(tablename:str, dimapath:str, debug=None):
                 retdf = significant_digits_fix_pandas(retdf)
                 retdf = openingsize_fixer(retdf)
                 return retdf
+
             else:
                 print('hmmm?') if debug else None
                 df = switcher[tablename](switcher_arguments['yes_pk'])
