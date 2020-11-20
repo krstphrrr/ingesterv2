@@ -131,7 +131,7 @@ def main_translate(tablename:str, dimapath:str, debug=None):
                 retdf = switcher[tablename](switcher_arguments['yes_pk'])
                 retdf = blank_fixer(retdf)
                 retdf = significant_digits_fix_pandas(retdf)
-                retdf = openingsize_fixer(retdf)
+                # retdf = openingsize_fixer(retdf)
                 return retdf
 
             else:
@@ -150,7 +150,7 @@ def main_translate(tablename:str, dimapath:str, debug=None):
                     retdf.drop_duplicates(ignore_index=True, inplace=True)
                 retdf = blank_fixer(retdf)
                 retdf = significant_digits_fix_pandas(retdf)
-                retdf = openingsize_fixer(retdf)
+                # retdf = openingsize_fixer(retdf)
                 return retdf
     else:
 
@@ -401,7 +401,7 @@ def single_pg_send(df, tablename):
     df = blank_fixer(df)
     df = significant_digits_fix_pandas(df)
     df = datetime_type_assert(df)
-    df = openingsize_fixer(df) if "openingSize" in df.columns else df
+    # df = openingsize_fixer(df) if "openingSize" in df.columns else df
     if 'ItemType' in df.columns:
         newtablename = new_tablename(df)
         if tablecheck(newtablename):
