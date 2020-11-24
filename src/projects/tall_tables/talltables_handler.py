@@ -12,9 +12,9 @@ from sqlalchemy import *
 from src.utils.tools import db
 from sqlalchemy import TEXT, INTEGER, NUMERIC, VARCHAR, DATE
 from pandas import read_sql_query
-#from geoalchemy2 import Geometry, WKTElement, WKBElement
-#from shapely.geometry import Point
-#import geopandas as gpd
+from geoalchemy2 import Geometry, WKTElement, WKBElement
+from shapely.geometry import Point
+import geopandas as gpd
 
 from src.projects.tall_tables.models.header import dataHeader
 
