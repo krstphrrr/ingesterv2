@@ -11,4 +11,4 @@ geopandas
 geoalchemy == 0.7.2
 geoalchemy2 == 0.6.3
 Shapely == 1.7.0
-xlrd
+xlrd == 1.2.0
