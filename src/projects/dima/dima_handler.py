@@ -11,7 +11,9 @@ import pandas as pd
 from src.projects.dima.handler import switcher, tableswitch
 from src.projects.dima.tabletools import fix_fields, new_tablename, table_create, \
 tablecheck, csv_fieldcheck, blank_fixer, significant_digits_fix_pandas, \
-float_field, openingsize_fixer, datetime_type_assert, dateloadedcheck
+float_field, openingsize_fixer, datetime_type_assert, dateloadedcheck, alt_gapheader_check, \
+northing_round
+
 from src.projects.tall_tables.talltables_handler import ingesterv2
 
 def main_translate(tablename:str, dimapath:str, debug=None):
@@ -267,12 +269,14 @@ def batch_looper(dimacontainer, projkey=None, dev=False, pg=False):
                     print("NOT A HORFLUX TABLE")
                     newtablename = table
                     if tablecheck(table, keyword):
-                        print("FOUND THE TABLE IN PG")
+                        print(f"FOUND THE {newtablename} IN PG")
+
                         df = dateloadedcheck(df)
                         ingesterv2.main_ingest(df, newtablename, d.str, 10000)
 
                     else:
-                        print("DID NOT FIND TABLE IN PG, CREATING...")
+                        print(f"DID NOT FIND {newtablename} IN PG, CREATING...")
+
                         table_create(df, table, keyword)
                         df = dateloadedcheck(df)
                         ingesterv2.main_ingest(df, newtablename, d.str, 10000)
@@ -303,6 +307,10 @@ def looper(path2mdbs, tablename, projk=None, csv=False):
             # df creation/manipulation starts here
             print(i)
             df = main_translate(tablename,os.path.join(containing_folder,i))
+            # if its gapheader, this deals with different versions (the fun alt_gapheader_check)
+            if "tblGapHeader" in tablename:
+                df = alt_gapheader_check(df)
+
             if df is not None:
                 if 'DateLoadedInDB' in df.columns:
                     df['DateLoadedInDB']=df['DateLoadedInDB'].astype('datetime64')
@@ -321,6 +329,7 @@ def looper(path2mdbs, tablename, projk=None, csv=False):
     if len(df_dictionary)>0:
         final_df = pd.concat([j for i,j in df_dictionary.items()], ignore_index=True).drop_duplicates()
         final_df = dateloadedcheck(final_df)
+        final_df = northing_round(final_df)
 
         if (tablename == 'tblPlots') and (projk is not None) :
             final_df["ProjectKey"] = projk
@@ -328,6 +337,7 @@ def looper(path2mdbs, tablename, projk=None, csv=False):
             for i in final_df.columns:
                 if "PrimaryKey" in i:
                     final_df[i] = final_df[i].astype("object")
+
 
         return final_df if csv==False else final_df.to_csv(os.path.join(containing_folder,tablename+'.csv'))
     else:

@@ -96,6 +96,7 @@ def table_create(df: pd.DataFrame, tablename: str, conn:str=None):
     table_fields = {}
 
 
+
     try:
         for i in df.columns:
             if tablename!='aero_runs':
@@ -122,6 +123,26 @@ def table_create(df: pd.DataFrame, tablename: str, conn:str=None):
         d = db(f'{conn}')
         con = d.str
         cur = con.cursor()
+
+def alt_gapheader_check(dataframe):
+    for i in dataframe.columns:
+        if "PerennialsCanopy" in i:
+            return dataframe
+        elif "Perennials" in i:
+            df = dataframe.copy()
+            df.rename(columns={
+                "Perennials":"PerennialsCanopy",
+                "AnnualGrasses":"AnnualGrassesCanopy",
+                "AnnualForbs":"AnnualForbsCanopy",
+                "Other":"OtherCanopy"},
+                inplace=True)
+            df["PerennialsBasal"] = None
+            df["AnnualGrassesBasal"] = None
+            df["AnnualForbsBasal"] = None
+            df["OtherBasal"] = None
+
+            return df
+
 
 def table_fields(df, tablename):
     table_fields = {}
@@ -277,6 +298,14 @@ def significant_digits_fix_pandas(df):
         if i in colist:
             df[i] = df[i].apply(lambda x: round(x,4))
     return df
+
+def northing_round(dataframe):
+    df = dataframe.copy()
+    for i in df.columns:
+        if "Northing" in i:
+            df[i] = df[i].apply(lambda x: round(x,6))
+    return df
+
 
 
 def float_field(df, field):
