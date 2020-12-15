@@ -20,12 +20,19 @@ type_translate = {np.dtype('int64'):'int',
 """
 pulling db.str
 configparser to create connection string for sqlalchemy engine
+
+1. template() - creates an empty dataframe with the fields in "fields_dict"
+2. read_template(directory_with_xls, dataframe) - reads the excel into template!
+3. update_project(directory, project_key, public_or_dev_db)- sends to postgres!
+
 """
+
+
 def engine_conn_string(string):
     d = db(string)
     return f'postgresql://{d.params["user"]}:{d.params["password"]}@{d.params["host"]}:{d.params["port"]}/{d.params["dbname"]}'
 
-engine_conn_string("dimadev")
+# engine_conn_string("dimadev")
 
 def send_proj(df, conn):
     schema={

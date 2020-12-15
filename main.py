@@ -55,7 +55,7 @@ def main():
                         print("ingest to development database? true or false")
                         dev_or_not = sys.stdin.readline()
                         batch_looper(batch_path, projkey,dev=False, pg=True) if 'false' in dev_or_not else batch_looper(batch_path, projkey,dev=True, pg=True)
-                        update_project(batch_path, projkey, "dimadev") if "true" in dev_or_not else update_project(batch_path, projkey, "dima") 
+                        update_project(batch_path, projkey, "dimadev") if "true" in dev_or_not else update_project(batch_path, projkey, "dima")
                     else:
                         print("Please input a 'ProjectKey' for this ingestion")
                         continue

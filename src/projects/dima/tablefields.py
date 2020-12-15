@@ -104,10 +104,10 @@ tablefields= {
         "LineLengthAmount":"real",
         "GapMin":"float(5)",
         "GapData":"varchar(5)",
-        "PerennialsCanopy":"boolean",
-        "AnnualGrassesCanopy":"boolean",
-        "AnnualForbsCanopy":"boolean",
-        "OtherCanopy":"boolean",
+        "Perennials":"boolean",
+        "AnnualGrasses":"boolean",
+        "AnnualForbs":"boolean",
+        "Other":"boolean",
         "sumCanCat1":"float(5)",
         "sumCanCat2":"float(5)",
         "sumCanCat3":"float(5)",
@@ -410,7 +410,8 @@ tablefields= {
          'Northing3':"numeric(6)",
          'PrimaryKey':"text",
          'DateLoadedInDB':"timestamp",
-         'DBKey':"text"
+         'DBKey':"text",
+         'ProjectKey':"text"
     },
     "tblSites":{
          'SiteKey':"varchar(20)",
@@ -491,7 +492,7 @@ tablefields= {
          'HFVxW':"real",
          'BIWt':"real",
          'BIVxW':"real",
-         'Comment':"varchar(25)",
+         'Comment':"text",
          'PrimaryKey':"text",
          'DateLoadedInDB':"timestamp",
          'DBKey':"text"
