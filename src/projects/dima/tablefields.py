@@ -556,7 +556,7 @@ tablefields= {
          'ColorDry':"text",
          'ColorMoist':"text",
          'DepthMeasure':"varchar(50)",
-         'Northing':"numeric(6,6)",
+         'Northing':"numeric(7,6)",
          'Easting':"float(5)",
          'Elevation':"float(5)",
          'ElevationType':"float(5)",
