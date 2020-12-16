@@ -329,7 +329,7 @@ def looper(path2mdbs, tablename, projk=None, csv=False):
     if len(df_dictionary)>0:
         final_df = pd.concat([j for i,j in df_dictionary.items()], ignore_index=True).drop_duplicates()
         final_df = dateloadedcheck(final_df)
-        final_df = northing_round(final_df)
+        # final_df = northing_round(final_df)
 
         if (tablename == 'tblPlots') and (projk is not None) :
             final_df["ProjectKey"] = projk
