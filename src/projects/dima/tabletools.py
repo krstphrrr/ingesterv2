@@ -136,10 +136,10 @@ def alt_gapheader_check(dataframe):
                 "AnnualForbs":"AnnualForbsCanopy",
                 "Other":"OtherCanopy"},
                 inplace=True)
-            df["PerennialsBasal"] = None
-            df["AnnualGrassesBasal"] = None
-            df["AnnualForbsBasal"] = None
-            df["OtherBasal"] = None
+            df["PerennialsBasal"] = pd.NA
+            df["AnnualGrassesBasal"] = pd.NA
+            df["AnnualForbsBasal"] = pd.NA
+            df["OtherBasal"] = pd.NA
 
             return df
 
