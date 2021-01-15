@@ -301,15 +301,20 @@ def looper(path2mdbs, tablename, projk=None, csv=False):
 
     count = 1
     basestring = 'file_'
+
     for i in contained_files:
         if os.path.splitext(os.path.join(containing_folder,i))[1]=='.mdb' or os.path.splitext(os.path.join(containing_folder,i))[1]=='.accdb':
             countup = basestring+str(count)
             # df creation/manipulation starts here
+            arc = arcno(os.path.join(containing_folder,i))
             print(i)
             df = main_translate(tablename,os.path.join(containing_folder,i))
             # if its gapheader, this deals with different versions (the fun alt_gapheader_check)
             if "tblGapHeader" in tablename:
-                df = alt_gapheader_check(df)
+                if tablename in arc.actual_list:
+                    df = alt_gapheader_check(df)
+                else:
+                    df = None
 
             if df is not None:
                 if 'DateLoadedInDB' in df.columns:
