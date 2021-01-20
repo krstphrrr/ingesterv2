@@ -33,7 +33,7 @@ dataGap = {
     "GapStart" : "float",
     "GapEnd" : "float",
     "Gap" : "float",
-    "source" : "text",
+    "ProjectKey" : "text",
     "STATE" : "text",
     "PLOTKEY" : "text"
 }

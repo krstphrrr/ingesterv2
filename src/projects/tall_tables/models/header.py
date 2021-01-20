@@ -13,7 +13,7 @@ dataHeader = {
     "DateEstablished": "date",
     "DateLoadedInDb": "date",
     "ProjectName": "text",
-    "source": "text",
+    "ProjectKey": "text",
     "LocationType": "v_20",
     "DateVisited": "date",
     "ELEVATION": "float",

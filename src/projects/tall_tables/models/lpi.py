@@ -26,7 +26,7 @@ dataLPI = {
     "layer" : "text",
     "code" : "text",
     "chckbox" : "integer",
-    "source" : "text",
+    "ProjectKey" : "text",
     "STATE" : "v_50",
     "DateLoadedInDb": "text",
     "SAGEBRUSH_SPP": "text",

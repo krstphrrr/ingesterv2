@@ -159,6 +159,8 @@ class model_handler:
 
     def check(self, df):
         """ fieldtype check """
+        df = rename_source(df)
+
         for i in df.columns:
             # print(i)
             if df[i].dtype!=self.pandas_dtypes[i]:
@@ -199,6 +201,14 @@ class model_handler:
             cur = conn.cursor()
             print(e)
 
+def rename_source(dataframe):
+    df = dataframe.copy()
+    for i in df.columns:
+        if i=='source':
+            df.rename(columns={f"{i}":"ProjectKey"}, inplace=True)
+    return df
+
+
 class ingesterv2:
 
     con = None
@@ -223,6 +233,7 @@ class ingesterv2:
         return var
 
     def pull_tablenames(self):
+
         if self.__tablenames is not None:
             if self.con is not None:
 
@@ -242,7 +253,7 @@ class ingesterv2:
                             str(table)).group(1))
                 except Exception as e:
                     print(e)
-                    self.con = db.str
+                    self.con = self.con
                     self.cursor = self.con.cursor
             else:
                 print("connection object not initialized")
@@ -429,7 +440,7 @@ def protocol_typecast( protocol_choice : str, type : str):
     geom = {
         'sqlalchemy' : Geometry('POINT', srid=4326),
         'pandas' : 'object',
-        'pg' : 'GEOMETRY(POINT, 4326)'
+        'pg' : 'postgis.GEOMETRY(POINT, 4326)'
     }
 
 
@@ -529,3 +540,31 @@ def sql_command(typedict, name):
     finally:
         part_1+=");"
         return part_1
+# debugginh
+# import missing pks
+def tall_ingest(csv_path, table):
+    d = db('geo')
+    model_choice = {
+        "dataheader":[dataHeader,'dataHeader'],
+        "datagap":[dataGap,'dataGap'],
+        "datalpi":[dataLPI,'dataLPI'],
+        "dataheight":[dataHeight,'dataHeight'],
+        "datasoilstability":[dataSoilStability, 'dataSoilStability'],
+        "dataspeciesinventory":[dataSpeciesInventory,'dataSpeciesInventory'],
+        "geoindicators":[geoindicators,'geoIndicators'],
+        "geospecies":[geoSpecies,'geoSpecies']
+    }
+    m = model_handler(csv_path, model_choice[table][0], model_choice[table][1])
+    sans_null = m.checked_df.loc[~pd.isnull(m.checked_df.PrimaryKey)==True].copy()
+
+    m.create_empty_table(d.str)
+    ing = ingesterv2(d.str)
+
+    ingesterv2.main_ingest(sans_null, model_choice[table][1], d.str, 100000)
+
+    if model_choice[table][1] in [i for i in missing_pks]:
+        for i in missing_pks[model_choice[table][1]]:
+            ing.drop_rows(d.str, model_choice[table][1], "PrimaryKey", i)
+
+    if "header" not in table:
+        ing.reestablish_fk( model_choice[table][1])

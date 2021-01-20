@@ -52,7 +52,7 @@ dataSpeciesInventory = {
     "last_edited_date":"date",
     "GlobalID":"text",
     "Species" : "text",
-    "source" : "text",
+    "ProjectKey" : "text",
     "SpeciesCount" : "v_100",
     "DENSITY" : "float",
     "PLOTKEY" : "text"

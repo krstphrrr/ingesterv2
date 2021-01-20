@@ -27,7 +27,7 @@ dataHeight = {
     "HeightUOM" : "text",
     "ShowCheckbox" : "float",
     "CheckboxLabel" : "text",
-    "source" : "text",
+    "ProjectKey" : "text",
     "UOM" : "text",
     "DateLoadedInDb": "date"
     }

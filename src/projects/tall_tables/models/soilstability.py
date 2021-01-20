@@ -21,5 +21,5 @@ dataSoilStability = {
     "Veg" : "text",
     "Rating" : "float",
     "Hydro" : "float",
-    "source" : "text"
+    "ProjectKey" : "text"
 }
