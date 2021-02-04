@@ -97,3 +97,13 @@ missing_pks = {
     "geoindicators":['NML00000_Calibration_NMCalibration2019-09-01',
                      'NML00000_Calibration_NMCalibration2019-09-01']
 }
+fields_to_drop = {
+    "dataheader":["ELEVATION", "ProjectKey"],
+    "datagap":["DataEntry","DataErrorChecking", "Observer", "PLOTKEY", "ProjectKey", "Recorder", "STATE"],
+    "dataheight":["DataEntry","DataErrorChecking", "Observer","ProjectKey","Recorder","UOM"],
+    "datalpi":["DataEntry","DataErrorChecking", "GrowthHabit_measured","HeightOption","HeightUOM","Observer","PLOTKEY","ProjectKey","Recorder","SAGEBRUSH_SPP","STATE"],
+    "datasoilstability":["DataEntry","DataErrorChecking","Observer","PlotKey","ProjectKey","Recorder"],
+    "dataspeciesinventory" : ["created_date","created_user","DataEntry","DataErrorChecking", "GlobalID","last_edited_date","last_edited_user","Observer","PLOTKEY","ProjectKey","Recorder","SpeciesCount"],
+    "geoindicators" : ["created_date", "created_user", "EcolSiteName","ELEVATION", "GlobalID", "last_edited_date","last_edited_user", "PLOTKEY","RecordCount"],
+    "geospecies" : ["created_date","created_user", "GlobalID", "last_edited_date", "last_edited_user"]
+}

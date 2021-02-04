@@ -17,6 +17,8 @@ from shapely.geometry import Point
 import geopandas as gpd
 
 from src.projects.tall_tables.models.header import dataHeader
+from src.projects.tall_tables.models.missing_pks import missing_pks, fields_to_drop
+
 
 
 """
@@ -557,6 +559,10 @@ def tall_ingest(csv_path, table):
     m = model_handler(csv_path, model_choice[table][0], model_choice[table][1])
     sans_null = m.checked_df.loc[~pd.isnull(m.checked_df.PrimaryKey)==True].copy()
 
+    for i in sans_null.columns:
+        if i in fields_to_drop[table.lower()]:
+            sans_null.drop(columns=[i],inplace=True)
+
     m.create_empty_table(d.str)
     ing = ingesterv2(d.str)
 
@@ -565,6 +571,7 @@ def tall_ingest(csv_path, table):
     if model_choice[table][1] in [i for i in missing_pks]:
         for i in missing_pks[model_choice[table][1]]:
             ing.drop_rows(d.str, model_choice[table][1], "PrimaryKey", i)
+
 
     if "header" not in table:
         ing.reestablish_fk( model_choice[table][1])
