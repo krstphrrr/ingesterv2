@@ -42,8 +42,8 @@ geoindicators = {
     "DateEstablished" : "date",
     "DateLoadedInDb" : "text",
     "DateVisited" : "date",
-    "ELEVATION" : "float",
-    "EcolSiteName" : "text",
+
+
     "EcologicalSiteId" : "text",
     "FH_CyanobacteriaCover" : "float",
     "FH_DepSoilCover" : "float",
@@ -79,7 +79,7 @@ geoindicators = {
     "GapCover_25_50" : "float",
     "GapCover_25_plus" : "float",
     "GapCover_51_100" : "float",
-    "GlobalID" : "text",
+
     "Hgt_Forb_Avg" : "float",
     "Hgt_Grass_Avg" : "float",
     "Hgt_Herbaceous_Avg" : "float",
@@ -100,7 +100,7 @@ geoindicators = {
     "NumSpp_NonNoxPlant" : "float",
     "NumSpp_NoxPlant" : "float",
     "NumSpp_PreferredForb" : "float",
-    "PLOTKEY" : "text",
+
     "PercentCoveredByEcoSite" : "float",
     "PlotID" : "text",
     "PlotKey" : "text",
@@ -129,7 +129,7 @@ geoindicators = {
     "RH_SoilSurfResisErosion" : "text",
     "RH_WaterFlowPatterns" : "text",
     "RH_WindScouredAreas" : "text",
-    "RecordCount" : "text",
+
     "SagebrushShape_All_ColumnCount" : "float",
     "SagebrushShape_All_Predominant" : "text",
     "SagebrushShape_All_SpreadCount" : "float",
@@ -146,8 +146,6 @@ geoindicators = {
     "Spp_TallPerenGrass" : "text",
     "State" : "text",
     "TotalFoliarCover" : "float",
-    "created_date" : "date",
-    "created_user" : "text",
-    "last_edited_date" : "date",
-    "last_edited_user" : "text"
+
+
 }

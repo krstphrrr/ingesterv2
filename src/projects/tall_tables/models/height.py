@@ -14,10 +14,6 @@ dataHeight = {
     "DateModified" : "date",
     "FormType" : "text",
     "FormDate" : "date",
-    "Observer" : "text",
-    "Recorder" : "text",
-    "DataEntry" : "text",
-    "DataErrorChecking" : "text",
     "Direction" : "v_100",
     "Measure" : "float",
     "LineLengthAmount" : "float",
@@ -28,6 +24,6 @@ dataHeight = {
     "ShowCheckbox" : "float",
     "CheckboxLabel" : "text",
     "ProjectKey" : "text",
-    "UOM" : "text",
+
     "DateLoadedInDb": "date"
     }

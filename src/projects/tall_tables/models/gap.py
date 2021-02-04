@@ -5,10 +5,6 @@ dataGap = {
     "DateModified" : "date",
     "FormType" : "text",
     "FormDate" : "date",
-    "Observer" : "text",
-    "Recorder" : "text",
-    "DataEntry" : "text",
-    "DataErrorChecking" : "text",
     "Direction" : "text",
     "Measure" : "float",
     "LineLengthAmount" : "float",
@@ -34,6 +30,5 @@ dataGap = {
     "GapEnd" : "float",
     "Gap" : "float",
     "ProjectKey" : "text",
-    "STATE" : "text",
-    "PLOTKEY" : "text"
+
 }

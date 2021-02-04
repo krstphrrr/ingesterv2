@@ -98,12 +98,238 @@ missing_pks = {
                      'NML00000_Calibration_NMCalibration2019-09-01']
 }
 fields_to_drop = {
-    "dataheader":["ELEVATION", "ProjectKey"],
-    "datagap":["DataEntry","DataErrorChecking", "Observer", "PLOTKEY", "ProjectKey", "Recorder", "STATE"],
-    "dataheight":["DataEntry","DataErrorChecking", "Observer","ProjectKey","Recorder","UOM"],
-    "datalpi":["DataEntry","DataErrorChecking", "GrowthHabit_measured","HeightOption","HeightUOM","Observer","PLOTKEY","ProjectKey","Recorder","SAGEBRUSH_SPP","STATE"],
-    "datasoilstability":["DataEntry","DataErrorChecking","Observer","PlotKey","ProjectKey","Recorder"],
-    "dataspeciesinventory" : ["created_date","created_user","DataEntry","DataErrorChecking", "GlobalID","last_edited_date","last_edited_user","Observer","PLOTKEY","ProjectKey","Recorder","SpeciesCount"],
+    "dataheader":["ELEVATION"],
+    "datagap":["DataEntry","DataErrorChecking", "Observer", "PLOTKEY", "Recorder", "STATE"],
+    "dataheight":["DataEntry","DataErrorChecking", "Observer","Recorder","UOM"],
+    "datalpi":["DataEntry","DataErrorChecking","HeightOption","HeightUOM","Observer","PLOTKEY","Recorder","SAGEBRUSH_SPP","STATE"],
+    "datasoilstability":["DataEntry","DataErrorChecking","Observer","PlotKey","Recorder"],
+    "dataspeciesinventory" : ["created_date","created_user","DataEntry","DataErrorChecking", "GlobalID","last_edited_date","last_edited_user","Observer","PLOTKEY","Recorder","SpeciesCount"],
     "geoindicators" : ["created_date", "created_user", "EcolSiteName","ELEVATION", "GlobalID", "last_edited_date","last_edited_user", "PLOTKEY","RecordCount"],
     "geospecies" : ["created_date","created_user", "GlobalID", "last_edited_date", "last_edited_user"]
+}
+"""
+table dependent functions:
+"""
+
+table_dep={
+    "datagap":"""
+            CREATE OR REPLACE FUNCTION public.gap_json(VARIADIC coords character varying[])
+                RETURNS SETOF "dataGap"
+                LANGUAGE 'sql'
+                VOLATILE
+                PARALLEL UNSAFE
+                COST 100
+            AS $BODY$
+
+            SELECT "dataGap"
+                FROM (
+                  SELECT * FROM "dataHeader" AS "dataHeader"
+                  )
+                AS "dataHeader"
+                LEFT OUTER JOIN "dataGap" AS "dataGap"
+                  ON "dataHeader"."PrimaryKey" = "dataGap"."PrimaryKey"
+
+            WHERE postgis.ST_Intersects(
+            	"dataHeader".wkb_geometry,
+            	postgis.ST_MakePolygon(
+            		postgis.ST_SetSRID(
+            			postgis.ST_GeomFromText(
+            				format('LINESTRING(%s)', VARIADIC "coords")
+            			)::postgis.geometry,
+            	4326))) = 't'
+
+            $BODY$;""",
+    "geoindicators":"""
+                    CREATE OR REPLACE FUNCTION public.geoind_json(VARIADIC coords character varying[])
+                        RETURNS SETOF "geoIndicators"
+                        LANGUAGE 'sql'
+                        VOLATILE
+                        PARALLEL UNSAFE
+                        COST 100
+                    AS $BODY$
+
+                    SELECT "geoIndicators"
+                        FROM (
+                          SELECT * FROM "dataHeader" AS "dataHeader"
+                          )
+                        AS "dataHeader"
+                        LEFT OUTER JOIN "geoIndicators" AS "geoIndicators"
+                          ON "dataHeader"."PrimaryKey" = "geoIndicators"."PrimaryKey"
+
+                    WHERE postgis.ST_Intersects(
+                    	"dataHeader".wkb_geometry,
+                    	postgis.ST_MakePolygon(
+                    		postgis.ST_SetSRID(
+                    			postgis.ST_GeomFromText(
+                    				format('LINESTRING(%s)', VARIADIC "coords")
+                    			)::postgis.geometry,
+                    	4326))) = 't'
+
+                    $BODY$;
+                    """,
+    "geospecies":"""
+                CREATE OR REPLACE FUNCTION public.geospe_json(VARIADIC coords character varying[])
+                    RETURNS SETOF "geoSpecies"
+                    LANGUAGE 'sql'
+                    VOLATILE
+                    PARALLEL UNSAFE
+                    COST 100
+                AS $BODY$
+
+                SELECT "geoSpecies"
+                    FROM (
+                      SELECT * FROM "dataHeader" AS "dataHeader"
+                      )
+                    AS "dataHeader"
+                    LEFT OUTER JOIN "geoSpecies" AS "geoSpecies"
+                      ON "dataHeader"."PrimaryKey" = "geoSpecies"."PrimaryKey"
+
+                WHERE postgis.ST_Intersects(
+                	"dataHeader".wkb_geometry,
+                	postgis.ST_MakePolygon(
+                		postgis.ST_SetSRID(
+                			postgis.ST_GeomFromText(
+                				format('LINESTRING(%s)', VARIADIC "coords")
+                			)::postgis.geometry,
+                	4326))) = 't'
+
+                $BODY$;
+                """,
+    "dataheader":"""
+                CREATE OR REPLACE FUNCTION public.header_json(VARIADIC coords character varying[])
+                    RETURNS SETOF "dataHeader"
+                    LANGUAGE 'sql'
+                    VOLATILE
+                    PARALLEL UNSAFE
+                    COST 100
+                AS $BODY$
+
+                (SELECT *
+
+                FROM
+                	public."dataHeader" as dh
+
+                WHERE postgis.ST_Intersects(
+                	dh.wkb_geometry,
+                	postgis.ST_MakePolygon(
+                		postgis.ST_SetSRID(
+                			postgis.ST_GeomFromText(
+                				format('LINESTRING(%s)', VARIADIC "coords")
+                			)::postgis.geometry,
+                	4326))) = 't')
+
+                $BODY$;
+                """,
+    "dataheight":"""
+                CREATE OR REPLACE FUNCTION public.height_json(VARIADIC coords character varying[])
+                    RETURNS SETOF "dataHeight"
+                    LANGUAGE 'sql'
+                    VOLATILE
+                    PARALLEL UNSAFE
+                    COST 100
+                AS $BODY$
+
+                SELECT "dataHeight"
+                    FROM (
+                      SELECT * FROM "dataHeader" AS "dataHeader"
+                      )
+                    AS "dataHeader"
+                    LEFT OUTER JOIN "dataHeight" AS "dataHeight"
+                      ON "dataHeader"."PrimaryKey" = "dataHeight"."PrimaryKey"
+
+                WHERE postgis.ST_Intersects(
+                	"dataHeader".wkb_geometry,
+                	postgis.ST_MakePolygon(
+                		postgis.ST_SetSRID(
+                			postgis.ST_GeomFromText(
+                				format('LINESTRING(%s)', VARIADIC "coords")
+                			)::postgis.geometry,
+                	4326))) = 't'
+
+                $BODY$;
+                """,
+    "datalpi":"""
+                CREATE OR REPLACE FUNCTION public.lpi_json(VARIADIC coords character varying[])
+                    RETURNS SETOF "dataLPI"
+                    LANGUAGE 'sql'
+                    VOLATILE
+                    PARALLEL UNSAFE
+                    COST 100
+                AS $BODY$
+
+                SELECT "dataLPI"
+                    FROM (
+                      SELECT * FROM "dataHeader" AS "dataHeader"
+                      )
+                    AS "dataHeader"
+                    LEFT OUTER JOIN "dataLPI" AS "dataLPI"
+                      ON "dataHeader"."PrimaryKey" = "dataLPI"."PrimaryKey"
+
+                WHERE postgis.ST_Intersects(
+                	"dataHeader".wkb_geometry,
+                	postgis.ST_MakePolygon(
+                		postgis.ST_SetSRID(
+                			postgis.ST_GeomFromText(
+                				format('LINESTRING(%s)', VARIADIC "coords")
+                			)::postgis.geometry,
+                	4326))) = 't'
+
+                $BODY$;
+                """,
+    "datasoilstability":"""
+                        CREATE OR REPLACE FUNCTION public.soilstab_json(VARIADIC coords character varying[])
+                            RETURNS SETOF "dataSoilStability"
+                            LANGUAGE 'sql'
+                            VOLATILE
+                            PARALLEL UNSAFE
+                            COST 100
+                        AS $BODY$
+
+                        SELECT "dataSoilStability"
+                            FROM (
+                              SELECT * FROM "dataHeader" AS "dataHeader"
+                              )
+                            AS "dataHeader"
+                            LEFT OUTER JOIN "dataSoilStability" AS "dataSoilStability"
+                              ON "dataHeader"."PrimaryKey" = "dataSoilStability"."PrimaryKey"
+
+                        WHERE postgis.ST_Intersects(
+                        	"dataHeader".wkb_geometry,
+                        	postgis.ST_MakePolygon(
+                        		postgis.ST_SetSRID(
+                        			postgis.ST_GeomFromText(
+                        				format('LINESTRING(%s)', VARIADIC "coords")
+                        			)::postgis.geometry,
+                        	4326))) = 't'
+
+                        $BODY$;
+                        """,
+    "dataspeciesinventory":"""
+                            CREATE OR REPLACE FUNCTION public.specinv_json(VARIADIC coords character varying[])
+                                RETURNS SETOF "dataSpeciesInventory"
+                                LANGUAGE 'sql'
+                                VOLATILE
+                                PARALLEL UNSAFE
+                                COST 100
+                            AS $BODY$
+
+                            SELECT "dataSpeciesInventory"
+                                FROM (
+                                  SELECT * FROM "dataHeader" AS "dataHeader"
+                                  )
+                                AS "dataHeader"
+                                LEFT OUTER JOIN "dataSpeciesInventory" AS "dataSpeciesInventory"
+                                  ON "dataHeader"."PrimaryKey" = "dataSpeciesInventory"."PrimaryKey"
+
+                            WHERE postgis.ST_Intersects(
+                            	"dataHeader".wkb_geometry,
+                            	postgis.ST_MakePolygon(
+                            		postgis.ST_SetSRID(
+                            			postgis.ST_GeomFromText(
+                            				format('LINESTRING(%s)', VARIADIC "coords")
+                            			)::postgis.geometry,
+                            	4326))) = 't'
+
+                            $BODY$;
+                            """
 }

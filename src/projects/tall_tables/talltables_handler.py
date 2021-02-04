@@ -17,7 +17,7 @@ from shapely.geometry import Point
 import geopandas as gpd
 
 from src.projects.tall_tables.models.header import dataHeader
-from src.projects.tall_tables.models.missing_pks import missing_pks, fields_to_drop
+from src.projects.tall_tables.models.missing_pks import missing_pks, fields_to_drop, table_dep
 
 
 
@@ -286,7 +286,7 @@ class ingesterv2:
         cur = conn.cursor()
         try:
             cur.execute(
-            sql.SQL("DROP TABLE IF EXISTS gisdb.public.{};").format(
+            sql.SQL("DROP TABLE IF EXISTS gisdb.public.{} CASCADE;").format(
             sql.Identifier(table))
             )
             conn.commit()

@@ -5,10 +5,8 @@ dataSpeciesInventory = {
     "DateModified" : "date",
     "FormType" : "text",
     "FormDate" : "date",
-    "Observer" : "text",
-    "Recorder" : "text",
-    "DataEntry" : "text",
-    "DataErrorChecking" : "text",
+
+
     "SpecRichMethod" : "float",
     "SpecRichMeasure" : "float",
     "SpecRichNbrSubPlots" : "float",
@@ -46,14 +44,12 @@ dataSpeciesInventory = {
     "DateLoadedInDb" : "date",
     "PrimaryKey" : "v_100",
     "DBKey" : "text",
-    "created_user":"text",
-    "created_date":"date",
-    "last_edited_user":"text",
-    "last_edited_date":"date",
-    "GlobalID":"text",
+
+
+
     "Species" : "text",
     "ProjectKey" : "text",
-    "SpeciesCount" : "v_100",
+
     "DENSITY" : "float",
-    "PLOTKEY" : "text"
+
 }

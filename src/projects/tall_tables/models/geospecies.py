@@ -4,7 +4,7 @@ geoSpecies = {
     "AH_SpeciesCover_n":"integer",#
     "DBKey" : "text", #
     "Duration" : "text",#
-    "GlobalID" : "text",#
+    # "GlobalID" : "text",#
     "GrowthHabit" : "text",#
     "GrowthHabitSub" : "text",#
     "Hgt_Species_Avg" : "float",#
@@ -17,10 +17,10 @@ geoSpecies = {
     "SG_Group" : "text",#
     "Species" : "text",#
     # "SpeciesState" : "text",
-    "created_date" : "date",#
-    "created_user" : "text",#
-    "last_edited_date" : "date",#
-    "last_edited_user" : "text",#
+    # "created_date" : "date",#
+    # "created_user" : "text",#
+    # "last_edited_date" : "date",#
+    # "last_edited_user" : "text",#
     "DateLoadedInDb" : "date",
     "SpeciesKey" : "text"#
     }

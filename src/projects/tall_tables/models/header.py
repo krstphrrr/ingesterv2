@@ -16,7 +16,6 @@ dataHeader = {
     "ProjectKey": "text",
     "LocationType": "v_20",
     "DateVisited": "date",
-    "ELEVATION": "float",
     "PercentCoveredByEcoSite": "float",
     'wkb_geometry': 'geom'
 }
