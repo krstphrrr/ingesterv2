@@ -128,7 +128,7 @@ class model_handler:
                 )
             self.geo_dataframe['wkb_geometry'] = self.geo_dataframe['geometry'].apply(lambda x: WKTElement(x.wkt, srid=4326))
             self.geo_dataframe.drop('geometry', axis=1, inplace=True)
-            checked = self.check(self.geo_dataframe)
+            checked = self.check(self.geo_dataframe, self.tablename)
 
             if any(~pd.isna(checked.wkb_geometry)): # originally, they geom wont have null values
                 # temp = splitPK(checked, 'dataHeader') # split pk with the rows in pg
@@ -137,8 +137,9 @@ class model_handler:
                 # temp = splitPK(checked, 'dataHeader')
                 self.checked_df = checked.copy()
         else:
+            # print("not header")
             try:
-
+                # print("precheck")
                 self.initial_dataframe = pd.read_csv(path,encoding='utf-8', low_memory=False) if 'geoSpecies' not in tablename else pd.read_csv(path, low_memory=False, encoding='utf-8', index_col=False, usecols=[i for i in range(0,19)])
                 self.initial_dataframe["DateLoadedInDb"] = dt.date.today().isoformat()
                 # self.initial_dataframe.drop(['PLOTKEY'], inplace=True, axis=1)
@@ -148,7 +149,8 @@ class model_handler:
                 self.initial_dataframe = pd.read_csv(path,encoding='cp1252', low_memory=False) if 'geoSpecies' not in tablename else pd.read_csv(path, low_memory=False, encoding='cp1252', index_col=False, usecols=[i for i in range(0,19)])
                 self.initial_dataframe["DateLoadedInDb"] = dt.date.today().isoformat()
                 # self.initial_dataframe.drop(['PLOTKEY'], inplace=True, axis=1)
-            checked = self.check(self.initial_dataframe)
+            # print("about to check")
+            checked = self.check(self.initial_dataframe, self.tablename)
             self.checked_df = checked.copy()
 
 
@@ -159,14 +161,22 @@ class model_handler:
         return var
 
 
-    def check(self, df):
+    def check(self, df, table_name=None):
         """ fieldtype check """
         df = rename_source(df)
-
-        for i in df.columns:
-            # print(i)
-            if df[i].dtype!=self.pandas_dtypes[i]:
-                df[i] = self.typecast(df=df,field=i,fieldtype=self.pandas_dtypes[i])
+        if table_name is not None:
+            for i in df.columns:
+                # print("for each column")
+                if i not in fields_to_drop[table_name.lower()]:
+                    # print(f"if column:{i} is not inside a pass list")
+                    if df[i].dtype!=self.pandas_dtypes[i]:
+                        # print("where am i")
+                        df[i] = self.typecast(df=df,field=i,fieldtype=self.pandas_dtypes[i])
+        else:
+            for i in df.columns:
+                # print(i)
+                if df[i].dtype!=self.pandas_dtypes[i]:
+                    df[i] = self.typecast(df=df,field=i,fieldtype=self.pandas_dtypes[i])
 
         return df
 
@@ -204,11 +214,27 @@ class model_handler:
             print(e)
 
 def rename_source(dataframe):
+    """ used in the dataframe builder to rename source field to ProjectKey """
     df = dataframe.copy()
     for i in df.columns:
         if i=='source':
             df.rename(columns={f"{i}":"ProjectKey"}, inplace=True)
     return df
+
+def portal_table_function(con, table):
+    """ used at the end of the ingestion cycle to create a user-defined function
+        in postgres for each table
+        """
+    conn = con
+    cur = conn.cursor()
+    try:
+        cur.execute(table_dep[table.lower()])
+        conn.commit()
+        print('PG function for '+table +' created')
+    except Exception as e:
+        print(e)
+        conn = con
+        cur = conn.cursor()
 
 
 class ingesterv2:

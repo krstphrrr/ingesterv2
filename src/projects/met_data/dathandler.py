@@ -8,7 +8,7 @@ import requests
 from contextlib import closing
 from src.utils.tools import db
 
-# from tqdm import tqdm
+
 class datReader:
     arrays = []
     path = None
@@ -114,9 +114,9 @@ class datReader:
                 self.df.rename(columns={f'{i}':'{0}'.format(i.replace("/","_"))}, inplace=True)
             # print(i, "post slash")
         # print("fixing '.' characters in field name..")
-        for i in self.df.columns:
-            if '.' in i:
-                self.df.rename(columns={f'{i}':'{0}'.format(i.replace(".",""))}, inplace=True)
+        # for i in self.df.columns:
+        #     if '.' in i:
+        #         self.df.rename(columns={f'{i}':'{0}'.format(i.replace(".",""))}, inplace=True)
         # print("casting timestamp as datetime..")
         for i in self.df.columns:
             if 'TIMESTAMP' in i:
@@ -377,7 +377,7 @@ def met_batcher(path, whichdata=None):
                     elapsed = round(now - startlocal, 2)
                     print(f'time elapsed for {j} dataset: {elapsed}s')
                     count+=1
-            elif "current" in whichdata:
+            if "current" in whichdata:
                 if os.path.splitext(os.path.join(path,i,j))[1]==type[whichdata] and ('Bellevue' not in path):
                     print(j)
                     startlocal = time.time()
@@ -393,7 +393,7 @@ def met_batcher(path, whichdata=None):
                     tempdf['ProjectKey'] = proj_key
 
                     # dat_updater(tempdf)
-                    # tempdf = tempdf.loc[pd.isnull(tempdf.TIMESTAMP)!=True] if any(pd.isnull(tempdf.TIMESTAMP.unique())) else tempdf
+                    tempdf = tempdf.loc[pd.isnull(tempdf.TIMESTAMP)!=True] if any(pd.isnull(tempdf.TIMESTAMP.unique())) else tempdf
 
                     df_dict.update({f'df{count}':tempdf})
                     now = time.time()
