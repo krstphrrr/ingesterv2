@@ -94,7 +94,7 @@ missing_pks = {
                 '17081415205215742018-09-01',
                 'NML00000_2019_Sandy_5012019-09-01'],
     "geoSpecies":['NML00000_Calibration_NMCalibration2019-09-01'],
-    "geoindicators":['NML00000_Calibration_NMCalibration2019-09-01',
+    "geoIndicators":['NML00000_Calibration_NMCalibration2019-09-01',
                      'NML00000_Calibration_NMCalibration2019-09-01']
 }
 fields_to_drop = {

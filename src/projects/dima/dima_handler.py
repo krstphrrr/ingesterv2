@@ -213,12 +213,12 @@ def pg_send(table:str, path:str, csv=None, debug=None):
         newtablename = table
         if tablecheck(table):
             print("FOUND THE TABLE IN PG")
-            ingesterv2.main_ingest(df, newtablename, d.str, 10000) if csv else csv_fieldcheck(df,path,table)
+            # ingesterv2.main_ingest(df, newtablename, d.str, 10000) if csv else csv_fieldcheck(df,path,table)
 
         else:
             print("DID NOT FIND TABLE IN PG, CREATING...")
             table_create(df, table, 'dima')
-            ingesterv2.main_ingest(df, newtablename, d.str, 10000) if csv else csv_fieldcheck(df,path,table)
+            # ingesterv2.main_ingest(df, newtablename, d.str, 10000) if csv else csv_fieldcheck(df,path,table)
 
 
 def batch_looper(dimacontainer, projkey=None, dev=False, pg=False):
@@ -261,7 +261,7 @@ def batch_looper(dimacontainer, projkey=None, dev=False, pg=False):
                         ingesterv2.main_ingest(df, newtablename, d.str, 10000)
                     else:
                         table_create(df, newtablename, keyword)
-                        print('llegue a 2')
+                        print('DDT ')
                         df = dateloadedcheck(df)
                         ingesterv2.main_ingest(df, newtablename, d.str, 10000)
 
