@@ -5,7 +5,8 @@ import os
 from psycopg2 import sql
 import numpy as np
 from src.projects.dima.tablefields import tablefields
-
+from src.projects.aero.aero_model import engine_conn_string
+from src.projects.dima.tabletools import tablecheck, csv_fieldcheck
 
 def fix_fields(df : pd.DataFrame, keyword: str, debug=None):
     """ Checks for duplicate fields produced by primarykey joins
@@ -351,7 +352,7 @@ aero_translate = {
     'float64':'float'
 }
 """
-TOOL TO SURGICALLY DELETE ROWS FROM DIMA DATABASE 
+TOOL TO SURGICALLY DELETE ROWS FROM DIMA DATABASE
 """
 def keyvalAdder(dict):
     start =''
@@ -414,3 +415,52 @@ def rowDeleter(tablename:str,dev=False,**fields:str):
             print(e)
             con = d.str
             cur = con.cursor()
+
+"""
+TOOL TO EXPORT TABLES FROM PG TO LOCAL CSV
+(POST-INGESTION QC)
+
+"""
+def pg2csvExport(tablename=None,dev=False,dbkey=None):
+    path = os.getcwd()
+    # where to delete from: dev or public
+    if dev==False:
+        d = db('dima')
+        keyword = "public"
+        conn = "dima"
+    elif dev==True:
+        d = db("dimadev")
+        keyword = "dimadev"
+        conn = "dimadev"
+    # creating connection/cursor object (for dev or public)
+    engine = engine_conn_string(conn)
+    # con = d.str
+    # cur = con.cursor()
+    nopk = "DBKey"
+    if "tblPlots" in tablename:
+        nopk = "ProjectKey"
+    else:
+        nopk = "DBKey"
+
+    if tablecheck(tablename,conn=conn):
+        if (dbkey is not None) and (tablename is not None):
+            # both table and projectkey
+            print(f"fetching pgdata that includes:{tablename}, {dbkey}...")
+            sql = f"SELECT * from postgres.{keyword}.\"{tablename}\" where \"{nopk}\" = '{dbkey}'"
+            df = pd.read_sql(sql, con=engine)
+            csv_fieldcheck(df,path,tablename)
+            print("done.")
+        elif (dbkey is None) and (tablename is not None):
+            # only table
+            print(f"fetching pgdata that includes:{dbkey}...")
+            sql = f"SELECT * from postgres.{keyword}.\"{tablename}\""
+            df = pd.read_sql(sql,con=engine)
+            csv_fieldcheck(df,path,tablename)
+            print("done.")
+
+        elif (dbkey is not None) and (tablename is None):
+            print("csv all tables with x projectkey;not implemented")
+        else:
+            print("no table, no projectkey; not implemented")
+    else:
+        print(f"{tablename} does not exist in {conn} database")
