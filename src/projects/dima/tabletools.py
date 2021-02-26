@@ -5,8 +5,8 @@ import os
 from psycopg2 import sql
 import numpy as np
 from src.projects.dima.tablefields import tablefields
-from src.projects.aero.aero_model import engine_conn_string
-from src.projects.dima.tabletools import tablecheck, csv_fieldcheck
+# from src.projects.aero.aero_model import engine_conn_string
+# from src.projects.dima.tabletools import tablecheck, csv_fieldcheck
 
 def fix_fields(df : pd.DataFrame, keyword: str, debug=None):
     """ Checks for duplicate fields produced by primarykey joins
