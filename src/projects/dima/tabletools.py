@@ -99,18 +99,24 @@ def table_create(df: pd.DataFrame, tablename: str, conn:str=None):
 
 
     try:
+
         for i in df.columns:
             if tablename!='aero_runs':
                 if ("dima" in conn) or ("dimadev" in conn):
+
+                    print("dima or dimadev")
                     table_fields.update({f'{i}':f'{tablefields[possible_tables[tablename]][i]}'})
                 else:
+                    print("other schemas")
                     table_fields.update({f'{i}':f'{type_translate[df.dtypes[i].name]}'})
                 # table_fields.update({f'{i}':f'{tablefields[possible_tables[tablename]][i]}'})
             else:
+                print("aero")
                 table_fields.update({f'{i}':f'{aero_translate[df.dtypes[i].name]}'})
 
 
         if table_fields:
+            print("checking fields")
             comm = sql_command(table_fields, tablename, conn) if conn!='nri' else sql_command(table_fields, tablename, 'nritest')
             d = db(f'{conn}')
             con = d.str
@@ -180,7 +186,8 @@ possible_tables = {
     "tblSpecRichDetail":"tblSpecRichDetail",
     "tblPlotNotes":"tblPlotNotes",
     "tblQualDetail":"tblQualDetail",
-    "tblQualHeader":"tblQualHeader"
+    "tblQualHeader":"tblQualHeader",
+    "schemaTable":"schemaTable"
 }
 
 
@@ -199,6 +206,7 @@ def sql_command(typedict:{}, name:str, db:str=None):
     "met":"met_data",
     # tall tables
     "gisdb": "gisdb",
+    "geo":"gisdb",
     # nri
     "nri": "nritest",
     "dimadev":"postgres",
@@ -210,7 +218,8 @@ def sql_command(typedict:{}, name:str, db:str=None):
     "gisdb":"public",
     "nri":"public",
     "dimadev":"dimadev",
-    "aero":"public"
+    "aero":"public",
+    "geo":"public"
     }
     inner_list = [f"\"{k}\" {v}" for k,v in typedict.items()]
     part_1 = f""" CREATE TABLE {db_choice[db]}.{schema_choice[db]}.\"{name}\" \
@@ -464,3 +473,47 @@ def pg2csvExport(tablename=None,dev=False,dbkey=None):
             print("no table, no projectkey; not implemented")
     else:
         print(f"{tablename} does not exist in {conn} database")
+
+
+def schemaCreate(path, tablename):
+    """
+    ingesting tables with less priority: schemaTable
+    """
+    d = db("geo")
+    df = pd.read_excel(path)
+    if tablecheck(tablename, conn="geo"):
+        print("table exists; ingesting...")
+        ingesterv2.main_ingest(df,tablename,d.str)
+        print("done")
+
+    else:
+        print("table does not exists; creating table..")
+        table_create(df,tablename,conn="geo")
+        print("ingesting...")
+        ingesterv2.main_ingest(df,tablename, d.str)
+        print("done")
+
+def colcheck(tablename, conn):
+    """
+    incomplete implementation: check ingested fields vs schema on pg
+    """
+    sql=f""" SELECT *
+          FROM information_schema.columns
+         WHERE table_schema = 'public'
+           AND table_name   = '{tablename}'
+             ;
+        """
+    d = db(f'{conn}')
+    if tablecheck(tablename,conn):
+        con = d.str
+        cur = con.cursor()
+        try:
+            cur.execute(sql)
+            return [i[3] for i in cur.fetchall()]
+
+        except Exception as e:
+            print(e)
+            con = d.str
+            cur = con.cursor()
+    else:
+        print("table does not exist")

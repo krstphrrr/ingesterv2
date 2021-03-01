@@ -1,4 +1,13 @@
 tablefields= {
+    "schemaTable":{
+        "Table":"varchar(50)",
+        "Field":"varchar(50)",
+        "DataType":"varchar(50)",
+        "Length":"int",
+        "AliasName":"varchar(50)",
+        "Description":"text",
+        "Notes/Updates":"text"
+    },
     "tblDustDeposition":{
         "PlotKey":"varchar(50)",
         "StackID":"varchar(50)",
