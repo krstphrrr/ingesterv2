@@ -109,6 +109,7 @@ def update_project(path_in_batch,projectkey, database=None):
 
 def project_key_check(projectkey, database):
     d = db(database)
+    projectkey+="%"
 
     try:
         con = d.str
@@ -117,7 +118,7 @@ def project_key_check(projectkey, database):
         select exists (
             select 1
             from "Projects"
-            where "project_key" = %s
+            where "project_key" like %s
         )'''
         cur.execute (exists_query, (projectkey,))
         return cur.fetchone()[0]
