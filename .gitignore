@@ -83,6 +83,7 @@ utils/__pycache__/tools.cpython-38.pyc
 met_debug.py
 nri_debug.py
 dima_debug.py
+tall_tables_debug.py
 src/projects/nri_data/nri_tools/paths.py
 src/utils/database.ini
 

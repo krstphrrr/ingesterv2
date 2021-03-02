@@ -8,6 +8,10 @@ from src.projects.dima.tablefields import tablefields
 # from src.projects.aero.aero_model import engine_conn_string
 # from src.projects.dima.tabletools import tablecheck, csv_fieldcheck
 
+def engine_conn_string(string):
+    d = db(string)
+    return f'postgresql://{d.params["user"]}:{d.params["password"]}@{d.params["host"]}:{d.params["port"]}/{d.params["dbname"]}'
+
 def fix_fields(df : pd.DataFrame, keyword: str, debug=None):
     """ Checks for duplicate fields produced by primarykey joins
 

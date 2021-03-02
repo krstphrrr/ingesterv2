@@ -258,11 +258,13 @@ def batch_looper(dimacontainer, projkey=None, dev=False, pg=False):
                     if tablecheck(newtablename, keyword):
                         print('MWACK')
                         df = dateloadedcheck(df)
+                        df = ovenTemp_INT(df)
                         ingesterv2.main_ingest(df, newtablename, d.str, 10000)
                     else:
                         table_create(df, newtablename, keyword)
                         print('DDT ')
                         df = dateloadedcheck(df)
+                        df = ovenTemp_INT(df)
                         ingesterv2.main_ingest(df, newtablename, d.str, 10000)
 
                 else:
@@ -287,6 +289,16 @@ def batch_looper(dimacontainer, projkey=None, dev=False, pg=False):
 # len(df)
 # df2 = looper(p,"tblHorizontalFlux",csv=False)
 # len(df2)
+
+def ovenTemp_INT(df):
+    data=df.copy()
+    if "ovenTemp" in data.columns:
+        # print("yes")
+        data.ovenTemp = data.ovenTemp.astype("int64")
+        return data
+    else:
+        return data
+
 def looper(path2mdbs, tablename, projk=None, csv=False):
     """
     goes through all the files(.mdb or .accdb extensions) inside a folder,
