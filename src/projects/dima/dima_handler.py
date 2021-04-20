@@ -294,7 +294,7 @@ def ovenTemp_INT(df):
     data=df.copy()
     if "ovenTemp" in data.columns:
         # print("yes")
-        data.ovenTemp = data.ovenTemp.astype("nt64")
+        data.ovenTemp = data.ovenTemp.astype("Int64")
         return data
     else:
         return data
