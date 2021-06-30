@@ -1,6 +1,6 @@
 
 dataSoilStability = {
-
+    "PlotKey":"v_100",
     "RecKey" : "v_100",
     "DateModified" : "date",
     "FormType" : "text",

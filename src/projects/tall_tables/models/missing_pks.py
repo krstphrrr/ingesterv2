@@ -102,7 +102,7 @@ fields_to_drop = {
     "datagap":["DataEntry","DataErrorChecking", "Observer", "PLOTKEY", "Recorder", "STATE"],
     "dataheight":["DataEntry","DataErrorChecking", "Observer","Recorder","UOM"],
     "datalpi":["DataEntry","DataErrorChecking","HeightOption","HeightUOM","Observer","PLOTKEY","Recorder","SAGEBRUSH_SPP","STATE"],
-    "datasoilstability":["DataEntry","DataErrorChecking","Observer","PlotKey","Recorder"],
+    "datasoilstability":["DataEntry","DataErrorChecking","Observer","Recorder"],
     "dataspeciesinventory" : ["created_date","created_user","DataEntry","DataErrorChecking", "GlobalID","last_edited_date","last_edited_user","Observer","PLOTKEY","Recorder","SpeciesCount"],
     "geoindicators" : ["created_date", "created_user", "EcolSiteName","ELEVATION", "GlobalID", "last_edited_date","last_edited_user", "PLOTKEY","RecordCount"],
     "geospecies" : ["created_date","created_user", "GlobalID", "last_edited_date", "last_edited_user"]
