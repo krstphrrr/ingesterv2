@@ -451,6 +451,48 @@ def single_pg_send(df, tablename):
             table_create(df, tablename, 'dima')
             ingesterv2.main_ingest(df, newtablename, d.str, 10000)
 
+def project_field_change(
+                field_2_change:str,
+                value_2_change:str,
+                new_value:str,
+                database:str) -> None:
+    """
+    replace all values of a given field with another value.
+
+    Parameters
+    ----------
+    field_2_change: string
+    value_2_change: string
+    new_value: string
+    database: string
+
+    Returns
+    -------
+    None
+    """
+    d = db(database)
+    sql = f'''
+        UPDATE
+            {database}."Projects"
+        SET
+            "{field_2_change}" = REPLACE(
+                "{field_2_change}",
+                \'{value_2_change}\',
+                \'{new_value}\'
+            );
+        '''
+
+    try:
+        con = d.str
+        cur = con.cursor()
+        cur.execute(sql)
+        con.commit()
+
+    except Exception as e:
+        print(e)
+        con = d.str
+        cur = con.cursor()
+
 
 
 
