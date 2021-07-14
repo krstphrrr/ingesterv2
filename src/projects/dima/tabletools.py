@@ -73,6 +73,12 @@ def fix_fields(df : pd.DataFrame, keyword: str, debug=None):
                     done=True
                     return df
 
+                else:
+                    print("6. both dates are unequal, but occur only in one row: dropping y")
+                    df.drop([f'{keyword}_y'], axis=1, inplace=True)
+                    df.rename(columns={f'{keyword}_x':f'{keyword}'}, inplace=True)
+                    return df
+
             else:
                 return df
 
@@ -311,6 +317,8 @@ def significant_digits_fix_pandas(df):
     for i in df.columns:
         if i in colist:
             df[i] = df[i].apply(lambda x: round(x,4))
+        else:
+            return df
     return df
 
 def northing_round(dataframe):

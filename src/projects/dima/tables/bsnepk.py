@@ -13,8 +13,12 @@ def bsne_pk(dimapath):
     PrimaryKey field is made using formdate and plotkey
 
     """
-    ddt = arcno.MakeTableView("tblBSNE_TrapCollection",dimapath)
-    arc = arcno()
+    arc = arcno(dimapath)
+    if "tblBSNE_TrapCollection" in arc.actual_list:
+        ddt = arcno.MakeTableView("tblBSNE_TrapCollection",dimapath)
+    else:
+        ddt = pd.DataFrame({'A' : []})
+
     if ddt.shape[0]>0:
         ddt = arcno.MakeTableView("tblBSNE_TrapCollection",dimapath)
 
@@ -32,24 +36,21 @@ def bsne_pk(dimapath):
         df2tmp2 = fix_fields(df2tmp,"DateModified")
         df2tmp3 = fix_fields(df2tmp2,"DateEstablished")
         return df2tmp3
+
     else:
 
         box = arcno.MakeTableView("tblBSNE_Box",dimapath)
         stack = arcno.MakeTableView("tblBSNE_Stack", dimapath)
         boxcol = arcno.MakeTableView('tblBSNE_BoxCollection', dimapath)
-        # differences 1
 
-        # dfx = pd.merge(stack, box[cols_dif1], left_index=True, right_index=True, how="outer")
-        df = pd.merge(box,stack, how="inner", on="StackID")
 
-        # df.collectDate = pd.to_datetime(df.collectDate) if platform.system()=='Linux' else df.collectDate
-        df2 = pd.merge(df,boxcol, how="inner", on="BoxID")
+        plotted_boxes = pd.merge(box,stack, how="inner", on="StackID")
+
+        collected_boxes = pd.merge(plotted_boxes,boxcol, how="inner", on="BoxID")
+        df2 = arc.CalculateField(collected_boxes,"PrimaryKey","PlotKey","collectDate")
         df2.collectDate = pd.to_datetime(df2.collectDate) if platform.system()=='Linux' else df2.collectDate
 
-        # fix
-        df2 = arc.CalculateField(df2,"PrimaryKey","PlotKey","collectDate")
         df2tmp = fix_fields(df2,"Notes")
         df2tmp2 = fix_fields(df2tmp,"DateModified")
         df2tmp3 = fix_fields(df2tmp2,"DateEstablished")
-
         return df2tmp3
