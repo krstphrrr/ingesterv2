@@ -531,7 +531,8 @@ def project_field_change(
                 field_2_change:str,
                 value_2_change:str,
                 new_value:str,
-                database:str) -> None:
+                database:str,
+                whichtable:str) -> None:
     """
     replace all values of a given field with another value.
 
@@ -554,7 +555,7 @@ def project_field_change(
 
     sql = f'''
         UPDATE
-            {dbchoice[database]}."Projects"
+            {dbchoice[database]}."{whichtable}"
         SET
             "{field_2_change}" = REPLACE(
                 "{field_2_change}",
@@ -562,6 +563,7 @@ def project_field_change(
                 \'{new_value}\'
             );
         '''
+
 
     try:
         con = d.str
