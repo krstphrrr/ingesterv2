@@ -526,7 +526,7 @@ def colcheck(tablename, conn):
             cur = con.cursor()
     else:
         print("table does not exist")
-        
+
 def project_field_change(
                 field_2_change:str,
                 value_2_change:str,
@@ -546,10 +546,15 @@ def project_field_change(
     -------
     None
     """
+    dbchoice = {
+        "dima":"public",
+        "dimadev":"dimadev"
+        }
     d = db(database)
+
     sql = f'''
         UPDATE
-            {database}."Projects"
+            {dbchoice[database]}."Projects"
         SET
             "{field_2_change}" = REPLACE(
                 "{field_2_change}",
