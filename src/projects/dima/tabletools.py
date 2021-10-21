@@ -106,8 +106,6 @@ def table_create(df: pd.DataFrame, tablename: str, conn:str=None):
 
     table_fields = {}
 
-
-
     try:
 
         for i in df.columns:
@@ -199,7 +197,6 @@ possible_tables = {
     "tblQualHeader":"tblQualHeader",
     "schemaTable":"schemaTable"
 }
-
 
 
 def sql_command(typedict:{}, name:str, db:str=None):
@@ -529,3 +526,45 @@ def colcheck(tablename, conn):
             cur = con.cursor()
     else:
         print("table does not exist")
+        
+def project_field_change(
+                field_2_change:str,
+                value_2_change:str,
+                new_value:str,
+                database:str) -> None:
+    """
+    replace all values of a given field with another value.
+
+    Parameters
+    ----------
+    field_2_change: string
+    value_2_change: string
+    new_value: string
+    database: string
+
+    Returns
+    -------
+    None
+    """
+    d = db(database)
+    sql = f'''
+        UPDATE
+            {database}."Projects"
+        SET
+            "{field_2_change}" = REPLACE(
+                "{field_2_change}",
+                \'{value_2_change}\',
+                \'{new_value}\'
+            );
+        '''
+
+    try:
+        con = d.str
+        cur = con.cursor()
+        cur.execute(sql)
+        con.commit()
+
+    except Exception as e:
+        print(e)
+        con = d.str
+        cur = con.cursor()

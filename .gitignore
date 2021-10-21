@@ -115,3 +115,14 @@ dimabatch_csv.py
 src/projects/aero/__pycache__/aero_model.cpython-38.pyc
 src/projects/met_data/__pycache__/dathandler.cpython-38.pyc
 src/projects/met_data/__pycache__/dathandler.cpython-38.pyc
+**/__pycache__
+**/*.pyc
+**/*.xlsx
+**/*.accdb 
+**/*.mdb
+src/projects/met_data/__pycache__/dathandler.cpython-38.pyc
+src/projects/met_data/__pycache__/dathandler.cpython-38.pyc
+src/projects/met_data/__pycache__/dathandler.cpython-38.pyc
+ingester_debug.py
+robin_script.py
+robin_script.py
